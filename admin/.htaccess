@@ -1,0 +1,3 @@
+<FilesMatch "^(dbconnect|validation|functions|footer|message|Pagination|legacyDeleteDisabled)\.php$">
+    Require all denied
+</FilesMatch>

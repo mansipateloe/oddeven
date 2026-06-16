@@ -1,0 +1,16 @@
+.header-link-custom:hover{ text-decoration: none; }
+.custom-ul-scroll{ width: auto; height: 500px; overflow-x:hidden; }
+.td-hover-pointer:hover { cursor: pointer; }
+.th-align-center { text-align: center; }
+.red-dashboard-block{ color: white; background-color: #F08080 !important; }
+.center-dashboard-block{ text-align: center; font-weight: bold; }
+.navbar-default{ background-color: #fefefe !important; border-bottom: none;}
+#side-menu li .active{ background-color: #e4eaee !important; }
+.nav > li > a:focus, .nav > li > a:hover{ background-color: #e4eaee !important; }
+.header-link-custom { color: #333 !important; }
+.header-link-custom:hover { background-color: #e4eaee !important; }
+.nav > li > a{ color: #333 !important; }
+#page-wrapper{ background-color: #eff4f7 !important;}
+#side-menu { background-color: #fefefe !important; }
+#wrapper { background-color: #fefefe; }
+.panel-footer { background-color: #fefefe; border-top: none; }

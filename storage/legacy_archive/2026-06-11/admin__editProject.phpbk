@@ -1,0 +1,689 @@
+<?php include 'header.php'; ?>
+
+<?php 
+
+    $id = $_GET['edit'];
+
+    $qryView = "SELECT * FROM projectsTbl WHERE id=".$id;
+
+    $resultView = mysqli_query($conn,$qryView);
+
+    $rowView = $resultView->fetch_assoc();
+
+?>
+
+        <div id="page-wrapper">
+
+            <div class="row">
+
+                <div class="col-lg-12">
+                    <div class="panel panel-default">
+                       <div class="panel-heading panel-box">
+                          <h4>Edit Project</h4>
+                       </div>
+                        <div class="panel-body manage_project">
+
+                           	<div class="dataTablesbox2">
+
+                                <form role="form" method="POST" onsubmit="return checkall();">
+
+                                    <div class="row">
+
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Project Name :</label>
+
+                                                <input class="form-control" placeholder="Project Name" value="<?php echo $rowView['projectName']; ?>" id="projectName" onkeyup="checkprojectName();" type="text" name="projectName" required>
+
+                                                <input type="hidden" name="oldProjectName" id="oldProjectName" value="<?php echo $rowView['projectName']; ?>">
+
+                                                <label></label>
+
+                                                 <span id="projectName_status"></span>
+
+                                            </div>
+
+
+
+                                        </div>
+
+                                        
+
+                                    </div>
+
+                                    <div class="row">
+
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Multiple Selects</label>
+
+                                                <select multiple size="5" name="developers[]" class="form-control" >
+
+                                                    <?php 
+
+                                                        $developerIds = json_decode($rowView['developerId']);
+
+                                                        $qryEmployee = "SELECT * FROM employeesTbl where status=0";
+
+                                                        $resultEmployee = mysqli_query($conn,$qryEmployee);
+
+                                                        if($resultEmployee->num_rows > 0){
+
+                                                            while($employee = $resultEmployee->fetch_assoc()){
+
+                                                                if(in_array($employee['id'], $developerIds, true)){
+
+                                                                    echo "<option value='".$employee['id']."' selected>".$employee['name']."</option>";
+
+                                                                }else{
+
+                                                                    echo "<option value='".$employee['id']."'>".$employee['name']."</option>";
+
+                                                                }
+
+                                                            }
+
+                                                        }
+
+                                                     ?>
+
+                                                </select>
+
+                                            </div>
+
+                                        </div>
+                                  <!-- Description -->
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Description :</label>
+
+                                                <textarea class="form-control" rows="6" placeholder="Description" id="description" onkeyup="checkprojectName();" type="text" name="description" ><?php echo $rowView['description']; ?></textarea>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                <!-- Attachment -->
+                                    <div class="row">
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Attachment :</label>
+
+                                                <input type="file" name="productimage" id="imgid">
+
+                                            </div>
+
+                                        </div>
+                                      <!-- Start Date -->
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Start Date :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['startdate']; ?>" id="startdate" onkeyup="checkprojectName();" type="date" name="startdate" >
+
+                                            </div>
+
+                                        </div>
+                                        <!--End Date -->
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>End Date :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['enddate']; ?>" id="enddate" onkeyup="checkprojectName();" type="date" name="enddate" >
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                  <!-- Amount -->
+                                    <div class="row">
+
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Amount :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['amount']; ?>" placeholder="Amount" id="amount" onkeyup="checkprojectName();" type="number" name="amount" min="0" >
+
+                                            </div>
+
+                                        </div>
+                                    <!-- expense -->
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Expense :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['expence']; ?>" placeholder="Expense" id="expence" onkeyup="checkprojectName();" type="number" name="expence" min="0" >
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <!-- ADD BY ME  -->
+                                    <div class="row">
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Client Name :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['customerName']; ?>" placeholder="Client Name" id="customerName" onkeyup="checkprojectName();" type="text" name="customerName" >
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                                <div class="form-group">
+
+                                                    <label>Nick Name :</label>
+
+                                                    <input class="form-control" value="<?php echo  $rowView['nickName']; ?>" placeholder="Nick Name" id="nickName" onkeyup="checkprojectName();" type="text" name="nickName" >
+
+                                                </div>
+
+                                        </div>
+                                        <div class="col-lg-4">
+
+                                                    <div class="form-group">
+
+                                                        <label>Platform :</label>
+
+                                                       
+                                                        <select class="form-control" name="platform">
+
+                                                        <?php if($rowView['platform'] == "upwork"): ?>
+
+                                                            <option value="upwork" selected>Upwork</option>
+
+                                                            <option value="fiverr">Fiverr</option>
+
+                                                            <option value="refernce">Refernce</option>
+
+                                                        <?php elseif($rowView['platform'] == "fiverr"): ?>
+
+                                                            <option value="upwork">Upwork</option>
+
+                                                            <option value="fiverr" selected>Fiverr</option>
+
+                                                            <option value="refernce">Refernce</option>
+
+                                                        <?php else: ?>
+
+                                                            <option disabled> -- select option --</option>
+
+                                                            <option value="upwork">Upwork</option>
+
+                                                            <option value="fiverr">Fiverr</option>
+
+                                                            <option value="refernce" selected>Refernce</option>
+
+                                                        <?php endif; ?>
+
+                                                        </select>
+
+                                            </div>
+
+                                        </div>
+
+
+                                        </div>
+
+                                        <div class="row">
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Phone :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['phone']; ?>" placeholder="Phone" pattern="[0-9]{10}" minlength="10" maxlength="10"  id="phone" onkeyup="checkprojectName();" type="text" name="phone" >
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Email :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['email']; ?>" placeholder="Email" id="email" onkeyup="checkprojectName();" type="email" name="email" min="0" >
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Project Type :</label>
+                                               
+
+                                                <!-- <select name="projectType" id="projectType" class="form-control">
+
+                                                <option value="softwareDevelopment">Software Development</option>
+
+                                                <option value="webDevelopment">Web Development</option>
+
+                                                <option value="cloudComputing">Cloud Computing</option>
+
+                                                <option value="education">Education</option>
+
+                                            </select> -->
+                                            <select class="form-control" name="projectType">
+
+                                                <?php if($rowView['projectType'] == "softwareDevelopment"): ?>
+
+                                                    <option value="softwareDevelopment" selected>Software Development</option>
+
+                                                    <option value="webDevelopment">Web Development</option>
+
+                                                    <option value="cloudComputing">Cloud Computing</option>
+
+                                                    <option value="education">Education</option>
+
+                                                <?php elseif($rowView['projectType'] == "webDevelopment"): ?>
+
+                                                    <option value="softwareDevelopment">Software Development</option>
+
+                                                    <option value="webDevelopment" selected>Web Development</option>
+
+                                                    <option value="cloudComputing">Cloud Computing</option>
+
+                                                    <option value="education">Education</option>
+
+                                                <?php elseif($rowView['projectType'] == "cloudComputing"): ?>
+
+                                                    <option value="softwareDevelopment">Software Development</option>
+
+                                                    <option value="webDevelopment">Web Development</option>
+
+                                                    <option value="cloudComputing" selected>Cloud Computing</option>
+
+                                                    <option value="education">Education</option>
+
+                                                <?php elseif($rowView['projectType'] == "education"): ?>
+
+                                                    <option value="softwareDevelopment">Software Development</option>
+
+                                                    <option value="webDevelopment">Web Development</option>
+
+                                                    <option value="cloudComputing">Cloud Computing</option>
+
+                                                    <option value="education" selected>Education</option>
+
+                                                <?php else: ?>
+
+                                                    <option disabled> -- select option --</option>
+
+                                                    <option value="softwareDevelopment">Software Development</option>
+
+                                                    <option value="webDevelopment">Web Development</option>
+
+                                                    <option value="cloudComputing">Cloud Computing</option>
+
+                                                    <option value="education">Education</option>
+
+                                                <?php endif; ?>
+
+                                                </select>
+
+                                            </div>
+
+                                        </div>
+
+                                        </div>
+
+                                        <div class="row">
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Location :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['location']; ?>" placeholder="Location" id="location" onkeyup="checkprojectName();" type="text" name="location" >
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Country :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['country']; ?>" placeholder="Country" id="country" onkeyup="checkprojectName();" type="text" name="country" >
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Reference :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['reference']; ?>" placeholder="Reference" id="reference" onkeyup="checkprojectName();" type="text" name="reference" >
+
+                                            </div>
+
+                                        </div>
+
+                                        </div>
+                                    <!-- END BY ME  -->
+                                <!-- Customer Name -->
+                                    <!-- <div class="row">
+
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Customer Name :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['customerName']; ?>" placeholder="Customer Name" id="customerName" onkeyup="checkprojectName();" type="text" name="customerName" required>
+
+                                            </div>
+
+                                        </div> -->
+                                     <!-- phone -->
+                                        <!-- <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Phone :</label>
+
+                                                <input class="form-control" value="<?php echo  $rowView['phone']; ?>" placeholder="Phone" id="phone" onkeyup="checkprojectName();" type="number" name="phone" >
+
+                                            </div>
+
+                                        </div> -->
+                                   <!-- email -->
+                                        <!-- <div class="row">
+
+                                            <div class="col-lg-6">
+
+                                                <div class="form-group">
+
+                                                    <label>Email :</label>
+
+                                                    <input class="form-control" value="<?php echo  $rowView['email']; ?>" placeholder="Email" id="email" onkeyup="checkprojectName();" type="email" name="email" >
+
+                                                </div>
+
+                                            </div> -->
+                                      <!-- location -->
+                                            <!-- <div class="col-lg-6">
+
+                                                <div class="form-group">
+
+                                                    <label>Location :</label>
+
+                                                    <input class="form-control" value="<?php echo  $rowView['location']; ?>" placeholder="Location" id="location" onkeyup="checkprojectName();" type="text" name="location" >
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                     <div class="row"> -->
+                                    <!-- Country -->
+                                            <!-- <div class="col-lg-6">
+
+                                                <div class="form-group">
+
+                                                    <label>Country :</label>
+
+                                                    <input class="form-control" value="<?php echo  $rowView['country']; ?>" placeholder="Country" id="country" onkeyup="checkprojectName();" type="text" name="country" >
+
+                                                </div>
+
+                                            </div> -->
+                                    <!--Reference  -->
+                                            <!-- <div class="col-lg-6">
+
+                                                <div class="form-group">
+
+                                                    <label>Reference :</label>
+
+                                                    <input class="form-control" value="<?php echo  $rowView['reference']; ?>" placeholder="Reference" id="reference" onkeyup="checkprojectName();" type="text" name="reference" >
+
+                                                </div>
+
+                                            </div>
+
+                                        </div> -->
+                                    <!-- status -->
+                                        <div class="row">
+
+                                            <div class="col-lg-6">
+
+                                                <div class="form-group">
+
+                                                    <label>Status :</label>
+
+                                                    <select class="form-control" name="status">
+
+                                                        <?php if($rowView['status'] == "pending"): ?>
+
+                                                            <option value="pending" selected>Pending</option>
+
+                                                            <option value="inprogress">In Process</option>
+
+                                                            <option value="completed">Completed</option>
+
+                                                            <option value="cancel">Cancel</option>
+
+                                                        <?php elseif($rowView['status'] == "inprogress"): ?>
+
+                                                            <option value="pending">Pending</option>
+
+                                                            <option value="inprogress" selected>In Process</option>
+
+                                                            <option value="completed">Completed</option>
+
+                                                            <option value="cancel">Cancel</option>
+
+                                                        <?php elseif($rowView['status'] == "completed"): ?>
+
+                                                            <option value="pending">Pending</option>
+
+                                                            <option value="inprogress">In Process</option>
+
+                                                            <option value="completed" selected>Completed</option>
+
+                                                            <option value="cancel">Cancel</option>
+
+                                                        <?php elseif($rowView['status'] == "cancel"): ?>
+
+                                                            <option value="pending">Pending</option>
+
+                                                            <option value="inprogress">In Process</option>
+
+                                                            <option value="completed">Completed</option>
+
+                                                            <option value="cancel" selected>Cancel</option>
+
+                                                        <?php else: ?>
+
+                                                            <option disabled> -- select option --</option>
+
+                                                            <option value="pending">Pending</option>
+
+                                                            <option value="inprogress">In Process</option>
+
+                                                            <option value="completed">Completed</option>
+
+                                                            <option value="cancel">Cancel</option>
+
+                                                        <?php endif; ?>
+
+                                                    </select>
+
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+                                    <!-- button -->
+                                        <div class="row">
+
+                                        <div class="col-lg-7" style="margin-top: 2%" align="left">
+
+                                            <input type="submit" class="btn btn-primary viewreport" name="updateProject" value="Update">
+
+                                            <input class="btn btn-danger cancel_btn" type="reset" value="Cancel">
+
+                                        </div>
+
+                                   
+
+                                    </div>
+
+                                </form>
+
+                                </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+        </div>
+    </div>
+
+
+
+    <script src="../vendor/jquery/jquery.min.js"></script>
+
+    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <script src="../vendor/metisMenu/metisMenu.min.js"></script>
+
+    <script src="../vendor/raphael/raphael.min.js"></script>
+
+    <script src="../vendor/morrisjs/morris.min.js"></script>
+
+    <script src="../data/morris-data.js"></script>
+
+    <script src="../dist/js/sb-admin-2.js"></script>
+
+    <script type="text/javascript">
+
+        function checkprojectName(){
+
+            /*$("#loaderIcon").show();*/
+
+            //email=('#emailUname').val();
+
+            var projectId = "<?php echo $id ?>";
+
+            var project=document.getElementById( "projectName" ).value;
+
+            if(project){
+
+                $.ajax({
+
+                    type:'post',
+
+                    url:'checkAvailibility.php',
+
+                    data: {
+
+                        updateProjectName:project,projectId,
+
+                    },
+
+                    success: function (response){
+
+                        /*$("#loaderIcon").hide();*/
+
+                        $('#projectName_status').html(response);
+
+                        if(response=="Projectname Available"){
+
+                            $('#projectName_status').css("color", "green");
+
+                            return true;
+
+                        }else{
+
+                            $('#projectName_status').css("color", "red");
+
+                            return false;
+
+                        }
+
+                    }
+
+                });
+
+            }else{
+
+                $('#projectName_status').html("");
+
+                return false;
+
+            }
+
+        }
+
+        function checkall(){
+
+            var projectNamehtml=document.getElementById("projectName_status").innerHTML;
+
+            var oldProjectName=document.getElementById("oldProjectName").innerHTML;
+
+            if(project!==oldProjectName){
+
+                if(projectNamehtml=="Projectname Available"){
+
+                    return true;
+
+                }else{
+
+                    return false;
+
+                }
+
+            }else{
+
+                return true;
+
+            }
+
+        }
+
+    </script>
+
+<?php include 'footer.php'; ?>
+

@@ -1,0 +1,488 @@
+<?php error_reporting(E_ALL);
+ini_set('display_errors', '1');
+
+?>
+
+<?php include 'header.php'; ?>
+
+        <div id="page-wrapper">
+            <div class="panel panel-default">
+               <div class="panel-heading panel-box">
+                  <h4>Add Project</h4>
+               </div>
+               <div class="panel-body manage_project">
+
+                    <div class="row">
+
+                        <div class="col-lg-12">
+
+                        	<div class="dataTablesbox2">
+
+                                <form role="form" method="POST" onsubmit="return checkall();" enctype="multipart/form-data">
+
+                                    <div class="row">
+
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Project Name :</label>
+
+                                                <input class="form-control" placeholder="Project Name" id="projectName" onkeyup="checkprojectName();" type="text" name="projectName" >
+                                                <span id="projectName_status"></span>
+
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Select Developers :</label>
+
+                                                <select multiple size="5" name="developers[]" class="form-control" >
+
+                                                    <?php 
+
+                                                        $qryEmployee = "SELECT * FROM employeesTbl where status=0";
+
+                                                        $resultEmployee = mysqli_query($conn,$qryEmployee);
+
+                                                        if($resultEmployee->num_rows > 0){
+
+                                                            while($employee = $resultEmployee->fetch_assoc()){
+
+                                                                echo "<option value='".$employee['id']."'>".$employee['name']."</option>";
+
+                                                            }
+
+                                                        }
+
+                                                     ?>
+
+                                                </select>
+
+                                            </div>
+
+                                        </div>
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Description :</label>
+
+                                                <textarea class="form-control" rows="6" placeholder="Description" id="description" onkeyup="checkprojectName();" type="text" name="description" ></textarea>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row">
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Attachment :</label>
+
+                                                <input type="file" name="productimage" id="imgid">
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Start Date :</label>
+
+                                                <input class="form-control" id="startdate" onkeyup="checkprojectName();" value="<?php echo date('Y-m-d'); ?>" type="date" name="startdate">
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>End Date :</label>
+
+                                                <input class="form-control" id="enddate" onkeyup="checkprojectName();" type="date" value="<?php echo date('Y-m-d'); ?>" name="enddate">
+
+                                            </div>
+
+                                        </div>
+                                        
+
+                                    </div>
+
+                                    <div class="row">
+
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Amount :</label>
+
+                                                <input class="form-control" placeholder="Amount" id="amount" onkeyup="checkprojectName();" type="number" name="amount" min="0" >
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Expense :</label>
+
+                                                <input class="form-control" placeholder="Expense" id="expence" onkeyup="checkprojectName();" type="number" name="expence" min="0" >
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row">
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Client Name :</label>
+
+                                                <input class="form-control" placeholder="Client Name" id="customerName" onkeyup="checkprojectName();" type="text" name="customerName" >
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                                <div class="form-group">
+
+                                                    <label>Nick Name :</label>
+
+                                                    <input class="form-control" placeholder="Nick Name" id="nickName" onkeyup="checkprojectName();" type="text" name="nickName" >
+
+                                                </div>
+
+                                         </div>
+                                         <div class="col-lg-4">
+
+                                                    <div class="form-group">
+
+                                                        <label>Platform :</label>
+                                                        <select name="platform" id="platform" class="form-control">
+
+                                                                <option value="upwork">Upwork</option>
+
+                                                                <option value="fiverr">Fiverr</option>
+
+                                                                <option value="refernce">Refernce</option>
+
+
+                                                        </select>
+
+                                                    </div>
+
+                                        </div>
+                                       
+
+                                    </div>
+
+                                    <div class="row">
+
+                                    <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Phone :</label>
+
+                                                <input class="form-control" placeholder="Phone" pattern="[0-9]{10}" minlength="10" maxlength="10"  id="phone" onkeyup="checkprojectName();" type="text" name="phone" >
+
+                                            </div>
+
+                                     </div>
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Email :</label>
+
+                                                <input class="form-control" placeholder="Email" id="email" onkeyup="checkprojectName();" type="email" name="email" min="0" >
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Project Type :</label>
+
+                                                <select name="projectType" id="projectType" class="form-control">
+                                                    
+                                                    <option value="UiUXDevelopment">Ui UX Development</option>
+                                                    
+                                                    <option value="CRMDevelopment">CRM Development</option>
+                                                    
+                                                    <option value="LaravelDevelopment">Laravel Development</option>
+                                                    
+                                                    <option value="CodeigniterDevelopment">Codeigniter Development</option>
+                                                    
+                                                    <option value="MobileAppDevelopment">Mobile App Development</option>
+                                                    
+                                                    <option value="cloudComputing">Wordpress Development</option>
+                                                    
+                                                    <option value="education">Magento Development</option>
+                                                    
+                                                    <option value="softwareDevelopment">Shopify Development</option>
+                                                    
+                                                    <option value="webDevelopment">SEO Development</option>
+                                                    
+                                                    <option value="cloudComputing">Webflow Development</option>
+                                                    
+                                                    <option value="cloudComputing">React Node Development</option>
+                                                    
+                                                    <option value="education">Salesforce Development</option>
+                                                    
+                                                    <option value="education">QA Development</option>
+
+                                              </select>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Location :</label>
+
+                                                <input class="form-control" placeholder="Location" id="location" onkeyup="checkprojectName();" type="text" name="location" >
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Country :</label>
+
+                                                <input class="form-control" placeholder="Country" id="country" onkeyup="checkprojectName();" type="text" name="country" >
+
+                                            </div>
+
+                                        </div>
+
+                                        <div class="col-lg-4">
+
+                                            <div class="form-group">
+
+                                                <label>Reference :</label>
+
+                                                <input class="form-control" placeholder="Reference" id="reference" onkeyup="checkprojectName();" type="text" name="reference" >
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="row">
+
+                                        <div class="col-lg-6">
+
+                                            <div class="form-group">
+
+                                                <label>Status :</label>
+
+                                                <select name="status" id="status" class="form-control">
+
+                                                    <option value="pending">Pending</option>
+
+                                                    <option value="inprogress">In Process</option>
+
+                                                    <option value="completed">Completed</option>
+
+                                                    <option value="cancel">Cancel</option>
+
+                                                </select>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="form-group">
+
+                                        <div class="row" style="margin:15px 0">
+
+                                            <input type="submit" class="btn viewreport" name="addProject" value="Add Project">
+
+                                            <input class="btn btn-danger cancel_btn" type="reset" value="Cancel">
+
+                                        </div>
+
+                                    </div>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <script src="../vendor/jquery/jquery.min.js"></script>
+
+    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+    <script src="../vendor/metisMenu/metisMenu.min.js"></script>
+
+    <script src="../vendor/datatables/js/jquery.dataTables.min.js"></script>
+
+    <script src="../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
+
+    <script src="../vendor/datatables-responsive/dataTables.responsive.js"></script>
+
+    <script src="../vendor/raphael/raphael.min.js"></script>
+
+    <script src="../vendor/morrisjs/morris.min.js"></script>
+
+    <script src="../data/morris-data.js"></script>
+
+    <script src="../dist/js/sb-admin-2.js"></script>
+
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+
+            $('#dataTables-example').DataTable({
+
+                responsive: true,
+
+                "paging":   false,
+
+                "ordering": false,
+
+                "info":     false,
+
+                "searching": false
+
+                /*"pageLength": 50*/
+
+            });
+
+        });
+
+    </script>
+
+    <script type="text/javascript">
+
+        function checkprojectName(){
+
+            /*$("#loaderIcon").show();*/
+
+            //email=('#emailUname').val();
+
+            var project=document.getElementById( "projectName" ).value;
+
+            if(project){
+
+                $.ajax({
+
+                    type:'post',
+
+                    url:'checkAvailibility.php',
+
+                    data: {
+
+                        projectName:project,
+
+                    },
+
+                    success: function (response){
+
+                        /*$("#loaderIcon").hide();*/
+
+                        $('#projectName_status').html(response);
+
+                        if(response=="Projectname Available"){
+
+                            $('#projectName_status').css("color", "green");
+
+                            return true;
+
+                        }else{
+
+                            $('#projectName_status').css("color", "red");
+
+                            return false;
+
+                        }
+
+                    }
+
+                });
+
+            }else{
+
+                $('#projectName_status').html("");
+
+                return false;
+
+            }
+
+        }
+
+        function checkall(){
+
+            var projectNamehtml=document.getElementById("projectName_status").innerHTML;
+
+
+
+            if(projectNamehtml=="Projectname Available"){
+
+                return true;
+
+            }else{
+
+                return false;
+
+            }
+
+        }
+
+    </script>
+
+
+
+<?php include 'footer.php'; ?>

@@ -1,0 +1,3 @@
+<FilesMatch "^(dbconnect|validation|footer|dashboardNotices|test)\.php$">
+    Require all denied
+</FilesMatch>
