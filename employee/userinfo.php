@@ -1,7 +1,7 @@
 <?php include 'header.php'; ?>
 <?php 
     $employeeId = $_SESSION['employeeId'];
-    $qryView = "SELECT * FROM employeesTbl WHERE id=".$employeeId;
+    $qryView = "SELECT * FROM employeestbl WHERE id=".$employeeId;
     $resultView = mysqli_query($conn,$qryView);
     $rowView = $resultView->fetch_assoc();
 ?>

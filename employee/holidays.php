@@ -73,7 +73,7 @@
 
                                     /*$qry = "SELECT * FROM holidayTbl";*/
 
-                                    $qry = "SELECT * FROM `holidayTbl` ORDER BY `holidayTbl`.`holidayDate` ASC ";
+                                    $qry = "SELECT * FROM `holidaytbl` ORDER BY `holidaytbl`.`holidayDate` ASC ";
 
                                     $result = mysqli_query($conn,$qry);
 
