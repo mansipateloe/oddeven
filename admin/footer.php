@@ -26,6 +26,22 @@
 	<script src="../js/oecrm-ui.js?v=20260612-7"></script>
 	<script>
 	(function(){
+		function digitsOnlyInput(input){
+			if(!input||input.dataset.oecrmDigitsOnly==='1')return;
+			input.dataset.oecrmDigitsOnly='1';
+			input.setAttribute('inputmode','numeric');
+			input.setAttribute('maxlength','10');
+			input.setAttribute('pattern','[0-9]{10}');
+			input.addEventListener('input',function(){
+				var value=this.value.replace(/\D+/g,'').slice(0,10);
+				if(this.value!==value)this.value=value;
+			});
+		}
+		document.querySelectorAll('input[name*="phone"],input[name*="mobile"],input[name*="mobileno"],input[name*="contact_no"]').forEach(digitsOnlyInput);
+		document.addEventListener('focusin',function(event){
+			if(!event.target||!event.target.matches) return;
+			if(event.target.matches('input[name*="phone"],input[name*="mobile"],input[name*="mobileno"],input[name*="contact_no"]')) digitsOnlyInput(event.target);
+		});
 		var toggle=document.querySelector('.admin-menu-toggle');
 		var currentPage=document.body.getAttribute('data-current-page')||'';
 		var cancelMap={

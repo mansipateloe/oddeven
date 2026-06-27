@@ -13,8 +13,8 @@ if (isset($_POST['leadDate'])) {
     $companyname = $_POST['company'] ?? '';
     $contact = $_POST['cperson'] ?? '';
     $email = $_POST['emailid'] ?? '';
-    $mobileone = $_POST['mobileno1'] ?? '';
-    $mobiletwo = $_POST['mobileno2'] ?? '';
+    $mobileone = substr(preg_replace('/\D+/', '', $_POST['mobileno1'] ?? ''), 0, 10);
+    $mobiletwo = substr(preg_replace('/\D+/', '', $_POST['mobileno2'] ?? ''), 0, 10);
     $emailtwo = $_POST['emailid2'] ?? '';
     $nick_name = $_POST['nick_name'] ?? '';
     $status = $_POST['status'] ?? '';
@@ -24,6 +24,10 @@ if (isset($_POST['leadDate'])) {
 
     $companyId=oecrm_current_company_id($conn);
     $stmt = mysqli_prepare($conn, "UPDATE leads SET lead_date=?, executive_name=?, company_name=?, contact_person=?, email=?, nick_name=?, lead_source=?, status=?, address=?, city=?, mobile_no1=?, mobile_no2=?, personal_email=? WHERE lead_id=? AND company_id=? AND is_active=1");
+    if (strlen($mobileone) !== 10 || strlen($mobiletwo) !== 10) {
+        http_response_code(422);
+        exit('Phone numbers must contain exactly 10 digits.');
+    }
     mysqli_stmt_bind_param($stmt, 'sssssssssssssii', $leaddate, $executive, $companyname, $contact, $email, $nick_name, $lead_source, $status, $address, $city, $mobileone, $mobiletwo, $emailtwo, $id,$companyId);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);

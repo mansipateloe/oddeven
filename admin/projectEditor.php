@@ -62,7 +62,7 @@ unset($_SESSION['project_error']);
                 <div class="form-group"><label>Budget Hours</label><input class="form-control" type="number" min="0" step=".25" name="budget_hours" value="<?php echo oecrm_h($project['budget_hours'] ?? ''); ?>"></div>
                 <div class="form-group">
                     <label>Team Members</label>
-                    <select class="form-control" name="team[]" multiple size="7">
+                    <select class="form-control" name="team[]" multiple size="7" required>
                         <?php while ($employee = mysqli_fetch_assoc($employees)): ?>
                             <option value="<?php echo (int) $employee['id']; ?>" <?php echo in_array((int) $employee['id'], $selectedTeam, true) ? 'selected' : ''; ?>><?php echo oecrm_h($employee['company_name'] . ' - ' . $employee['employeeCode'] . ' - ' . $employee['name']); ?></option>
                         <?php endwhile; ?>

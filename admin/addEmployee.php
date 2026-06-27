@@ -163,7 +163,7 @@
                                             <span>Joining Date :</span>
                                             <div class="form-group input-group">
                                                 <span class="input-group-addon" style="padding: 8px 20px 0px 20px;"><p class="fa fa-calendar-o"></p></span>
-                                                <input type="date" class="form-control" name="joiningDate" value="<?php echo $joiningDate ?>" placeholder="Joining Date">
+                                                <input type="date" class="form-control" name="joiningDate" value="<?php echo $joiningDate ?>" placeholder="Joining Date" required>
                                             </div>
                                             <span>Salary :</span>
                                             <div class="form-group input-group">

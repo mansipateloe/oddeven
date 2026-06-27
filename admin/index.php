@@ -11,7 +11,7 @@
 
     <title>Oddeven Infotech Pvt. Ltd.</title>
     <link href="../vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../vendor/custom/customAdmin.css" rel="stylesheet">
+    <link href="../vendor/custom/customAdmin.css?v=20260627-3" rel="stylesheet">
     <link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
     <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
     <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
@@ -48,6 +48,11 @@
                 $loginError = "<div class='form-group'><div class='alert alert-danger alert-dismissable'>
                                     <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>x</button>
                                     <p class='alert-link'>Invalid login credentials.</p>
+                                </div></div>";
+            } elseif (strlen($plainPassword) > 13) {
+                $loginError = "<div class='form-group'><div class='alert alert-danger alert-dismissable'>
+                                    <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>x</button>
+                                    <p class='alert-link'>Password cannot exceed 13 characters.</p>
                                 </div></div>";
             } else {
                 $stmt = mysqli_prepare($conn, "SELECT * FROM admins WHERE uname = ? LIMIT 1");
@@ -117,7 +122,11 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Password</label>
-                                    <input class="form-control" placeholder="Enter your password" name="password" type="password" value="" required>
+                                    <div class="oecrm-password-field">
+                                        <span class="oecrm-password-prefix" aria-hidden="true"><i class="fa fa-lock"></i></span>
+                                        <input class="form-control" placeholder="Enter your password" name="password" type="password" maxlength="13" autocomplete="current-password" required>
+                                        <button type="button" class="btn btn-default oecrm-password-toggle" data-target="admin-login-password" aria-label="Show password"><i class="fa fa-eye"></i></button>
+                                    </div>
                                 </div>
                                 <input type="submit" class="btn btn-lg btn-success btn-block" value="Login" name="submit">
                             </fieldset>
@@ -132,6 +141,21 @@
     <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
     <script src="../vendor/metisMenu/metisMenu.min.js"></script>
     <script src="../dist/js/sb-admin-2.js"></script>
+    <script>
+      (function(){
+        var input = document.querySelector('input[name="password"]');
+        var toggle = document.querySelector('.oecrm-password-toggle');
+        if (input) input.id = 'admin-login-password';
+        if (toggle && input) {
+          toggle.addEventListener('click', function () {
+            var visible = input.type === 'text';
+            input.type = visible ? 'password' : 'text';
+            toggle.setAttribute('aria-label', visible ? 'Show password' : 'Hide password');
+            toggle.querySelector('i').className = visible ? 'fa fa-eye' : 'fa fa-eye-slash';
+          });
+        }
+      })();
+    </script>
 
 </body>
 </html>

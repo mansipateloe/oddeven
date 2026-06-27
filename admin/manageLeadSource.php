@@ -6,7 +6,8 @@ include 'header.php';
     <div class="row">
         <div class="col-lg-12">
             <div class="dataTablesbox">
-                <form role="form" method="POST">
+                <form role="form" method="POST" action="validation.php">
+                    <?php echo oecrm_csrf_field(); ?>
                     <div class="col-lg-4">
                         <div class="form-group">
                             <label>Lead Source</label>
@@ -72,7 +73,7 @@ include 'header.php';
                                                     echo "<td class='sorting_1'>" . $row['id'] . "</td>";
                                                     echo "<td>" . $row['name'] . "</td>";
                                                     /*echo "<td class='center' align='center'>&nbsp;&nbsp;<a href='deleteDesignation.php?deleteDesignation=".$row['id']."'><i class='fa fa-trash-o' style='font-size:25px; color:red;'></i></a></td>";*/
-                                                    echo '<td class="center" align="center"><a href="deleteLeadSource.php?deleteLeadSource=' . $row["id"] . '" onclick="return confirm(\'Are you sure you want to delete?\');"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></a></td>';
+                                                    echo '<td class="center" align="center"><form method="post" action="deleteLeadSource.php" style="display:inline;">' . oecrm_csrf_field() . '<input type="hidden" name="deleteLeadSource" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link" style="padding:0;border:0;" onclick="return confirm(\'Are you sure you want to delete?\');"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
                                                     echo "</tr>";
                                                 }
                                             } else {

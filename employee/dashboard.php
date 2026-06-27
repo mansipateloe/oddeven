@@ -72,6 +72,14 @@ function attendance_times(array $values)
 $flash = $_SESSION['attendance_flash'] ?? '';
 $requiresReason = !empty($_SESSION['attendance_requires_reason']);
 unset($_SESSION['attendance_flash'], $_SESSION['attendance_requires_reason']);
+$monthOptions = [];
+$monthCursor = new DateTime($now->format('Y-m-01'));
+$monthCursor->modify('-12 months');
+for ($i = 0; $i < 25; $i++) {
+    $value = $monthCursor->format('Y-m');
+    $monthOptions[$value] = $monthCursor->format('F Y');
+    $monthCursor->modify('+1 month');
+}
 include 'header.php';
 ?>
 <style>
@@ -91,7 +99,12 @@ include 'header.php';
     <div class="panel panel-default classic-attendance">
         <div class="panel-heading">
             Attendance
-            <form method="get" class="form-inline attendance-month-filter"><input type="month" class="form-control input-sm" name="month" value="<?php echo oecrm_h($month); ?>"> <button class="btn btn-primary btn-sm">View</button></form>
+            <form method="get" class="form-inline attendance-month-filter">
+                <select class="form-control input-sm" name="month" data-oecrm-native="1">
+                    <?php foreach ($monthOptions as $value => $label): ?><option value="<?php echo oecrm_h($value); ?>" <?php echo $month === $value ? 'selected' : ''; ?>><?php echo oecrm_h($label); ?></option><?php endforeach; ?>
+                </select>
+                <button class="btn btn-primary btn-sm">View</button>
+            </form>
         </div>
         <div class="panel-body table-responsive">
             <table class="table table-bordered table-striped classic-attendance-table no-datatable">

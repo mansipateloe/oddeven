@@ -7,6 +7,7 @@ $employeeId = (int) $_SESSION['employeeId'];
 $employeeCompany = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT company_id FROM employeestbl WHERE id=' . $employeeId));
 oecrm_auto_send_birthday_wishes($conn, (int) ($employeeCompany['company_id'] ?? 0));
 $today = date('Y-m-d');
+$nextWeek = date('Y-m-d', strtotime('+7 days'));
 
 $projectStats = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT
     COUNT(DISTINCT p.id) total,
@@ -28,11 +29,12 @@ $notices = mysqli_query($conn, 'SELECT DISTINCT n.id,n.title,n.priority,n.publis
     WHERE n.status="published" AND n.publish_at<=NOW() AND (n.expires_at IS NULL OR n.expires_at>=NOW())
     AND (n.audience_type="all" OR nt.employee_id=' . $employeeId . ' OR (nt.department_id IS NOT NULL AND nt.department_id=e.department_id))
     ORDER BY FIELD(n.priority,"urgent","high","normal","low"),n.publish_at DESC LIMIT 5');
+$upcomingHolidays = mysqli_query($conn, 'SELECT holidayDate,holidayTitle FROM holidaytbl WHERE company_id=' . (int) ($employeeCompany['company_id'] ?? 0) . ' AND holidayDate BETWEEN "' . mysqli_real_escape_string($conn, $today) . '" AND "' . mysqli_real_escape_string($conn, $nextWeek) . '" ORDER BY holidayDate');
 
 $totalProjects = max(1, (int) ($projectStats['total'] ?? 0));
 $completion = round(((int) ($projectStats['completed'] ?? 0) / $totalProjects) * 100);
 ?>
-<div id="page-wrapper" class="compact-admin-page">
+<div id="page-wrapper" class="compact-admin-page preadmin-dashboard-page employee-main-dashboard">
     <div class="employee-welcome-card">
         <div>
             <span class="employee-welcome-label">Welcome back</span>
@@ -86,7 +88,22 @@ $completion = round(((int) ($projectStats['completed'] ?? 0) / $totalProjects) *
                     <?php endwhile; ?>
                 </div>
             </div>
+            <div class="panel panel-default">
+                <div class="panel-heading"><span><i class="fa fa-calendar"></i> Next 7 Days Holidays</span><a href="holidays.php">View calendar</a></div>
+                <div class="panel-body">
+                    <?php if (!$upcomingHolidays || mysqli_num_rows($upcomingHolidays) === 0): ?>
+                        <div class="employee-empty-state"><i class="fa fa-calendar-o"></i><p>No holiday in the next 7 days.</p></div>
+                    <?php endif; ?>
+                    <?php while ($holiday = mysqli_fetch_assoc($upcomingHolidays)): ?>
+                        <div class="employee-notice-row priority-normal">
+                            <i class="fa fa-calendar-check-o"></i>
+                            <span><strong><?php echo oecrm_h($holiday['holidayTitle']); ?></strong><small><?php echo date('D, d M Y', strtotime($holiday['holidayDate'])); ?></small></span>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 <?php include 'footer.php'; ?>
+

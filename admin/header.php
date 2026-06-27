@@ -21,7 +21,7 @@
   <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
   <link href="../vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet">
   <link href="../vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="../vendor/custom/customAdmin.css?v=20260613-1">
+  <link rel="stylesheet" type="text/css" href="../vendor/custom/customAdmin.css?v=20260627-1">
   <!-- <style>
         .nav-second-level {
             display: none; /* Hide all submenus by default */
@@ -84,6 +84,8 @@
   oecrm_auto_send_birthday_wishes($conn, $birthdayCompanyId);
   $birthdayTodayCountRow = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) total FROM employeestbl WHERE company_id=" . (int) $birthdayCompanyId . " AND status=0 AND birthdate REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' AND DATE_FORMAT(STR_TO_DATE(birthdate,'%Y-%m-%d'),'%m-%d')=DATE_FORMAT(CURDATE(),'%m-%d')"));
   $birthdayTodayCount = (int) ($birthdayTodayCountRow['total'] ?? 0);
+  $adminCompanyRow = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT display_name FROM companies WHERE id=' . (int) $birthdayCompanyId . ' LIMIT 1'));
+  $adminCompanyName = $adminCompanyRow['display_name'] ?? 'Active Company';
   ?>
   <div id="wrapper">
     <!-- Navigation -->
@@ -99,7 +101,12 @@
 
         <div class="sidebar-nav">
           <ul class="nav erp-sidebar" id="side-menu">
-            <li class="sidebar-user-menu"><a href="#"><span><i><img class="img-circle" src="../admin/img/user-image.png" alt=""></i><?php echo "Hi, ".$_SESSION['adminName']; ?></span><span class="fa arrow"></span></a><ul class="nav nav-second-level"><li><a href="logout.php"><i class="fa fa-sign-out fa-fw"></i> Logout</a></li></ul></li>
+            <li class="sidebar-user-menu">
+              <button type="button" class="sidebar-user-toggle">
+                <span><i><img class="img-circle" src="../admin/img/user-image.png" alt=""></i><?php echo "Hi, ".$_SESSION['adminName']; ?></span><span class="fa arrow"></span>
+              </button>
+              <ul class="nav nav-second-level"><li><a href="logout.php"><i class="fa fa-sign-out fa-fw"></i> Logout</a></li></ul>
+            </li>
 
             <?php if (oecrm_is_super_admin()) { $companyOptions=mysqli_query($conn,"SELECT id,display_name FROM companies WHERE status=1 ORDER BY display_name");$currentCompanyId=oecrm_current_company_id($conn); ?>
             <li class="erp-company-context"><form method="post" action="switch_company.php"><?php echo oecrm_csrf_field();?><label><i class="fa fa-building"></i> Active Company</label><select name="company_id" onchange="this.form.submit()" title="Active company"><?php while($companyOption=mysqli_fetch_assoc($companyOptions)):?><option value="<?php echo (int)$companyOption['id'];?>" <?php echo $currentCompanyId===(int)$companyOption['id']?'selected':'';?>><?php echo oecrm_h($companyOption['display_name']);?></option><?php endwhile;?></select></form></li>
@@ -184,12 +191,30 @@
         <div><span>Admin / <?php echo oecrm_h($adminPageTitle);?></span><h1><?php echo oecrm_h($adminPageTitle);?></h1></div>
       </div>
       <div class="admin-topbar-actions">
+        <span class="admin-company-pill" title="Active company"><i class="fa fa-building-o"></i><?php echo oecrm_h($adminCompanyName);?></span>
         <span class="admin-topbar-date"><i class="fa fa-calendar-o"></i><?php echo date('D, d M Y');?></span>
         <a class="admin-topbar-icon birthday-topbar-link" href="birthdayCenter.php" title="<?php echo $birthdayTodayCount; ?> birthday<?php echo $birthdayTodayCount===1?'':'s'; ?> today"><i class="fa fa-birthday-cake"></i><?php if($birthdayTodayCount):?><span class="topbar-notification-badge"><?php echo $birthdayTodayCount;?></span><?php endif;?></a>
         <a class="admin-topbar-icon" href="noticeCenter.php" title="Notices"><i class="fa fa-bell-o"></i></a>
-        <a class="admin-topbar-profile" href="logout.php"><img src="../admin/img/user-image.png" alt=""><span><?php echo oecrm_h($_SESSION['adminName']);?><small><?php echo oecrm_is_super_admin()?'Super Admin':'Administrator';?></small></span></a>
+        <div class="admin-profile-menu">
+          <button type="button" class="admin-topbar-profile" aria-haspopup="true" aria-expanded="false" data-profile-toggle="admin">
+            <img src="../admin/img/user-image.png" alt="">
+            <span><?php echo oecrm_h($_SESSION['adminName']);?><small><?php echo oecrm_is_super_admin()?'Super Admin':'Administrator';?></small></span>
+            <i class="fa fa-angle-down"></i>
+          </button>
+          <div class="admin-profile-dropdown">
+            <a href="dashboard.php"><i class="fa fa-tachometer"></i> Dashboard</a>
+            <a href="noticeCenter.php"><i class="fa fa-bell-o"></i> Notices</a>
+            <?php if(oecrm_can($conn,'activity_audit','view')||oecrm_can($conn,'audit','view')):?><a href="audit_logs.php"><i class="fa fa-shield"></i> Activity Logs</a><?php endif;?>
+            <a class="danger" href="logout.php"><i class="fa fa-sign-out"></i> Logout</a>
+          </div>
+        </div>
       </div>
     </header>
+
+
+
+
+
 
 
 

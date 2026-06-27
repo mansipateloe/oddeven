@@ -14,12 +14,12 @@
                     <?php echo oecrm_csrf_field(); ?>
                     <div class="lead-compact-grid">
                         <div class="form-group">
-                            <label for="leadDate">Lead Date</label>
-                            <input type="date" class="form-control" placeholder="dd-mm-yyyy" id="leadDate" name="leadDate" value="<?php echo $today_date; ?>">
+                            <label for="leadDate">Lead Date *</label>
+                            <input type="date" class="form-control" placeholder="dd-mm-yyyy" id="leadDate" name="leadDate" value="<?php echo $today_date; ?>" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="executiveName">Client Name</label>
+                            <label for="executiveName">Client Name *</label>
                             <input type="text" class="form-control" placeholder="Client Name" id="executiveName" name="executiveName" required>
                         </div>
 
@@ -29,25 +29,25 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="company">Company Name</label>
-                            <input type="text" name="company" id="company" class="form-control" placeholder="Company Name" maxlength="100">
+                            <label for="company">Company Name *</label>
+                            <input type="text" name="company" id="company" class="form-control" placeholder="Company Name" maxlength="100" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="cperson">Contact Person</label>
-                            <input type="text" name="cperson" id="cperson" class="form-control" placeholder="Contact Person" maxlength="100">
+                            <label for="cperson">Contact Person *</label>
+                            <input type="text" name="cperson" id="cperson" class="form-control" placeholder="Contact Person" maxlength="100" required>
                             <span class="help" id="msg1"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="mobileno1">Mobile No1</label>
-                            <input type="text" name="mobileno1" id="mobileno1" maxlength="10" class="decimal form-control" placeholder="Mobile No1">
+                            <input type="text" name="mobileno1" id="mobileno1" maxlength="10" class="form-control only-digits" placeholder="Mobile No1" inputmode="numeric" pattern="[0-9]{10}" autocomplete="off">
                             <span class="help" id="msg2"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="mobileno2">Mobile No2</label>
-                            <input type="text" name="mobileno2" id="mobileno2" maxlength="10" class="decimal form-control" placeholder="Mobile No2">
+                            <input type="text" name="mobileno2" id="mobileno2" maxlength="10" class="form-control only-digits" placeholder="Mobile No2" inputmode="numeric" pattern="[0-9]{10}" autocomplete="off">
                             <span class="help" id="msg2_1"></span>
                         </div>
 
@@ -68,7 +68,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="lead_source">Lead Source</label>
+                            <label for="lead_source">Lead Source *</label>
                             <select class="form-control" id="lead_source" name="lead_source">
                                 <option value="" disabled selected>Select Lead Source</option>
                                 <?php
@@ -81,8 +81,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="leadType">Lead Priority</label>
-                            <select class="form-control" id="leadType" name="leadType">
+                            <label for="leadType">Lead Priority *</label>
+                            <select class="form-control" id="leadType" name="leadType" required>
                                 <option value="" selected disabled>Select Lead priority</option>
                                 <option value="low">Low</option>
                                 <option value="medium">Medium</option>
@@ -117,8 +117,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="status">Status</label>
-                            <select class="form-control" id="status" name="status">
+                            <label for="status">Status *</label>
+                            <select class="form-control" id="status" name="status" required>
                                 <option value="" selected disabled>Select Status</option>
                                 <option value="close">Close</option>
                                 <option value="inprogress">Inprogress</option>

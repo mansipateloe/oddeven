@@ -45,42 +45,47 @@ unset($_SESSION['client_flash'], $_SESSION['client_error']);
             <h2><?php echo oecrm_h($client['display_name'] ?? 'New Client'); ?></h2>
             <?php if ($client): ?>
                 <span><?php echo oecrm_h($client['client_code']); ?></span>
-                <span class="client-status <?php echo $client['status']; ?>"><?php echo ucwords(str_replace('_', ' ', $client['status'])); ?></span>
+                <span class="client-status <?php echo $client['status']; ?>" id="clientStatusBadge"><?php echo ucwords(str_replace('_', ' ', $client['status'])); ?></span>
             <?php endif; ?>
         </div>
     </div>
     <div class="client-profile-grid">
         <main>
-            <div class="panel panel-default">
-                <div class="panel-heading">Client Profile</div>
+                <div class="panel panel-default">
+                <div class="panel-heading"><i class="fa fa-id-card-o"></i> Client Profile</div>
                 <div class="panel-body">
-                    <style>.client-form select.form-control{height:38px;background:#fff}</style>
-                    <form method="post" action="clientAction.php" class="client-form">
+                    <style>
+                        .client-form select.form-control{height:38px;background:#fff}
+                        .client-form .required-field:after{content:" *";color:#d9534f;font-weight:700}
+                        .client-profile-page .panel-heading i{margin-right:8px;color:#2f74e8}
+                    </style>
+                    <form method="post" action="clientAction.php" class="client-form" id="clientProfileForm">
                         <?php echo oecrm_csrf_field(); ?>
                         <input type="hidden" name="action" value="save_client">
                         <input type="hidden" name="id" value="<?php echo $id; ?>">
                         <div class="client-form-grid three">
                             <div class="form-group">
-                                <label>Client Code</label>
+                                <label class="required-field">Client Code</label>
                                 <input class="form-control" name="client_code" readonly required value="<?php echo oecrm_h($client['client_code'] ?? $nextCode); ?>">
                                 <small>Auto generated</small>
                             </div>
-                            <div class="form-group"><label>Display Name</label><input class="form-control" name="display_name" required value="<?php echo oecrm_h($client['display_name'] ?? ''); ?>"></div>
-                            <div class="form-group"><label>Legal Name</label><input class="form-control" name="legal_name" required value="<?php echo oecrm_h($client['legal_name'] ?? ''); ?>"></div>
+                            <div class="form-group"><label class="required-field">Display Name</label><input class="form-control" name="display_name" required value="<?php echo oecrm_h($client['display_name'] ?? ''); ?>"></div>
+                            <div class="form-group"><label class="required-field">Legal Name</label><input class="form-control" name="legal_name" required value="<?php echo oecrm_h($client['legal_name'] ?? ''); ?>"></div>
                             <div class="form-group"><label>Type</label><select class="form-control" name="client_type"><?php foreach (['company', 'individual'] as $value): ?><option <?php echo ($client['client_type'] ?? 'company') === $value ? 'selected' : ''; ?>><?php echo ucfirst($value); ?></option><?php endforeach; ?></select></div>
                             <div class="form-group"><label>Status</label><select class="form-control" name="status"><?php foreach (['prospect', 'active', 'on_hold', 'inactive', 'closed'] as $value): ?><option value="<?php echo $value; ?>" <?php echo ($client['status'] ?? 'active') === $value ? 'selected' : ''; ?>><?php echo ucwords(str_replace('_', ' ', $value)); ?></option><?php endforeach; ?></select></div>
                             <div class="form-group"><label>Industry</label><input class="form-control" name="industry" value="<?php echo oecrm_h($client['industry'] ?? ''); ?>"></div>
                             <div class="form-group"><label>Email</label><input type="email" class="form-control" name="email" value="<?php echo oecrm_h($client['email'] ?? ''); ?>"></div>
-                            <div class="form-group"><label>Phone</label><input class="form-control" name="phone" value="<?php echo oecrm_h($client['phone'] ?? ''); ?>"></div>
+                            <div class="form-group"><label>Phone</label><input class="form-control only-digits" name="phone" type="text" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="off" value="<?php echo oecrm_h($client['phone'] ?? ''); ?>"></div>
                             <div class="form-group"><label>Website</label><input class="form-control" name="website" value="<?php echo oecrm_h($client['website'] ?? ''); ?>"></div>
-                            <div class="form-group"><label>Currency</label><input class="form-control" name="currency_code" maxlength="3" value="<?php echo oecrm_h($client['currency_code'] ?? 'INR'); ?>"></div>
-                            <div class="form-group"><label>Payment Terms (days)</label><input type="number" min="0" class="form-control" name="payment_terms_days" value="<?php echo (int) ($client['payment_terms_days'] ?? 0); ?>"></div>
-                            <div class="form-group"><label>Tax ID</label><input class="form-control" name="tax_id" value="<?php echo oecrm_h($client['tax_id'] ?? ''); ?>"></div>
+                            <div class="form-group"><label class="required-field">Currency</label><input class="form-control" name="currency_code" maxlength="3" value="<?php echo oecrm_h($client['currency_code'] ?? 'INR'); ?>"></div>
+                            <div class="form-group"><label class="required-field">Payment Terms (days)</label><input type="number" min="0" class="form-control" name="payment_terms_days" value="<?php echo (int) ($client['payment_terms_days'] ?? 0); ?>"></div>
+                            <div class="form-group"><label class="required-field">GST / Tax ID</label><input class="form-control" name="tax_id" maxlength="15" value="<?php echo oecrm_h($client['tax_id'] ?? ''); ?>" placeholder="15-character GSTIN / Tax ID"></div>
                         </div>
-                        <div class="form-group"><label>Billing Address</label><textarea class="form-control" name="billing_address"><?php echo oecrm_h($client['billing_address'] ?? ''); ?></textarea></div>
+                        <div class="alert alert-info" style="margin-top:-4px;">Provide at least one of Email or Phone. Each one must be unique inside the company.</div>
+                        <div class="form-group"><label class="required-field">Billing Address</label><textarea class="form-control" name="billing_address"><?php echo oecrm_h($client['billing_address'] ?? ''); ?></textarea></div>
                         <div class="client-form-grid three">
                             <div class="form-group">
-                                <label>Country</label>
+                                <label class="required-field">Country</label>
                                 <select class="form-control location-native-select" id="countrySelect" name="country" data-oecrm-native="1">
                                     <option value="">Select Country</option>
                                     <?php while ($country = mysqli_fetch_assoc($countries)): ?>
@@ -88,8 +93,8 @@ unset($_SESSION['client_flash'], $_SESSION['client_error']);
                                     <?php endwhile; ?>
                                 </select>
                             </div>
-                            <div class="form-group"><label>State</label><select class="form-control location-native-select" id="stateSelect" name="state" data-oecrm-native="1" data-selected="<?php echo oecrm_h($client['state'] ?? ''); ?>" disabled><option value="">Select State</option></select></div>
-                            <div class="form-group"><label>City</label><select class="form-control location-native-select" id="citySelect" name="city" data-oecrm-native="1" data-selected="<?php echo oecrm_h($client['city'] ?? ''); ?>" disabled><option value="">Select City</option></select></div>
+                            <div class="form-group"><label class="required-field">State</label><select class="form-control location-native-select" id="stateSelect" name="state" data-oecrm-native="1" data-selected="<?php echo oecrm_h($client['state'] ?? ''); ?>" disabled><option value="">Select State</option></select></div>
+                            <div class="form-group"><label class="required-field">City</label><select class="form-control location-native-select" id="citySelect" name="city" data-oecrm-native="1" data-selected="<?php echo oecrm_h($client['city'] ?? ''); ?>" disabled><option value="">Select City</option></select></div>
                         </div>
                         <div class="form-group"><label>Notes</label><textarea class="form-control" name="notes"><?php echo oecrm_h($client['notes'] ?? ''); ?></textarea></div>
                         <button class="btn btn-primary"><i class="fa fa-save"></i> Save Client</button>
@@ -99,7 +104,7 @@ unset($_SESSION['client_flash'], $_SESSION['client_error']);
             </div>
             <?php if ($id): ?>
                 <div class="panel panel-default">
-                    <div class="panel-heading">Communication History</div>
+                    <div class="panel-heading"><i class="fa fa-comments-o"></i> Communication History</div>
                     <div class="panel-body">
                         <form method="post" action="clientAction.php" class="communication-form">
                             <?php echo oecrm_csrf_field(); ?>
@@ -122,10 +127,10 @@ unset($_SESSION['client_flash'], $_SESSION['client_error']);
         </main>
         <?php if ($id): ?>
             <aside>
-                <div class="panel panel-default"><div class="panel-heading">Contacts</div><div class="panel-body"><form method="post" action="clientAction.php" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="contact"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><input class="form-control" name="name" placeholder="Contact name" required><input class="form-control" name="designation" placeholder="Designation"><input type="email" class="form-control" name="email" placeholder="Email"><input class="form-control" name="phone" placeholder="Phone"><label><input type="checkbox" name="is_primary"> Primary contact</label><button class="btn btn-default btn-block">Add Contact</button></form><div class="client-mini-list"><?php while ($item = mysqli_fetch_assoc($contacts)): ?><div><strong><?php echo oecrm_h($item['name']); ?></strong><small><?php echo oecrm_h($item['designation']); ?></small><span><?php echo oecrm_h($item['email'] . ' ' . $item['phone']); ?></span></div><?php endwhile; ?></div></div></div>
-                <div class="panel panel-default"><div class="panel-heading">Contracts & NDA</div><div class="panel-body"><form method="post" action="clientAction.php" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="contract"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><select class="form-control" name="contract_type"><?php foreach (['service', 'retainer', 'dedicated_resource', 'nda', 'other'] as $value): ?><option value="<?php echo $value; ?>"><?php echo ucwords(str_replace('_', ' ', $value)); ?></option><?php endforeach; ?></select><input class="form-control" name="title" placeholder="Contract title" required><div class="client-form-grid"><input type="date" class="form-control" name="start_date"><input type="date" class="form-control" name="end_date"></div><input type="number" step="0.01" class="form-control" name="value_amount" placeholder="Contract value"><button class="btn btn-default btn-block">Add Contract</button></form><div class="client-mini-list"><?php while ($item = mysqli_fetch_assoc($contracts)): ?><div><strong><?php echo oecrm_h($item['title']); ?></strong><small><?php echo oecrm_h(ucwords(str_replace('_', ' ', $item['contract_type'])) . ' | ' . ucfirst($item['status'])); ?></small><span><?php echo oecrm_h($item['start_date'] . ' to ' . $item['end_date']); ?></span></div><?php endwhile; ?></div></div></div>
-                <div class="panel panel-default"><div class="panel-heading">Documents</div><div class="panel-body"><form method="post" action="clientAction.php" enctype="multipart/form-data" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="document"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><select class="form-control" name="document_type"><?php foreach (['contract', 'nda', 'tax', 'proposal', 'other'] as $value): ?><option><?php echo $value; ?></option><?php endforeach; ?></select><input class="form-control" name="title" placeholder="Document title" required><input type="file" class="form-control" name="document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required><button class="btn btn-default btn-block">Upload Document</button></form><div class="client-mini-list"><?php while ($item = mysqli_fetch_assoc($documents)): ?><div><strong><?php echo oecrm_h($item['title']); ?></strong><small><?php echo ucfirst($item['document_type']); ?></small><a href="clientDocument.php?id=<?php echo (int) $item['id']; ?>"><i class="fa fa-download"></i></a></div><?php endwhile; ?></div></div></div>
-                <div class="panel panel-default"><div class="panel-heading">Linked Projects</div><div class="panel-body client-mini-list"><?php while ($item = mysqli_fetch_assoc($projects)): ?><div><strong><?php echo oecrm_h($item['projectName']); ?></strong><small><?php echo oecrm_h(ucfirst($item['status'])); ?></small><a href="projectBoard.php?id=<?php echo (int) $item['id']; ?>"><i class="fa fa-arrow-right"></i></a></div><?php endwhile; ?></div></div>
+                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-address-book-o"></i> Contacts</div><div class="panel-body"><form method="post" action="clientAction.php" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="contact"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><input class="form-control" name="name" placeholder="Contact name" required><input class="form-control" name="designation" placeholder="Designation"><input type="email" class="form-control" name="email" placeholder="Email"><input class="form-control only-digits" name="phone" placeholder="Phone" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" autocomplete="off"><label><input type="checkbox" name="is_primary"> Primary contact</label><button class="btn btn-default btn-block"><i class="fa fa-plus"></i> Add Contact</button></form><div class="client-mini-list"><?php while ($item = mysqli_fetch_assoc($contacts)): ?><div><strong><?php echo oecrm_h($item['name']); ?></strong><small><?php echo oecrm_h($item['designation']); ?></small><span><?php echo oecrm_h($item['email'] . ' ' . $item['phone']); ?></span></div><?php endwhile; ?></div></div></div>
+                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-file-contract"></i> Contracts & NDA</div><div class="panel-body"><form method="post" action="clientAction.php" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="contract"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><select class="form-control" name="contract_type"><?php foreach (['service', 'retainer', 'dedicated_resource', 'nda', 'other'] as $value): ?><option value="<?php echo $value; ?>"><?php echo ucwords(str_replace('_', ' ', $value)); ?></option><?php endforeach; ?></select><input class="form-control" name="title" placeholder="Contract title" required><div class="client-form-grid"><input type="date" class="form-control" name="start_date"><input type="date" class="form-control" name="end_date"></div><input type="number" step="0.01" class="form-control" name="value_amount" placeholder="Contract value"><button class="btn btn-default btn-block"><i class="fa fa-plus"></i> Add Contract</button></form><div class="client-mini-list"><?php while ($item = mysqli_fetch_assoc($contracts)): ?><div><strong><?php echo oecrm_h($item['title']); ?></strong><small><?php echo oecrm_h(ucwords(str_replace('_', ' ', $item['contract_type'])) . ' | ' . ucfirst($item['status'])); ?></small><span><?php echo oecrm_h($item['start_date'] . ' to ' . $item['end_date']); ?></span></div><?php endwhile; ?></div></div></div>
+                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-files-o"></i> Documents</div><div class="panel-body"><form method="post" action="clientAction.php" enctype="multipart/form-data" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="document"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><select class="form-control" name="document_type"><?php foreach (['contract', 'nda', 'tax', 'proposal', 'other'] as $value): ?><option><?php echo $value; ?></option><?php endforeach; ?></select><input class="form-control" name="title" placeholder="Document title" required><input type="file" class="form-control" name="document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required><button class="btn btn-default btn-block"><i class="fa fa-upload"></i> Upload Document</button></form><div class="client-mini-list"><?php while ($item = mysqli_fetch_assoc($documents)): ?><div><?php $isImage = preg_match('/\.(jpe?g|png|gif|webp)$/i', $item['original_name'] ?? $item['stored_name']); ?><strong><?php echo oecrm_h($item['title']); ?></strong><small><?php echo ucfirst($item['document_type']); ?></small><?php if ($isImage): ?><a href="clientDocument.php?id=<?php echo (int) $item['id']; ?>" target="_blank" title="View image"><i class="fa fa-image"></i></a><?php endif; ?><a href="clientDocument.php?id=<?php echo (int) $item['id']; ?>" title="Download"><i class="fa fa-download"></i></a></div><?php endwhile; ?></div></div></div>
+                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-suitcase"></i> Linked Projects</div><div class="panel-body client-mini-list"><?php while ($item = mysqli_fetch_assoc($projects)): ?><div><strong><?php echo oecrm_h($item['projectName']); ?></strong><small><?php echo oecrm_h(ucfirst($item['status'])); ?></small><a href="projectBoard.php?id=<?php echo (int) $item['id']; ?>"><i class="fa fa-arrow-right"></i></a></div><?php endwhile; ?></div></div>
             </aside>
         <?php endif; ?>
     </div>
@@ -208,5 +213,57 @@ document.addEventListener('DOMContentLoaded', function () {
         loadLocation('states', getSelectedOptionId(country), state, state.getAttribute('data-selected') || '');
     }
 });
+</script>
+<script>
+(function () {
+    document.addEventListener('input', function (event) {
+        if (event.target && event.target.classList && event.target.classList.contains('only-digits')) {
+            event.target.value = event.target.value.replace(/\D+/g, '').slice(0, 15);
+        }
+    });
+})();
+</script>
+<script>
+(function(){
+    var form = document.getElementById('clientProfileForm');
+    if (!form) return;
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var body = new FormData(form);
+        body.append('response', 'json');
+        fetch('clientAction.php', {
+            method: 'POST',
+            body: body,
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        }).then(function (response) {
+            return response.json().then(function (data) {
+                return {ok: response.ok, data: data};
+            });
+        }).then(function (payload) {
+            var flashHost = document.querySelector('.client-profile-page');
+            var oldAlert = flashHost ? flashHost.querySelector('.alert') : null;
+            if (oldAlert) oldAlert.remove();
+            var alertBox = document.createElement('div');
+            alertBox.className = 'alert ' + (payload.ok ? 'alert-success' : 'alert-danger');
+            alertBox.textContent = payload.data.message || (payload.ok ? 'Saved successfully.' : 'Save failed.');
+            if (flashHost) flashHost.insertBefore(alertBox, flashHost.firstChild);
+            if (payload.ok && payload.data.id) {
+                form.querySelector('input[name="id"]').value = payload.data.id;
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState(null, '', 'clientProfile.php?id=' + payload.data.id);
+                }
+                var statusField = form.querySelector('select[name="status"]');
+                var statusBadge = document.getElementById('clientStatusBadge');
+                if (statusBadge && statusField) {
+                    var statusValue = statusField.value || 'active';
+                    statusBadge.className = 'client-status ' + statusValue;
+                    statusBadge.textContent = statusField.options[statusField.selectedIndex] ? statusField.options[statusField.selectedIndex].text : statusValue;
+                }
+            }
+        }).catch(function () {
+            form.submit();
+        });
+    });
+})();
 </script>
 <?php include 'footer.php'; ?>

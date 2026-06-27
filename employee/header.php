@@ -1,7 +1,8 @@
-﻿<?php require_once __DIR__ . '/../security.php';
+<?php require_once __DIR__ . '/../security.php';
 oecrm_require_employee_login();
 include 'dbconnect.php';
 include 'validation.php';
+require_once __DIR__ . '/../birthdays.php';
 
 $currentEmployeePage = basename($_SERVER['PHP_SELF'] ?? 'home.php');
 $employeePageTitles = [
@@ -41,7 +42,7 @@ function employee_nav_class($pages, $currentPage)
       <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
       <link href="../vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet">
       <link href="../vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
-      <link href="../vendor/custom/custom.css?v=20260612-8" rel="stylesheet">
+      <link href="../vendor/custom/custom.css?v=20260627-1" rel="stylesheet">
       <link href="../vendor/custom/fontawesome.all.css" rel="stylesheet">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
    </head>
@@ -59,6 +60,9 @@ function employee_nav_class($pages, $currentPage)
                   $qryEmpView = "SELECT * FROM employeesTbl WHERE id=".$employeeId;
                   $resultEmpView = mysqli_query($conn,$qryEmpView);
                   $rowEmpView = $resultEmpView ? $resultEmpView->fetch_assoc() : null;
+                  if (!empty($rowEmpView['company_id'])) {
+                     oecrm_auto_send_birthday_wishes($conn, (int) $rowEmpView['company_id']);
+                  }
                ?>
                <li>
                   <div class="dropdown">
@@ -99,11 +103,24 @@ function employee_nav_class($pages, $currentPage)
          <div class="employee-topbar-actions">
             <span class="employee-today"><i class="fa fa-calendar-o"></i><?php echo date('D, d M Y'); ?></span>
             <a class="employee-icon-link" href="notices.php" title="Notices"><i class="fa fa-bell-o"></i></a>
-            <a class="employee-profile-link" href="userinfo.php" title="User Profile">
-               <img src="../images/user-image.png" alt="">
-               <span><?php echo htmlspecialchars($rowEmpView['name'] ?? 'Employee', ENT_QUOTES, 'UTF-8'); ?><small>Employee</small></span>
-            </a>
-            <a class="employee-icon-link employee-logout-link" href="logout.php" title="Logout" aria-label="Logout"><i class="fa fa-sign-out"></i></a>
+            <div class="employee-profile-menu">
+               <button type="button" class="employee-profile-link" aria-haspopup="true" aria-expanded="false" data-profile-toggle="employee">
+                  <img src="../images/user-image.png" alt="">
+                  <span><?php echo htmlspecialchars($rowEmpView['name'] ?? 'Employee', ENT_QUOTES, 'UTF-8'); ?><small>Employee</small></span>
+                  <i class="fa fa-angle-down"></i>
+               </button>
+               <div class="employee-profile-dropdown">
+                  <a href="userinfo.php"><i class="fa fa-user"></i> My Profile</a>
+                  <a href="notices.php"><i class="fa fa-bell-o"></i> Notices</a>
+                  <a href="leave_index.php"><i class="fa fa-calendar-minus-o"></i> Leaves</a>
+                  <a class="danger" href="logout.php"><i class="fa fa-sign-out"></i> Logout</a>
+               </div>
+            </div>
          </div>
       </header>
+
+
+
+
+
 

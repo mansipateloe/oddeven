@@ -71,8 +71,31 @@ unset($_SESSION['task_error']);
     <div class="panel panel-default">
         <div class="panel-heading">Task Details</div>
         <div class="panel-body">
-            <style>.resource-form select.form-control{height:38px;background:#fff}</style>
-            <form method="post" action="taskAction.php" class="resource-form">
+            <style>
+                .resource-form select.form-control{
+                    height:38px;
+                    background:#fff;
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                    padding-right:34px;
+                }
+                .resource-form .select2-container{
+                    width:100% !important;
+                }
+                .resource-form .select2-container .select2-choice{
+                    height:38px;
+                    line-height:36px;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                }
+                .resource-form .select2-container .select2-search input,
+                .resource-form .select2-search input{
+                    width:100% !important;
+                    box-sizing:border-box;
+                }
+            </style>
+            <form method="post" action="taskAction.php" class="resource-form" enctype="multipart/form-data">
                 <?php echo oecrm_csrf_field(); ?>
                 <input type="hidden" name="action" value="<?php echo $id ? 'update_task' : 'create_task'; ?>">
                 <input type="hidden" name="id" value="<?php echo $id; ?>">
@@ -106,7 +129,7 @@ unset($_SESSION['task_error']);
                 <div class="form-group resource-notes"><label>Description</label><textarea class="form-control" name="task_details" rows="4"><?php echo oecrm_h($task['task_details'] ?? ''); ?></textarea></div>
                 <div class="resource-actions">
                     <button class="btn btn-primary"><i class="fa fa-save"></i> <?php echo $id ? 'Update Task' : 'Create Task'; ?></button>
-                    <a href="projectBoard.php?id=<?php echo (int) $projectId; ?>" class="btn btn-default">Cancel</a>
+                    <a href="viewTask.php" class="btn btn-default">Cancel</a>
                 </div>
             </form>
         </div>

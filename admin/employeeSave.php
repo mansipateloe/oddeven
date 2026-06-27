@@ -16,10 +16,27 @@ $employeeCode=employee_post('employeeCode');$designation=employee_post('designat
 $employmentType=employee_post('employment_type')?:'permanent';$employmentStatus=employee_post('employment_status')?:'active';$confirmationDate=employee_post('confirmation_date')?:null;$noticeDays=max(0,(int)($_POST['notice_period_days']??0));$exitDate=employee_post('exit_date')?:null;$exitReason=employee_post('exit_reason');
 $allowedTypes=['permanent','probation','contract','intern','consultant'];$allowedStatuses=['active','inactive','notice_period','resigned','terminated','retired'];
 if(!$companyId||$employeeCode===''||$designation===''||$name===''||$username===''||$companyEmail===''||!in_array($employmentType,$allowedTypes,true)||!in_array($employmentStatus,$allowedStatuses,true)){http_response_code(400);exit('Please complete all required employee fields.');}
+if($joiningDate===''){http_response_code(400);exit('Joining date is required.');}
 if($departmentId){$stmt=mysqli_prepare($conn,'SELECT id FROM departments WHERE id=? AND company_id=? AND status=1');mysqli_stmt_bind_param($stmt,'ii',$departmentId,$companyId);mysqli_stmt_execute($stmt);if(!mysqli_fetch_assoc(mysqli_stmt_get_result($stmt))){mysqli_stmt_close($stmt);http_response_code(400);exit('Selected department does not belong to the selected company.');}mysqli_stmt_close($stmt);}
 $status=in_array($employmentStatus,['active','notice_period'],true)?0:1;
 mysqli_begin_transaction($conn);
 try{
+ $dupChecks = [
+   ['employeeCode','employee code','SELECT id FROM employeestbl WHERE company_id=? AND employeeCode=? AND id<>? LIMIT 1','ss'],
+   ['employeeUname','username','SELECT id FROM employeestbl WHERE company_id=? AND employeeUname=? AND id<>? LIMIT 1','ss'],
+   ['companyEmail','company email','SELECT id FROM employeestbl WHERE company_id=? AND companyEmail=? AND id<>? LIMIT 1','ss'],
+   ['mobile1','mobile number','SELECT id FROM employeestbl WHERE company_id=? AND mobile1=? AND id<>? LIMIT 1','ss'],
+ ];
+ foreach($dupChecks as [$field,$label,$sql]){
+   $value = $$field;
+   if($value==='') continue;
+   $stmt=mysqli_prepare($conn,$sql);
+   mysqli_stmt_bind_param($stmt,'ssi',$companyId,$value,$employeeId);
+   mysqli_stmt_execute($stmt);
+   $exists=mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+   mysqli_stmt_close($stmt);
+   if($exists){ throw new RuntimeException(ucfirst($label).' already exists for this company.'); }
+ }
  if($mode==='create'){
   $password=employee_post('employeeUpass');if(strlen($password)<6){throw new RuntimeException('Password must contain at least 6 characters.');}$password=oecrm_password_hash($password);
   $stmt=mysqli_prepare($conn,'INSERT INTO employeestbl(company_id,department_id,employeeCode,designation,name,birthdate,employeeUname,employeeUpass,companyEmail,personalEmail,mobile1,mobile2,skypeUname,joiningDate,salary,bankName,bankIFSCno,bankAcHolderName,bankAcNo,address,status) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');

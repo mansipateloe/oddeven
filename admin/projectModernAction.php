@@ -34,6 +34,9 @@ function oecrm_project_payload($conn, $companyId)
     if (!$client) {
         throw new RuntimeException('Invalid client.');
     }
+    if (!$team) {
+        throw new RuntimeException('Please select at least one team member.');
+    }
     if ($team) {
         $ids = implode(',', array_map('intval', $team));
         $validTeam = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT COUNT(*) total FROM employeestbl WHERE status=0 AND id IN (' . $ids . ')'));

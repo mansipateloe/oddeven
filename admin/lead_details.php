@@ -1,5 +1,6 @@
 <?php
 include 'header.php';
+require_once __DIR__ . '/../foundation.php';
 $id=oecrm_int_param($_GET,'leadId');$companyId=oecrm_current_company_id($conn);oecrm_require_permission($conn,'clients','view');
 $stmt=mysqli_prepare($conn,'SELECT * FROM leads WHERE lead_id=? AND company_id=? AND is_active=1');mysqli_stmt_bind_param($stmt,'ii',$id,$companyId);mysqli_stmt_execute($stmt);$details=mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));mysqli_stmt_close($stmt);
 if(!$details){http_response_code(404);exit('Lead not found.');}
@@ -81,26 +82,26 @@ if(!$details){http_response_code(404);exit('Lead not found.');}
                     </div>
                 </div>
                 <div class="modal fade" id="addLeavemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                    <form role="form" method="POST">
+                    <form role="form" method="POST" action="validation.php">
+                        <?php echo oecrm_csrf_field(); ?>
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                                     <h4 class="modal-title" id="myModalLabel">Add New Followup</h4>
                                 </div>
-                                <form action="" method="POST">
-                                    <div class="modal-body">
-                                        <!-- Lead Priority -->
-                                        <div class="mb-3" style="display:none;">
-                                            <input type="hidden" name="lead_id" value="<?= $id ?>">
-                                            <label for="leadType" class="form-label">Lead Priority</label>
-                                            <select class="form-control" id="leadType" name="lead_type" >
-                                                <option value="" selected disabled>Select Lead Priority</option>
-                                                <option value="low">Low</option>
-                                                <option value="medium">Medium</option>
-                                                <option value="high">High</option>
-                                            </select>
-                                        </div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="lead_id" value="<?= $id ?>">
+                                    <!-- Lead Priority -->
+                                    <div class="mb-3" style="display:none;">
+                                        <label for="leadType" class="form-label">Lead Priority</label>
+                                        <select class="form-control" id="leadType" name="lead_type">
+                                            <option value="" selected disabled>Select Lead Priority</option>
+                                            <option value="low">Low</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="high">High</option>
+                                        </select>
+                                    </div>
 
                                         <!-- Followup Type -->
                                         <div class="mb-3">
@@ -130,32 +131,30 @@ if(!$details){http_response_code(404);exit('Lead not found.');}
                                         </div>
 
                                         <!-- Next Followup Date -->
-                                        <div class="mb-3">
-                                            <label for="nextFollowupDate" class="form-label">Next Followup Date</label>
-                                            <input type="date" class="form-control" id="nextFollowupDate" name="next_followup_date" required>
-                                        </div>
+                                    <div class="mb-3">
+                                        <label for="nextFollowupDate" class="form-label">Next Followup Date</label>
+                                        <input type="date" class="form-control" id="nextFollowupDate" name="next_followup_date" min="<?php echo date('Y-m-d'); ?>" required>
+                                    </div>
 
                                         <!-- Next Followup Time -->
-                                        <div class="mb-3">
-                                            <label for="nextFollowupTime" class="form-label">Next Followup Time</label>
-                                            <input type="time" class="form-control" id="nextFollowupTime" name="next_followup_time" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="status">Status</label>
-                                            <select class="form-control" id="leadType" name="status" required>
-                                                <option value="status" selected disabled>Select Status</option>
-                                                <option value="close">Close</option>
-                                                <option value="inprogress">Inprogress</option>
-                                                <option value="complete">Complete</option>
-                                                <option value="pending">Pending</option>
-                                            </select>
-                                        </div>
+                                    <div class="mb-3">
+                                        <label for="nextFollowupTime" class="form-label">Next Followup Time</label>
+                                        <input type="time" class="form-control" id="nextFollowupTime" name="next_followup_time" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="status">Status</label>
+                                        <select class="form-control" id="leadType" name="status" required>
+                                            <option value="status" selected disabled>Select Status</option>
+                                            <option value="close">Close</option>
+                                            <option value="inprogress">Inprogress</option>
+                                            <option value="complete">Complete</option>
+                                            <option value="pending">Pending</option>
+                                        </select>
+                                    </div>
 
                                         <!-- Add other form fields as needed -->
-                                        <input type="submit" value="Submit" name="saveLeadFollowup" class="btn btn-primary">
-
-                                    </div>
-                                </form>
+                                    <input type="submit" value="Submit" name="saveLeadFollowup" class="btn btn-primary">
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -207,7 +206,12 @@ if(!$details){http_response_code(404);exit('Lead not found.');}
                                         
                                             <!--end edit modal -->
 
-                                            <a href="delete_lead_followup_details.php?delete=<?= $followupRow['id'] ?>&lead_id=<?= $followupRow['lead_id'] ?>" data-confirm="Cancel this follow-up?"><i class="fa fa-trash-o "></i></a>
+                                            <form method="post" action="delete_lead_followup.php" style="display:inline;">
+                                                <?php echo oecrm_csrf_field(); ?>
+                                                <input type="hidden" name="delete" value="<?= (int) $followupRow['id'] ?>">
+                                                <input type="hidden" name="lead_id" value="<?= (int) $followupRow['lead_id'] ?>">
+                                                <button type="submit" class="btn btn-link" style="padding:0;border:0;" data-confirm="Cancel this follow-up?"><i class="fa fa-trash-o "></i></button>
+                                            </form>
                                         </td>
                                     </tr>
                                 <?php

@@ -39,7 +39,7 @@ unset($_SESSION['timesheet_flash'], $_SESSION['timesheet_error']);
                 <div class="form-group"><label>Project</label><select class="form-control" name="project_id" data-placeholder="Select assigned project" required><option value="">Select assigned project</option><?php while($project=mysqli_fetch_assoc($projects)): ?><option value="<?php echo (int)$project['id']; ?>"><?php echo oecrm_h($project['projectName'].' - '.$project['company_name']); ?></option><?php endwhile; ?></select></div>
                 <div class="form-group"><label>Assigned Task</label><select class="form-control" name="task_id" data-placeholder="Select assigned task" required><option value="">Select assigned task</option><?php while($task=mysqli_fetch_assoc($tasks)): ?><option value="<?php echo (int)$task['id']; ?>" data-project="<?php echo (int)$task['project_id']; ?>"><?php echo oecrm_h($task['taskTitle'].' - '.ucwords(str_replace('_',' ',$task['status']))); ?></option><?php endwhile; ?></select></div>
                 <div class="form-group"><label>Total Hours</label><input class="form-control" type="number" min=".25" max="24" step=".25" name="hours" required></div>
-                <div class="form-group"><label>Billable Hours</label><input class="form-control" type="number" min="0" max="24" step=".25" name="billable_hours" value="0"></div>
+                <input type="hidden" name="billable_hours" value="0">
                 <div class="form-group timesheet-worklog"><label>Work Description</label><textarea class="form-control" name="description" rows="3" required></textarea></div>
                 <div class="timesheet-submit"><button class="btn btn-primary" name="save_mode" value="submitted"><i class="fa fa-paper-plane"></i> Submit for Approval</button><button class="btn btn-default" name="save_mode" value="draft"><i class="fa fa-save"></i> Save Draft</button></div>
             </form>
@@ -49,10 +49,10 @@ unset($_SESSION['timesheet_flash'], $_SESSION['timesheet_error']);
         <div class="panel-heading">Recent Entries</div>
         <div class="panel-body table-responsive">
             <table class="table table-bordered">
-                <thead><tr><th>Date</th><th>Project</th><th>Task</th><th>Company</th><th>Description</th><th>Hours</th><th>Billable</th><th>Status</th></tr></thead>
+                <thead><tr><th>Date</th><th>Project</th><th>Task</th><th>Company</th><th>Description</th><th>Hours</th><th>Status</th></tr></thead>
                 <tbody>
-                <?php if(mysqli_num_rows($entries)===0): ?><tr><td colspan="8">No entries yet.</td></tr><?php endif; ?>
-                <?php while($entry=mysqli_fetch_assoc($entries)): ?><tr><td><?php echo date('d M Y',strtotime($entry['work_date'])); ?></td><td><?php echo oecrm_h($entry['projectName']); ?></td><td><?php echo oecrm_h($entry['taskTitle']?:'-'); ?></td><td><?php echo oecrm_h($entry['company_name']); ?></td><td><?php echo oecrm_h($entry['description']); ?></td><td><?php echo number_format($entry['hours'],2); ?></td><td><?php echo number_format($entry['billable_hours'],2); ?></td><td><?php echo ucfirst($entry['status']); ?></td></tr><?php endwhile; ?>
+                <?php if(mysqli_num_rows($entries)===0): ?><tr><td colspan="7">No entries yet.</td></tr><?php endif; ?>
+                <?php while($entry=mysqli_fetch_assoc($entries)): ?><tr><td><?php echo date('d M Y',strtotime($entry['work_date'])); ?></td><td><?php echo oecrm_h($entry['projectName']); ?></td><td><?php echo oecrm_h($entry['taskTitle']?:'-'); ?></td><td><?php echo oecrm_h($entry['company_name']); ?></td><td><?php echo oecrm_h($entry['description']); ?></td><td><?php echo number_format($entry['hours'],2); ?></td><td><?php echo ucfirst($entry['status']); ?></td></tr><?php endwhile; ?>
                 </tbody>
             </table>
         </div>

@@ -105,27 +105,45 @@ if ($action === 'apply') {
     exit;
 }
 
-if (in_array($action, ['approve', 'reject'], true)) {
-    oecrm_require_permission($conn, 'leave_requests', $action);
+if (in_array($action, ['approve', 'reject', 'update_note'], true)) {
+    oecrm_require_permission($conn, 'leave_requests', $action === 'reject' ? 'reject' : 'approve');
     $requestId = (int)($_POST['request_id'] ?? 0);
     $companyId = oecrm_current_company_id($conn);
     $note = trim($_POST['note'] ?? '');
 
     mysqli_begin_transaction($conn);
     try {
-        $requestStmt = mysqli_prepare($conn, 'SELECT * FROM leave_requests WHERE id=? AND company_id=? AND status="pending" FOR UPDATE');
+        $allowedStatuses = $action === 'approve' ? ['pending','rejected'] : ($action === 'reject' ? ['pending'] : ['pending','approved','rejected']);
+        $statusSql = "'" . implode("','", array_map(static function ($status) use ($conn) { return mysqli_real_escape_string($conn, $status); }, $allowedStatuses)) . "'";
+        $requestStmt = mysqli_prepare($conn, 'SELECT * FROM leave_requests WHERE id=? AND company_id=? AND status IN ('.$statusSql.') FOR UPDATE');
         mysqli_stmt_bind_param($requestStmt, 'ii', $requestId, $companyId);
         mysqli_stmt_execute($requestStmt);
         $request = mysqli_fetch_assoc(mysqli_stmt_get_result($requestStmt));
         mysqli_stmt_close($requestStmt);
         if (!$request) {
-            throw new RuntimeException('Pending leave not found for the active company.');
+            throw new RuntimeException('Leave request not found for the active company or action is not allowed.');
         }
 
         $year = (int)date('Y', strtotime($request['start_date']));
+        $actor = (int)$_SESSION['adminId'];
+        if ($action === 'update_note') {
+            $statusStmt = mysqli_prepare($conn, 'UPDATE leave_requests SET approver_note=?,approved_by=?,approved_at=NOW() WHERE id=? AND company_id=?');
+            mysqli_stmt_bind_param($statusStmt, 'siii', $note, $actor, $requestId, $companyId);
+            mysqli_stmt_execute($statusStmt);
+            mysqli_stmt_close($statusStmt);
+            $legacyStmt = mysqli_prepare($conn, 'UPDATE leave_master SET remarks=? WHERE id=?');
+            mysqli_stmt_bind_param($legacyStmt, 'si', $note, $request['legacy_leave_id']);
+            mysqli_stmt_execute($legacyStmt);
+            mysqli_stmt_close($legacyStmt);
+            mysqli_commit($conn);
+            oecrm_audit($conn, 'leave_requests', 'update_note', 'leave_request', $requestId, 'Leave note updated', null, ['note' => $note]);
+            $_SESSION['leave_flash'] = 'Leave note updated.';
+            header('Location: manageLeave.php');
+            exit;
+        }
+
         $status = $action === 'approve' ? 'approved' : 'rejected';
         $legacyStatus = $action === 'approve' ? 1 : 2;
-        $actor = (int)$_SESSION['adminId'];
 
         $statusStmt = mysqli_prepare($conn, 'UPDATE leave_requests SET status=?,approver_note=?,approved_by=?,approved_at=NOW() WHERE id=? AND company_id=?');
         mysqli_stmt_bind_param($statusStmt, 'ssiii', $status, $note, $actor, $requestId, $companyId);
@@ -137,9 +155,12 @@ if (in_array($action, ['approve', 'reject'], true)) {
         mysqli_stmt_execute($legacyStmt);
         mysqli_stmt_close($legacyStmt);
 
-        if ($action === 'approve') {
+        if ($action === 'approve' && $request['status'] === 'pending') {
             $balanceStmt = mysqli_prepare($conn, 'UPDATE employee_leave_balances SET pending=GREATEST(0,pending-?),used=used+? WHERE employee_id=? AND leave_type_id=? AND balance_year=?');
             mysqli_stmt_bind_param($balanceStmt, 'ddiii', $request['payable_days'], $request['payable_days'], $request['employee_id'], $request['leave_type_id'], $year);
+        } elseif ($action === 'approve' && $request['status'] === 'rejected') {
+            $balanceStmt = mysqli_prepare($conn, 'UPDATE employee_leave_balances SET used=used+? WHERE employee_id=? AND leave_type_id=? AND balance_year=?');
+            mysqli_stmt_bind_param($balanceStmt, 'diii', $request['payable_days'], $request['employee_id'], $request['leave_type_id'], $year);
         } else {
             $balanceStmt = mysqli_prepare($conn, 'UPDATE employee_leave_balances SET pending=GREATEST(0,pending-?) WHERE employee_id=? AND leave_type_id=? AND balance_year=?');
             mysqli_stmt_bind_param($balanceStmt, 'diii', $request['payable_days'], $request['employee_id'], $request['leave_type_id'], $year);

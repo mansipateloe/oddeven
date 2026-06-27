@@ -12,8 +12,13 @@ if (!$project) {
     exit('Project not found.');
 }
 
-$tasks = mysqli_query($conn, 'SELECT t.* FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=' . (int) $id . ' AND t.company_id=' . (int) $companyId . ' ORDER BY FIELD(t.status,"open","in_progress","in_review","to_be_tested","staging_server","production","on_hold","completed","closed","cancelled"),t.expectedDate');
+$tasks = mysqli_query($conn, 'SELECT t.*,
+    (SELECT GROUP_CONCAT(e1.name ORDER BY ta1.is_primary DESC,e1.name SEPARATOR ", ") FROM task_assignees ta1 JOIN employeestbl e1 ON e1.id=ta1.employee_id WHERE ta1.task_id=t.id AND ta1.is_primary=1) task_owners,
+    (SELECT GROUP_CONCAT(e2.name ORDER BY e2.name SEPARATOR ", ") FROM task_assignees ta2 JOIN employeestbl e2 ON e2.id=ta2.employee_id WHERE ta2.task_id=t.id AND ta2.is_primary=0) qa_members,
+    (SELECT GROUP_CONCAT(CONCAT(a.id, ":", a.original_name) ORDER BY a.id SEPARATOR "||") FROM task_attachments a WHERE a.task_id=t.id) attachment_list
+    FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=' . (int) $id . ' AND t.company_id=' . (int) $companyId . ' ORDER BY FIELD(t.status,"open","in_progress","in_review","to_be_tested","staging_server","production","on_hold","completed","closed","cancelled"),t.expectedDate');
 $teamCount = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT COUNT(*) total FROM project_team_members tm JOIN employeestbl e ON e.id=tm.employee_id WHERE tm.project_id=' . (int) $id . ' AND tm.left_at IS NULL AND e.status=0'));
+$teamMembers = mysqli_query($conn, 'SELECT e.employeeCode,e.name,e.designation FROM project_team_members tm JOIN employeestbl e ON e.id=tm.employee_id WHERE tm.project_id=' . (int) $id . ' AND tm.left_at IS NULL AND e.status=0 ORDER BY e.name');
 $milestones = mysqli_query($conn, 'SELECT * FROM project_milestones WHERE project_id=' . (int) $id . ' ORDER BY due_date');
 $flash = $_SESSION['project_flash'] ?? '';
 unset($_SESSION['project_flash']);
@@ -50,8 +55,14 @@ unset($_SESSION['project_flash']);
                                 <td><?php echo oecrm_h($task['expectedDate']); ?></td>
                                 <td><?php echo oecrm_h(ucwords(str_replace('_', ' ', $task['status']))); ?></td>
                                 <td>
-                                    <a class="btn btn-xs btn-info" title="View/Edit" href="taskEditor.php?id=<?php echo (int) $task['id']; ?>"><i class="fa fa-pencil"></i></a>
-                                    <a class="btn btn-xs btn-danger" title="Delete" data-confirm="Delete this task?" href="deleteTask.php?delete=<?php echo (int) $task['id']; ?>&project_id=<?php echo (int) $id; ?>"><i class="fa fa-trash"></i></a>
+                                    <button type="button" class="icon-action js-admin-task-detail" title="View" data-title="<?php echo oecrm_h($task['taskTitle'] ?: $task['task_details']); ?>" data-project="<?php echo oecrm_h($project['projectName']); ?>" data-client="<?php echo oecrm_h($project['client_name'] ?: $project['customerName']); ?>" data-owner="<?php echo oecrm_h($task['task_owners'] ?: '-'); ?>" data-qa="<?php echo oecrm_h($task['qa_members'] ?: 'No QA assigned.'); ?>" data-start="<?php echo oecrm_h($task['assignDate']); ?>" data-due="<?php echo oecrm_h($task['expectedDate']); ?>" data-priority="<?php echo oecrm_h(ucfirst($task['priority'])); ?>" data-status="<?php echo oecrm_h(ucwords(str_replace('_', ' ', $task['status']))); ?>" data-estimated="<?php echo number_format((float)$task['estimated_hours'], 2); ?> hrs" data-description="<?php echo oecrm_h($task['task_details'] ?: 'No description added.'); ?>" data-attachments="<?php echo oecrm_h($task['attachment_list'] ?: ''); ?>"><i class="fa fa-eye"></i></button>
+                                    <a class="btn btn-xs btn-info" title="Edit" href="taskEditor.php?id=<?php echo (int) $task['id']; ?>"><i class="fa fa-pencil"></i></a>
+                                    <form method="post" action="deleteTask.php" style="display:inline;">
+                                        <?php echo oecrm_csrf_field(); ?>
+                                        <input type="hidden" name="delete" value="<?php echo (int) $task['id']; ?>">
+                                        <input type="hidden" name="project_id" value="<?php echo (int) $id; ?>">
+                                        <button type="submit" class="btn btn-xs btn-danger" title="Delete" data-confirm="Delete this task?"><i class="fa fa-trash"></i></button>
+                                    </form>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
@@ -65,6 +76,7 @@ unset($_SESSION['project_flash']);
                 <div class="panel-heading">Active Team</div>
                 <div class="panel-body project-side-list">
                     <div><i class="fa fa-users"></i><span><strong><?php echo (int) $teamCount['total']; ?> active members</strong></span></div>
+                    <?php while ($member = mysqli_fetch_assoc($teamMembers)): ?><div><i class="fa fa-user"></i><span><strong><?php echo oecrm_h($member['name']); ?></strong><small><?php echo oecrm_h($member['employeeCode'] . ($member['designation'] ? ' | ' . $member['designation'] : '')); ?></small></span></div><?php endwhile; ?>
                 </div>
             </div>
             <div class="panel panel-default">
@@ -77,4 +89,30 @@ unset($_SESSION['project_flash']);
         </aside>
     </div>
 </div>
+<div class="modal fade" id="adminTaskDetailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button class="close" data-dismiss="modal">&times;</button><h4 id="adminTaskDetailTitle">Task Details</h4></div><div class="modal-body"><div class="detail-grid"><div><small>Project</small><strong id="adminTaskDetailProject"></strong></div><div><small>Client</small><strong id="adminTaskDetailClient"></strong></div><div><small>Assigned To</small><strong id="adminTaskDetailOwner"></strong></div><div><small>QA</small><strong id="adminTaskDetailQa"></strong></div><div><small>Start Date</small><strong id="adminTaskDetailStart"></strong></div><div><small>Due Date</small><strong id="adminTaskDetailDue"></strong></div><div><small>Priority</small><strong id="adminTaskDetailPriority"></strong></div><div><small>Status</small><strong id="adminTaskDetailStatus"></strong></div><div><small>Estimated</small><strong id="adminTaskDetailEstimated"></strong></div></div><hr><h5>Description</h5><p id="adminTaskDetailDescription"></p><h5>Attachments</h5><div id="adminTaskDetailAttachments" class="task-attachment-list"></div></div></div></div></div>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.js-admin-task-detail').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.getElementById('adminTaskDetailTitle').textContent=btn.dataset.title||'Task Details';
+      document.getElementById('adminTaskDetailProject').textContent=btn.dataset.project||'-';
+      document.getElementById('adminTaskDetailClient').textContent=btn.dataset.client||'-';
+      document.getElementById('adminTaskDetailOwner').textContent=btn.dataset.owner||'-';
+      document.getElementById('adminTaskDetailQa').textContent=btn.dataset.qa||'-';
+      document.getElementById('adminTaskDetailStart').textContent=btn.dataset.start||'-';
+      document.getElementById('adminTaskDetailPriority').textContent=btn.dataset.priority||'-';
+      document.getElementById('adminTaskDetailDue').textContent=btn.dataset.due||'-';
+      document.getElementById('adminTaskDetailStatus').textContent=btn.dataset.status||'-';
+      document.getElementById('adminTaskDetailEstimated').textContent=btn.dataset.estimated||'-';
+      document.getElementById('adminTaskDetailDescription').textContent=btn.dataset.description||'No description added.';
+      var box=document.getElementById('adminTaskDetailAttachments'); box.innerHTML='';
+      var items=(btn.dataset.attachments||'').split('||').filter(Boolean);
+      if(!items.length){box.innerHTML='<span class="text-muted">No attachment.</span>';} else {
+        items.forEach(function(item){var parts=item.split(':'); var id=parts.shift(); var name=parts.join(':'); var a=document.createElement('a'); a.className='btn btn-default btn-sm'; a.href='taskAttachment.php?id='+encodeURIComponent(id); a.innerHTML='<i class="fa fa-paperclip"></i> '; a.appendChild(document.createTextNode(name)); box.appendChild(a);});
+      }
+      jQuery('#adminTaskDetailModal').modal('show');
+    });
+  });
+});
+</script>
 <?php include 'footer.php'; ?>

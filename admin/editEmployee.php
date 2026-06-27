@@ -295,7 +295,7 @@ $employeeCompanies=mysqli_query($conn,"SELECT id,display_name FROM companies WHE
 
                                                     <span class="input-group-addon" style="padding: 8px 20px 0px 20px;"><p class="fa fa-calendar-o"></p></span>
 
-                                                    <input type="date" class="form-control" name="joiningDate" value="<?php echo $rowView['joiningDate'] ?>" placeholder="Joining Date">
+                                                    <input type="date" class="form-control" name="joiningDate" value="<?php echo $rowView['joiningDate'] ?>" placeholder="Joining Date" required>
 
                                                 </div>
 

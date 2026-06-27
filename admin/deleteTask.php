@@ -3,11 +3,12 @@ include 'dbconnect.php';
 require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../foundation.php';
 oecrm_require_admin_login();
+if($_SERVER['REQUEST_METHOD']!=='POST'){http_response_code(405);exit;}
 oecrm_require_csrf();
 oecrm_require_permission($conn, 'projects', 'edit');
 
-$id = oecrm_int_param($_GET, 'delete');
-$projectId = oecrm_int_param($_GET, 'project_id');
+$id = oecrm_int_param($_POST, 'delete');
+$projectId = oecrm_int_param($_POST, 'project_id');
 $companyId = oecrm_current_company_id($conn);
 $task = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM tasktbl WHERE id=' . (int) $id . ' AND company_id=' . (int) $companyId));
 if (!$task) {

@@ -4,10 +4,14 @@ require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../foundation.php';
 
 oecrm_require_admin_login();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit;
+}
 oecrm_require_csrf();
 oecrm_require_permission($conn, 'employees', 'edit');
 
-$id = oecrm_int_param($_GET, 'delete');
+$id = oecrm_int_param($_POST, 'delete');
 $companyId = oecrm_current_company_id($conn);
 $employee = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM employeestbl WHERE id=' . (int) $id . ' AND company_id=' . (int) $companyId));
 

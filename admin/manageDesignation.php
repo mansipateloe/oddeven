@@ -16,7 +16,7 @@ unset($_SESSION['designation_flash']);
     <div class="panel panel-default">
         <div class="panel-heading">Manage Designation</div>
         <div class="panel-body">
-            <form method="post" class="exit-init-form">
+            <form method="post" action="validation.php" class="exit-init-form">
                 <?php echo oecrm_csrf_field(); ?>
                 <div class="form-group">
                     <label for="designation">Designation</label>
@@ -25,7 +25,7 @@ unset($_SESSION['designation_flash']);
                 <button class="btn btn-primary" type="submit" name="addDesignation" value="1">
                     <i class="fa fa-plus"></i> Add Designation
                 </button>
-                <button class="btn btn-default" type="reset">Cancel</button>
+                <a class="btn btn-default" href="manageDesignation.php">Cancel</a>
             </form>
         </div>
     </div>
@@ -47,9 +47,11 @@ unset($_SESSION['designation_flash']);
                             <td><?php echo (int) $designation['id']; ?></td>
                             <td><?php echo oecrm_h($designation['designation']); ?></td>
                             <td>
-                                <a class="icon-action" href="deleteDesignation.php?deleteDesignation=<?php echo (int) $designation['id']; ?>" data-confirm="Delete this designation?" title="Delete">
-                                    <i class="fa fa-trash"></i>
-                                </a>
+                                <form method="post" action="deleteDesignation.php" style="display:inline;">
+                                    <?php echo oecrm_csrf_field(); ?>
+                                    <input type="hidden" name="deleteDesignation" value="<?php echo (int) $designation['id']; ?>">
+                                    <button type="submit" class="icon-action" data-confirm="Delete this designation?" title="Delete"><i class="fa fa-trash"></i></button>
+                                </form>
                             </td>
                         </tr>
                     <?php endwhile; ?>

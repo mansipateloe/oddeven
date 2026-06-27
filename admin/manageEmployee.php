@@ -100,10 +100,12 @@ $employees = mysqli_stmt_get_result($stmt);
                                 <span class="label <?php echo (int) $employee['status'] === 0 ? 'label-success' : 'label-default'; ?>">
                                     <?php echo (int) $employee['status'] === 0 ? 'Active' : 'Inactive'; ?>
                                 </span>
-                                <form method="post" class="employee-status-form">
+                                <form method="post" class="employee-status-form" action="manageEmployee.php">
                                     <?php echo oecrm_csrf_field(); ?>
                                     <?php if ((int) $employee['status'] === 0): ?>
-                                       
+                                        <button type="submit" name="deactivebtn" value="<?php echo (int) $employee['id']; ?>" class="btn btn-xs btn-default" title="Deactivate">
+                                            <i class="fa fa-ban"></i>
+                                        </button>
                                     <?php else: ?>
                                         <button type="submit" name="activebtn" value="<?php echo (int) $employee['id']; ?>" class="btn btn-xs btn-success" title="Activate">
                                             <i class="fa fa-check"></i>
@@ -114,7 +116,11 @@ $employees = mysqli_stmt_get_result($stmt);
                             <td class="employee-actions">
                                 <a href="employeeProfile.php?id=<?php echo (int) $employee['id']; ?>" title="Employee Profile"><i class="fa fa-id-card-o"></i></a>
                                 <a href="editEmployee.php?edit=<?php echo (int) $employee['id']; ?>" title="Edit"><i class="fa fa-pencil"></i></a>
-                                <a href="deleteEmployee.php?delete=<?php echo (int) $employee['id']; ?>" title="Deactivate" data-confirm="Deactivate this employee? Existing payroll, attendance and project history will be preserved."><i class="fa fa-ban"></i></a>
+                                <form method="post" action="deleteEmployee.php" style="display:inline;">
+                                    <?php echo oecrm_csrf_field(); ?>
+                                    <input type="hidden" name="delete" value="<?php echo (int) $employee['id']; ?>">
+                                    <button type="submit" class="icon-action" title="Deactivate" data-confirm="Deactivate this employee? Existing payroll, attendance and project history will be preserved."><i class="fa fa-ban"></i></button>
+                                </form>
                                 <a href="loginLog.php?id=<?php echo (int) $employee['id']; ?>" title="Login Log"><i class="fa fa-sign-in"></i></a>
                             </td>
                         </tr>

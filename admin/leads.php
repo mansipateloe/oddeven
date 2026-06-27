@@ -31,7 +31,7 @@ $leads = mysqli_stmt_get_result($stmt);
                         <td class="lead-contact-cell"><strong><?php echo oecrm_h($lead['contact_person']?:'-');?></strong><small><?php echo oecrm_h(trim(($lead['email']?:'').' '.($lead['mobile_no1']?:'')));?></small></td>
                         <td><?php echo oecrm_h($lead['source_name']?:'-');?></td>
                         <td><span class="lead-status"><?php echo oecrm_h(str_replace('_',' ',$lead['status']));?></span></td>
-                        <td><a class="icon-action" href="lead_details.php?leadId=<?php echo (int)$lead['lead_id'];?>" title="View"><i class="fa fa-eye"></i></a> <a class="icon-action" href="lead_edit.php?edit=<?php echo (int)$lead['lead_id'];?>" title="Edit"><i class="fa fa-pencil"></i></a> <a class="icon-action danger" href="delete_lead.php?delete=<?php echo (int)$lead['lead_id'];?>" data-confirm="Archive this lead?" title="Archive"><i class="fa fa-archive"></i></a></td>
+                        <td><a class="icon-action" href="lead_details.php?leadId=<?php echo (int)$lead['lead_id'];?>" title="View"><i class="fa fa-eye"></i></a> <a class="icon-action" href="lead_edit.php?edit=<?php echo (int)$lead['lead_id'];?>" title="Edit"><i class="fa fa-pencil"></i></a> <form method="post" action="delete_lead.php" style="display:inline;"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="delete" value="<?php echo (int)$lead['lead_id'];?>"><button type="submit" class="icon-action danger" style="border:0;background:transparent;padding:0;" data-confirm="Archive this lead?" title="Archive"><i class="fa fa-archive"></i></button></form></td>
                     </tr>
                 <?php endwhile; mysqli_stmt_close($stmt);?>
                 </tbody>

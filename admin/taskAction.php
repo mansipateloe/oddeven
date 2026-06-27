@@ -28,6 +28,40 @@ function oecrm_sync_task_assignee($conn, $taskId, $projectId, $employeeId, $acto
     return oecrm_assign_task_qa_reviewers($conn, $taskId, $actorId);
 }
 
+function oecrm_store_task_attachment($conn, $taskId, $actorId)
+{
+    if (empty($_FILES['task_attachment']) || ($_FILES['task_attachment']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return;
+    }
+    if ($_FILES['task_attachment']['error'] !== UPLOAD_ERR_OK) {
+        throw new RuntimeException('Task attachment upload failed.');
+    }
+    $allowedExtensions = ['pdf','doc','docx','xls','xlsx','png','jpg','jpeg','txt'];
+    $original = basename((string) $_FILES['task_attachment']['name']);
+    $extension = strtolower(pathinfo($original, PATHINFO_EXTENSION));
+    if (!in_array($extension, $allowedExtensions, true)) {
+        throw new RuntimeException('Task attachment file type is not allowed.');
+    }
+    if ((int) $_FILES['task_attachment']['size'] > 10 * 1024 * 1024) {
+        throw new RuntimeException('Task attachment must be 10MB or smaller.');
+    }
+    $storage = __DIR__ . '/../storage/task_attachments';
+    if (!is_dir($storage)) {
+        mkdir($storage, 0775, true);
+    }
+    $stored = 'task_' . (int) $taskId . '_' . bin2hex(random_bytes(8)) . '.' . $extension;
+    $target = $storage . '/' . $stored;
+    if (!move_uploaded_file($_FILES['task_attachment']['tmp_name'], $target)) {
+        throw new RuntimeException('Task attachment could not be saved.');
+    }
+    $mime = mime_content_type($target) ?: 'application/octet-stream';
+    $size = (int) filesize($target);
+    $stmt = mysqli_prepare($conn, 'INSERT INTO task_attachments(task_id,stored_name,original_name,mime_type,file_size,uploaded_by) VALUES(?,?,?,?,?,?)');
+    mysqli_stmt_bind_param($stmt, 'isssii', $taskId, $stored, $original, $mime, $size, $actorId);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+}
+
 try {
     $id = (int) ($_POST['id'] ?? 0);
     $projectId = (int) ($_POST['project_id'] ?? 0);
@@ -56,6 +90,7 @@ try {
         $id = mysqli_insert_id($conn);
         mysqli_stmt_close($stmt);
         $qaCount = oecrm_sync_task_assignee($conn, $id, $projectId, $developerId, (int) $_SESSION['adminId']);
+        oecrm_store_task_attachment($conn, $id, (int) $_SESSION['adminId']);
         if ($status === 'completed' && $qaCount > 0) {
             mysqli_query($conn, "UPDATE tasktbl SET status='in_review',board_status='review' WHERE id=" . (int) $id);
         }
@@ -76,6 +111,7 @@ try {
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
         $qaCount = oecrm_sync_task_assignee($conn, $id, $projectId, $developerId, (int) $_SESSION['adminId']);
+        oecrm_store_task_attachment($conn, $id, (int) $_SESSION['adminId']);
         if ($status === 'completed' && $qaCount > 0) {
             mysqli_query($conn, "UPDATE tasktbl SET status='in_review',board_status='review' WHERE id=" . (int) $id);
         }

@@ -42,7 +42,13 @@ unset($_SESSION['project_flash']);
                         <td>
                             <a class="btn btn-xs btn-primary" title="View" href="projectBoard.php?id=<?php echo (int) $project['id']; ?>"><i class="fa fa-eye"></i></a>
                             <a class="btn btn-xs btn-warning" title="Edit" href="projectEditor.php?id=<?php echo (int) $project['id']; ?>"><i class="fa fa-pencil"></i></a>
-                            <?php if ($project['status'] !== 'cancel' && oecrm_can($conn, 'projects', 'delete')): ?><a class="btn btn-xs btn-danger" title="Archive" data-confirm="Archive this project? Tasks will be cancelled and historical data will remain available." href="deleteProject.php?delete=<?php echo (int) $project['id']; ?>"><i class="fa fa-archive"></i></a><?php endif; ?>
+                            <?php if ($project['status'] !== 'cancel' && oecrm_can($conn, 'projects', 'delete')): ?>
+                                <form method="post" action="deleteProject.php" style="display:inline;">
+                                    <?php echo oecrm_csrf_field(); ?>
+                                    <input type="hidden" name="delete" value="<?php echo (int) $project['id']; ?>">
+                                    <button type="submit" class="btn btn-xs btn-danger" title="Archive" data-confirm="Archive this project? Tasks will be cancelled and historical data will remain available."><i class="fa fa-archive"></i></button>
+                                </form>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endwhile; ?>

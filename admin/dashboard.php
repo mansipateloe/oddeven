@@ -1,9 +1,11 @@
-﻿<?php include 'header.php'; ?>
-    <div id="page-wrapper">
+<?php include 'header.php'; ?>
+    <div id="page-wrapper" class="preadmin-dashboard-page">
         <div class="row">
             <div class="col-lg-12">
                 <?php
                     require_once __DIR__ . '/../birthdays.php';
+                    $companyId = oecrm_current_company_id($conn);
+
                     function admin_dashboard_count($conn, $sql) {
                         $result = mysqli_query($conn, $sql);
                         if (!$result) {
@@ -13,14 +15,14 @@
                         return (int)($row['total'] ?? 0);
                     }
 
-                    $totalProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectsTbl");
-                    $pendingProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectsTbl WHERE status = 'pending'");
-                    $inprogressProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectsTbl WHERE status = 'inprogress'");
-                    $completedProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectsTbl WHERE status = 'completed'");
-                    $cancelProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectsTbl WHERE status = 'cancel'");
-                    $holidayCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM holidayTbl");
-                    $leaveCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM leave_master");
-                    $dashboardBirthdays = oecrm_employee_birthdays($conn, oecrm_current_company_id($conn), 30);
+                    $totalProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectstbl WHERE company_id = " . (int) $companyId);
+                    $pendingProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectstbl WHERE company_id = " . (int) $companyId . " AND status = 'pending'");
+                    $inprogressProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectstbl WHERE company_id = " . (int) $companyId . " AND status = 'inprogress'");
+                    $completedProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectstbl WHERE company_id = " . (int) $companyId . " AND status = 'completed'");
+                    $cancelProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectstbl WHERE company_id = " . (int) $companyId . " AND status = 'cancel'");
+                    $holidayCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM holidaytbl WHERE company_id IN (0, " . (int) $companyId . ")");
+                    $leaveCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM leave_master lm LEFT JOIN employeesTbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 AND e.company_id = " . (int) $companyId);
+                    $dashboardBirthdays = oecrm_employee_birthdays($conn, $companyId, 30);
                     $todayBirthdays = array_values(array_filter($dashboardBirthdays, static function ($employee) { return (int) $employee['days_until'] === 0; }));
                 ?>
                 <?php if ($todayBirthdays): ?>
@@ -156,7 +158,22 @@
             $totalCurrentBalance = 0;
             $totalPeriodIncome = 0;
             $totalPeriodExpense = 0;
-            $qryAccount = "SELECT * FROM account ORDER BY account_name ASC";
+            $qryAccount = "
+                SELECT DISTINCT a.account_id, a.account_name, a.balance
+                FROM account a
+                INNER JOIN (
+                    SELECT DISTINCT d.account_Id AS account_id
+                    FROM deposit d
+                    INNER JOIN projectstbl p ON p.id = d.project_Id
+                    WHERE p.company_id = " . (int) $companyId . "
+                    UNION
+                    SELECT DISTINCT pe.account_Id AS account_id
+                    FROM project_expenses pe
+                    INNER JOIN projectstbl p ON p.id = pe.project_Id
+                    WHERE p.company_id = " . (int) $companyId . "
+                ) used_accounts ON used_accounts.account_id = a.account_id
+                ORDER BY a.account_name ASC
+            ";
             $resultAccount = mysqli_query($conn, $qryAccount);
             if ($resultAccount && $resultAccount->num_rows > 0) {
                 while ($rowAccount = $resultAccount->fetch_assoc()) {
@@ -259,7 +276,7 @@
         </div>        <br>
         <!-- leave -->
         <?php
-            $pendingLeaveCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM leave_master WHERE is_approved = 0");
+            $pendingLeaveCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM leave_master lm LEFT JOIN employeesTbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 AND e.company_id = " . (int) $companyId);
         ?>
         <div class="bank_details leave-approval-section">
             <div class="row">
@@ -275,7 +292,7 @@
                         <div class="panel-body">
                             <div class="leave-request-list">
                                 <?php
-                                    $leaveQuery = mysqli_query($conn, "SELECT lm.*, e.employeeUname, e.name, e.companyEmail FROM leave_master lm LEFT JOIN employeesTbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 ORDER BY lm.created_at DESC LIMIT 8");
+                                    $leaveQuery = mysqli_query($conn, "SELECT lm.*, e.employeeUname, e.name, e.companyEmail FROM leave_master lm LEFT JOIN employeesTbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 AND e.company_id = " . (int) $companyId . " ORDER BY lm.created_at DESC LIMIT 8");
                                     if ($leaveQuery && mysqli_num_rows($leaveQuery) > 0) {
                                         while ($leaveRow = mysqli_fetch_assoc($leaveQuery)) {
                                             $employeeName = !empty($leaveRow['name']) ? $leaveRow['name'] : $leaveRow['employeeUname'];
@@ -292,7 +309,7 @@
                                             <span class="leave-avatar"><?php echo htmlspecialchars($initial); ?></span>
                                             <span>
                                                 <strong><?php echo htmlspecialchars($employeeName); ?></strong>
-                                                <small>@<?php echo htmlspecialchars($employeeUser); ?> · <?php echo htmlspecialchars($employeeEmail); ?></small>
+                                                <small>@<?php echo htmlspecialchars($employeeUser); ?> � <?php echo htmlspecialchars($employeeEmail); ?></small>
                                             </span>
                                         </div>
                                         <div class="leave-detail-block">
@@ -456,6 +473,7 @@ function getApprovalStatusColor($status)
 }
 ?>
 <?php include 'footer.php'; ?>
+
 
 
 

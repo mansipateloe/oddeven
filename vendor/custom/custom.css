@@ -1390,3 +1390,193 @@ label,
 .employee-welcome-card{align-items:flex-start;flex-direction:column;padding:22px}.employee-welcome-actions{width:100%}.employee-welcome-actions .btn{flex:1}
 .employee-stat-grid{grid-template-columns:1fr;gap:12px}.employee-progress-summary{align-items:flex-start;flex-direction:column}
 }
+
+/* Final employee topbar alignment */
+.employee-topbar{gap:18px;border-bottom:1px solid rgba(205,211,229,.9);background:rgba(235,237,247,.96)!important;box-shadow:0 2px 12px rgba(47,51,73,.06)}
+.employee-topbar-left{min-width:0}.employee-topbar-left>div{min-width:0}.employee-topbar h1{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.employee-profile-menu{position:relative}.employee-profile-link{border:0;text-decoration:none}.employee-profile-link i{margin-left:4px;color:#9aa0b5}
+.employee-profile-dropdown{display:none;position:absolute;right:0;top:calc(100% + 10px);z-index:1100;min-width:205px;padding:8px;border:1px solid #e5e7f0;border-radius:10px;background:#fff;box-shadow:0 16px 36px rgba(33,40,70,.16)}
+.employee-profile-menu:hover .employee-profile-dropdown,.employee-profile-menu:focus-within .employee-profile-dropdown{display:block}
+.employee-profile-dropdown a{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:8px;color:#4d5368;font-size:13px;text-decoration:none}.employee-profile-dropdown a:hover{background:#f3f2ff;color:#7367f0}.employee-profile-dropdown a.danger{color:#ea5455}.employee-profile-dropdown a.danger:hover{background:#fff0f0}
+@media(max-width:991px){.employee-topbar h1{max-width:300px}}
+@media(max-width:767px){.employee-topbar{gap:10px}.employee-topbar-actions{gap:8px}.employee-icon-link{width:38px;height:38px}.employee-profile-dropdown{position:fixed;top:62px;right:12px}.employee-profile-link i{display:none}}
+
+/* Lead-style action buttons across employee modules */
+.employee-portal .table td:last-child,
+.employee-portal .table th:last-child{white-space:nowrap}
+.employee-portal .table td:last-child > a:not(.btn):not(.icon-action),
+.employee-portal .table td:last-child > a.btn.btn-xs,
+.employee-portal .table td:last-child > .btn.btn-xs,
+.employee-portal .table td:last-child > .icon-action,
+.employee-portal .table td:last-child form:not(.employee-task-update) > .btn.btn-xs,
+.employee-portal .table td:last-child form:not(.employee-task-update) > .icon-action,
+.employee-portal .table td:last-child button.icon-action{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:32px!important;
+    min-width:32px!important;
+    height:32px!important;
+    min-height:32px!important;
+    padding:0!important;
+    margin:1px 3px!important;
+    border:0!important;
+    border-radius:8px!important;
+    background:#f0f1ff!important;
+    color:#696cff!important;
+    box-shadow:none!important;
+    line-height:1!important;
+    vertical-align:middle!important;
+    text-decoration:none!important;
+}
+.employee-portal .table td:last-child > a:not(.btn):not(.icon-action):hover,
+.employee-portal .table td:last-child > a.btn.btn-xs:hover,
+.employee-portal .table td:last-child > .btn.btn-xs:hover,
+.employee-portal .table td:last-child > .icon-action:hover,
+.employee-portal .table td:last-child form:not(.employee-task-update) > .btn.btn-xs:hover,
+.employee-portal .table td:last-child form:not(.employee-task-update) > .icon-action:hover{
+    background:#e4e6ff!important;
+    color:#5046e5!important;
+}
+.employee-portal .table td:last-child .btn-danger,
+.employee-portal .table td:last-child .danger,
+.employee-portal .table td:last-child a[href*="delete"],
+.employee-portal .table td:last-child a[href*="Delete"],
+.employee-portal .table td:last-child button.danger{
+    background:#fff0f1!important;
+    color:#ea5455!important;
+}
+.employee-portal .table td:last-child .btn-danger:hover,
+.employee-portal .table td:last-child .danger:hover,
+.employee-portal .table td:last-child a[href*="delete"]:hover,
+.employee-portal .table td:last-child a[href*="Delete"]:hover,
+.employee-portal .table td:last-child button.danger:hover{
+    background:#ffe2e4!important;
+    color:#d92d3b!important;
+}
+.employee-portal .table td:last-child a i,
+.employee-portal .table td:last-child button i{margin:0!important;font-size:13px!important}
+.employee-portal .table td:last-child form:not(.employee-task-update){display:inline-flex!important;margin:0!important}
+.employee-portal .table td:last-child a[style],
+.employee-portal .table td:last-child i[style]{width:auto!important;font-size:13px!important;color:inherit!important}
+
+/* Separated employee shell: sidebar, topbar and content */
+.employee-portal{background:#f4f5fb!important}
+.employee-portal .sidebar{position:fixed!important;top:16px!important;bottom:16px!important;left:16px!important;width:246px!important;border:0!important;border-radius:12px!important;background:#fff!important;box-shadow:0 8px 28px rgba(47,51,73,.10)!important;overflow:hidden!important}
+.employee-portal .headerlogo{height:92px!important;border-bottom:1px solid #edf0f7!important;background:#fff!important}
+.employee-portal .sidebar .sidebar-nav,.employee-portal .sidebar .sidebar-nav.navbar-collapse{height:calc(100vh - 124px)!important;padding:14px 12px 26px!important;overflow-y:auto!important;scrollbar-width:thin}
+.employee-portal .employee-topbar{position:sticky!important;top:16px!important;margin:16px 16px 0 278px!important;min-height:74px!important;border:1px solid rgba(219,223,236,.95)!important;border-radius:12px!important;background:rgba(238,240,249,.98)!important;box-shadow:0 8px 24px rgba(47,51,73,.08)!important}
+.employee-portal #page-wrapper,.employee-portal .employee-timesheet-page{margin:0 16px 0 278px!important;padding:14px 28px 38px!important;background:transparent!important;min-height:calc(100vh - 106px)!important}
+.employee-portal #page-wrapper>.panel,
+.employee-portal #page-wrapper>.row>.col-lg-12>.panel,
+.employee-portal .panel.panel-default{border:1px solid #e6e9f2!important;border-radius:12px!important;box-shadow:0 6px 22px rgba(47,51,73,.07)!important;overflow:hidden}
+.employee-portal .panel-heading{border-bottom:1px solid #eef0f7!important;background:#fff!important}
+.employee-portal .table-responsive{border:0!important;border-radius:10px}
+.employee-portal .table>thead>tr>th{background:#f7f8fc!important;color:#3f4560!important;border-bottom:1px solid #e5e8f1!important}
+.employee-portal footer{margin-left:278px!important;margin-right:16px!important}
+@media(max-width:767px){
+    .employee-portal .sidebar{top:10px!important;bottom:10px!important;left:10px!important;width:min(284px,calc(100vw - 36px))!important;transform:translateX(calc(-100% - 20px))}
+    .employee-portal.employee-sidebar-open .sidebar,.employee-sidebar-open .employee-portal .sidebar{transform:translateX(0)}
+    .employee-portal .employee-topbar{top:0!important;margin:0!important;border-radius:0!important;border-left:0!important;border-right:0!important}
+    .employee-portal #page-wrapper,.employee-portal .employee-timesheet-page{margin:0!important;padding:14px 15px 28px!important}
+    .employee-portal footer{margin-left:0!important;margin-right:0!important}
+}
+
+/* Employee module detail helpers */
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.detail-grid>div{background:#f8f9ff;border:1px solid #e7e9f8;border-radius:12px;padding:12px 14px}
+.detail-grid small{display:block;color:#8a93aa;text-transform:uppercase;font-size:11px;font-weight:700;letter-spacing:.04em}
+.detail-grid strong{display:block;color:#20243f;margin-top:4px}
+.task-attachment-list{display:flex;flex-wrap:wrap;gap:8px}
+.employee-notice-card.notice-hidden{display:none}
+.employee-load-more-wrap{text-align:center;margin:18px 0 4px}
+.employee-timesheet-form input[type="date"],.leave-apply-form input[type="date"]{appearance:auto;-moz-appearance:auto;-webkit-appearance:auto}
+
+/* Preadmin HRMS-inspired employee shell polish */
+:root{--oe-primary:#ff7a00;--oe-primary-soft:#fff2e6;--oe-dark:#202124;--oe-muted:#67748e;--oe-border:#edf0f5;--oe-page:#f7f8fb;--oe-card:#fff;--oe-shadow:0 8px 24px rgba(32,33,36,.06)}
+.employee-portal{font-family:"Inter","Segoe UI",Arial,sans-serif;background:var(--oe-page)!important;color:#202124}
+.employee-portal .sidebar{border-radius:0!important;top:0!important;bottom:0!important;left:0!important;width:260px!important;box-shadow:none!important;border-right:1px solid var(--oe-border)!important}
+.employee-portal .headerlogo{height:76px!important;display:flex!important;align-items:center!important;justify-content:center!important;border-bottom:1px solid var(--oe-border)!important}
+.employee-portal .headerlogo img{max-height:46px!important;width:auto!important}
+.employee-portal .sidebar .sidebar-nav,.employee-portal .sidebar .sidebar-nav.navbar-collapse{height:calc(100vh - 76px)!important;padding:16px 12px 28px!important}
+.employee-portal .erp-nav-label{font-size:11px!important;letter-spacing:.08em!important;color:#98a2b3!important;text-transform:uppercase!important;margin:18px 12px 8px!important;font-weight:800!important}
+.employee-portal #side-menu>li>a,.employee-portal #side-menu .nav-second-level>li>a{border-radius:8px!important;margin:2px 6px!important;color:#5f6b7a!important;font-weight:600!important;min-height:38px!important;display:flex!important;align-items:center!important;gap:10px!important}
+.employee-portal #side-menu>li>a:hover,.employee-portal #side-menu .nav-second-level>li>a:hover{background:#f5f6fa!important;color:var(--oe-dark)!important}
+.employee-portal #side-menu a.active,.employee-portal #side-menu li.active>a,.employee-portal #side-menu li.open>a{background:var(--oe-primary-soft)!important;color:var(--oe-primary)!important}
+.employee-portal #side-menu i{color:inherit!important;width:18px!important;text-align:center!important}
+.employee-portal .employee-topbar{top:0!important;margin:0 0 0 260px!important;border-radius:0!important;border:0!important;border-bottom:1px solid var(--oe-border)!important;background:#fff!important;box-shadow:none!important;min-height:76px!important;padding:0 24px!important}
+.employee-portal .employee-topbar h1{font-size:22px!important;font-weight:800!important;color:#202124!important;margin:2px 0 0!important}
+.employee-portal .employee-breadcrumb{color:#8a94a6!important;font-size:12px!important}
+.employee-portal .employee-today,.employee-portal .employee-icon-link,.employee-portal .employee-profile-link{background:#fff!important;border:1px solid var(--oe-border)!important;border-radius:10px!important;box-shadow:0 3px 10px rgba(32,33,36,.04)!important}
+.employee-portal #page-wrapper,.employee-portal .employee-timesheet-page{margin:0 0 0 260px!important;padding:24px!important;background:var(--oe-page)!important;min-height:calc(100vh - 76px)!important}
+.employee-portal .panel.panel-default,.employee-portal #page-wrapper>.panel,.employee-portal .compact-employee-page>.panel{border:1px solid var(--oe-border)!important;border-radius:14px!important;box-shadow:var(--oe-shadow)!important;background:var(--oe-card)!important}
+.employee-portal .panel-heading{min-height:64px!important;padding:18px 20px!important;border-bottom:1px solid var(--oe-border)!important;background:#fff!important;color:#202124!important;font-size:18px!important;font-weight:800!important}
+.employee-portal .panel-body{padding:20px!important}
+.employee-portal .employee-welcome-card,.employee-portal .employee-stat-card,.employee-portal .leave-balance-strip>div{border:1px solid var(--oe-border)!important;border-radius:14px!important;background:#fff!important;box-shadow:var(--oe-shadow)!important}
+.employee-portal .btn-primary{background:var(--oe-primary)!important;border-color:var(--oe-primary)!important;color:#fff!important;box-shadow:0 4px 12px rgba(255,122,0,.22)!important}
+.employee-portal .btn-primary:hover{background:#e86f00!important;border-color:#e86f00!important}
+.employee-portal .form-control{border-color:#dfe4ee!important;border-radius:8px!important;box-shadow:none!important;min-height:38px}
+.employee-portal .form-control:focus{border-color:var(--oe-primary)!important;box-shadow:0 0 0 3px rgba(255,122,0,.12)!important}
+.employee-portal .table>thead>tr>th{background:#f8fafc!important;color:#475467!important;font-size:12px!important;text-transform:uppercase!important;letter-spacing:.04em!important;font-weight:800!important;border-color:var(--oe-border)!important}
+.employee-portal .table>tbody>tr>td{border-color:var(--oe-border)!important;color:#344054!important;vertical-align:middle!important}
+.employee-portal .icon-action,.employee-portal .table td:last-child .btn{border-radius:9px!important}
+@media(max-width:767px){.employee-portal .sidebar{width:min(286px,calc(100vw - 32px))!important;transform:translateX(-105%)}.employee-portal.employee-sidebar-open .sidebar{transform:translateX(0)}.employee-portal .employee-topbar,.employee-portal #page-wrapper,.employee-portal .employee-timesheet-page{margin-left:0!important}.employee-portal #page-wrapper,.employee-portal .employee-timesheet-page{padding:16px!important}}
+
+/* SmartHR/Preadmin dashboard alignment */
+.employee-portal .preadmin-dashboard-page{background:#f7f8fa!important}
+.employee-portal .employee-welcome-card{position:relative!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:20px!important;margin:0 0 20px!important;padding:22px 24px!important;border:1px solid #edf0f5!important;border-radius:14px!important;background:linear-gradient(90deg,#fff4e8 0%,#fff 68%)!important;box-shadow:0 8px 24px rgba(32,33,36,.06)!important;overflow:hidden!important}
+.employee-portal .employee-welcome-card:after{content:"";position:absolute;right:-42px;bottom:-42px;width:140px;height:140px;border-radius:50%;background:rgba(255,122,0,.10)}
+.employee-portal .employee-welcome-label{display:inline-flex!important;padding:4px 10px!important;border-radius:999px!important;background:#fff!important;color:#ff7a00!important;font-size:12px!important;font-weight:800!important;margin-bottom:8px!important}
+.employee-portal .employee-welcome-card h2{font-size:24px!important;font-weight:800!important;color:#202124!important;margin:0 0 6px!important}
+.employee-portal .employee-welcome-card p{color:#67748e!important;margin:0!important}
+.employee-portal .employee-welcome-actions{display:flex!important;gap:10px!important;position:relative!important;z-index:1}
+.employee-portal .employee-stat-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:18px!important;margin:0 0 22px!important}
+.employee-portal .employee-stat-card{position:relative!important;display:flex!important;align-items:center!important;gap:16px!important;min-height:126px!important;padding:20px!important;border:1px solid #edf0f5!important;border-radius:14px!important;background:#fff!important;box-shadow:0 8px 24px rgba(32,33,36,.06)!important;text-decoration:none!important;color:#202124!important;overflow:hidden!important}
+.employee-portal .employee-stat-card:after{content:"";position:absolute;right:-34px;bottom:-34px;width:106px;height:106px;border-radius:50%;background:rgba(255,122,0,.08)}
+.employee-portal .employee-stat-card>i{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 44px!important;width:44px!important;height:44px!important;border-radius:10px!important;background:#fff2e6!important;color:#ff7a00!important;font-size:18px!important}
+.employee-portal .employee-stat-card.stat-blue>i{background:#e8f3ff!important;color:#0ea5e9!important}
+.employee-portal .employee-stat-card.stat-purple>i{background:#f2ecff!important;color:#7c3aed!important}
+.employee-portal .employee-stat-card.stat-orange>i{background:#fff2e6!important;color:#ff7a00!important}
+.employee-portal .employee-stat-card.stat-green>i{background:#eafaf2!important;color:#22c55e!important}
+.employee-portal .employee-stat-card small{display:block!important;font-size:13px!important;font-weight:700!important;color:#67748e!important}
+.employee-portal .employee-stat-card strong{display:block!important;font-size:27px!important;line-height:1.1!important;font-weight:800!important;color:#202124!important;margin:5px 0!important}
+.employee-portal .employee-stat-card em{font-style:normal!important;color:#8a94a6!important;font-size:12px!important}
+.employee-portal .employee-dashboard-grid{margin-left:-9px!important;margin-right:-9px!important}
+.employee-portal .employee-dashboard-grid>[class*="col-"]{padding-left:9px!important;padding-right:9px!important}
+.employee-portal .employee-progress-summary{display:flex!important;align-items:center!important;gap:24px!important}
+.employee-portal .employee-progress-ring{width:132px!important;height:132px!important;border-radius:50%!important;background:conic-gradient(#ff7a00 var(--progress),#f1f3f6 0)!important;display:flex!important;align-items:center!important;justify-content:center!important;position:relative!important}
+.employee-portal .employee-progress-ring:before{content:"";position:absolute;inset:12px;border-radius:50%;background:#fff}
+.employee-portal .employee-progress-ring span{position:relative;z-index:1;font-weight:800!important;font-size:22px!important;color:#202124!important}
+.employee-portal .employee-notice-row{border:1px solid #edf0f5!important;border-radius:12px!important;background:#fff!important;margin-bottom:10px!important;padding:12px!important;box-shadow:0 3px 12px rgba(32,33,36,.04)!important}
+@media(max-width:1199px){.employee-portal .employee-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:767px){.employee-portal .employee-welcome-card{display:block!important}.employee-portal .employee-welcome-actions{margin-top:14px;flex-wrap:wrap}.employee-portal .employee-stat-grid{grid-template-columns:1fr!important}.employee-portal .employee-progress-summary{display:block!important}.employee-portal .employee-progress-ring{margin-bottom:18px!important}}
+
+/* CRM-wide SmartHR employee module normalization */
+.employee-portal .compact-employee-page,.employee-portal .employee-timesheet-page,.employee-portal .employee-notice-page,.employee-portal .leave-center-page{max-width:none!important}
+.employee-portal #page-wrapper>h1,.employee-portal #page-wrapper>h2,.employee-portal #page-wrapper>h3{font-weight:800!important;color:#202124!important;margin:0 0 18px!important}
+.employee-portal .row{margin-left:-9px!important;margin-right:-9px!important}
+.employee-portal [class*="col-"]{padding-left:9px!important;padding-right:9px!important}
+.employee-portal .panel{margin-bottom:18px!important}
+.employee-portal .panel-heading small{display:block!important;color:#8a94a6!important;font-size:12px!important;font-weight:600!important;margin-top:3px!important}
+.employee-portal .panel-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important}
+.employee-portal .table-responsive{overflow:auto!important}
+.employee-portal .table{margin-bottom:0!important;background:#fff!important}
+.employee-portal .table>tbody>tr:hover>td{background:#fffaf5!important}
+.employee-portal .dataTables_wrapper .dataTables_length select,.employee-portal .dataTables_wrapper .dataTables_filter input{border:1px solid #dfe4ee!important;border-radius:8px!important;min-height:38px!important;padding:7px 10px!important}
+.employee-portal .dataTables_wrapper .dataTables_paginate .paginate_button,.employee-portal .pagination>li>a,.employee-portal .pagination>li>span{border-radius:8px!important;border:1px solid #edf0f5!important;margin:0 2px!important;color:#344054!important}
+.employee-portal .dataTables_wrapper .dataTables_paginate .paginate_button.current,.employee-portal .pagination>.active>a{background:#ff7a00!important;border-color:#ff7a00!important;color:#fff!important}
+.employee-portal .alert{border:0!important;border-radius:12px!important;box-shadow:0 4px 16px rgba(32,33,36,.06)!important}
+.employee-portal .modal-content{border:0!important;border-radius:14px!important;box-shadow:0 18px 50px rgba(32,33,36,.18)!important;overflow:hidden!important}
+.employee-portal .modal-header{border-bottom:1px solid #edf0f5!important;background:#fff!important}
+.employee-portal .modal-footer{border-top:1px solid #edf0f5!important;background:#f8fafc!important}
+.employee-portal .oecrm-select-toggle{border-radius:8px!important;border-color:#dfe4ee!important;min-height:38px!important}
+.employee-portal .oecrm-select-panel{border-radius:10px!important;border-color:#edf0f5!important;box-shadow:0 12px 30px rgba(32,33,36,.12)!important}
+.employee-profile-menu.open .employee-profile-dropdown{display:block!important}
+.oecrm-password-field{position:relative;display:flex!important;align-items:stretch!important;width:100%!important;border:1px solid #8dc6f4!important;border-radius:8px!important;background:#fff!important;overflow:hidden!important}
+.oecrm-password-field .oecrm-password-prefix{flex:0 0 44px!important;display:flex!important;align-items:center!important;justify-content:center!important;color:#1d8fe5!important;background:#f4faff!important;border-right:1px solid #c8e4fb!important}
+.oecrm-password-field .oecrm-password-prefix i{font-size:14px!important}
+.oecrm-password-field .form-control{flex:1 1 auto!important;width:100%!important;border:0!important;box-shadow:none!important;height:40px!important;padding-left:12px!important;padding-right:0!important;border-radius:0!important}
+.oecrm-password-field .form-control:focus{box-shadow:none!important;outline:0!important}
+.oecrm-password-field .oecrm-password-toggle{flex:0 0 42px!important;position:relative!important;right:auto!important;top:auto!important;bottom:auto!important;width:42px!important;margin:0!important;border:0!important;border-left:1px solid #c8e4fb!important;border-radius:0!important;background:#eaf4ff!important;height:auto!important;display:flex!important;align-items:center!important;justify-content:center!important;color:#1d8fe5!important;z-index:3}
+.oecrm-password-field .oecrm-password-toggle:hover{background:#dff0ff!important}
+.oecrm-password-field .oecrm-password-toggle i{color:#1d8fe5!important;font-size:14px!important}

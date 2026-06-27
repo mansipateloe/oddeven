@@ -1,22 +1,6 @@
-﻿<?php require_once __DIR__ . '/../security.php';
+<?php require_once __DIR__ . '/../security.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();
-    $legacyProjectActions = ['addProject', 'updateProject'];
-    foreach ($legacyProjectActions as $legacyAction) {
-        if (isset($_POST[$legacyAction])) {
-            $_SESSION['project_error'] = 'This legacy project action is disabled. Please use Project Management.';
-            header('Location: projectEditor.php');
-            exit;
-        }
-    }
-    $legacyTaskActions = ['assignTask', 'updatetaskhourstbl', 'updateTask'];
-    foreach ($legacyTaskActions as $legacyAction) {
-        if (isset($_POST[$legacyAction])) {
-            $_SESSION['task_error'] = 'This legacy task action is disabled. Please use Task Management.';
-            header('Location: viewTask.php');
-            exit;
-        }
-    }
 }
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
@@ -111,11 +95,11 @@ if (isset($_POST['addemployee'])) {
 
     //$mobile1 = $_POST['mobile1'];
 
-    $mobile1 = mysqli_real_escape_string($conn, $_POST['mobile1']);
+    $mobile1 = substr(preg_replace('/\D+/', '', mysqli_real_escape_string($conn, $_POST['mobile1'])), 0, 10);
 
     //$mobile2 = $_POST['mobile2'];
 
-    $mobile2 = mysqli_real_escape_string($conn, $_POST['mobile2']);
+    $mobile2 = substr(preg_replace('/\D+/', '', mysqli_real_escape_string($conn, $_POST['mobile2'])), 0, 10);
 
     //$companyEmail = $_POST['companyEmail'];
 
@@ -146,6 +130,16 @@ if (isset($_POST['addemployee'])) {
     $birthdate = $_POST['birthdate'];
 
     $status = 1;
+
+    if (strlen($mobile1) !== 10) {
+        $mobile1Error = "Number must be 10 digit";
+        $errors = 1;
+    }
+
+    if (strlen($mobile2) !== 10) {
+        $mobile2Error = "Number must be 10 digit";
+        $errors = 1;
+    }
 
 
 
@@ -374,26 +368,30 @@ if (isset($_POST['addHoliday'])) {
 <?php
 
 if (isset($_POST['addDesignation'])) {
-
-    //$designation = $_POST['designation'];
-
-    $designation = mysqli_real_escape_string($conn, $_POST['designation']);
-
-
-
-    $qry = "INSERT INTO designation (designation) VALUES ('$designation')";
-
-    if (mysqli_query($conn, $qry)) {
-
-        /*echo "Data inserted succesfully.";*/
-
+    oecrm_require_csrf();
+    oecrm_require_permission($conn,'employees','create');
+    $designation = trim($_POST['designation'] ?? '');
+    if ($designation === '') {
+        $_SESSION['designation_flash'] = 'Designation is required.';
         header('Location:manageDesignation.php');
-
-    } else {
-
-        echo "Data not inserted succesfully.";
-
+        exit;
     }
+    $check = mysqli_prepare($conn,'SELECT id FROM designation WHERE LOWER(designation)=LOWER(?) LIMIT 1');
+    mysqli_stmt_bind_param($check,'s',$designation);
+    mysqli_stmt_execute($check);
+    $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
+    mysqli_stmt_close($check);
+    if ($exists) {
+        $_SESSION['designation_flash'] = 'Designation already exists.';
+        header('Location:manageDesignation.php');
+        exit;
+    }
+    $stmt = mysqli_prepare($conn,'INSERT INTO designation (designation) VALUES (?)');
+    mysqli_stmt_bind_param($stmt,'s',$designation);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    header('Location:manageDesignation.php');
+    exit;
 
 }
 
@@ -431,7 +429,7 @@ if (isset($_POST['addProject'])) {
 
     $projectType = $_POST['projectType'];
 
-    $phone = $_POST['phone'];
+    $phone = substr(preg_replace('/\D+/', '', $_POST['phone']), 0, 10);
 
     $email = $_POST['email'];
 
@@ -507,7 +505,7 @@ if (isset($_POST['addProject'])) {
 
         $projectType = $_POST['projectType'];
 
-        $phone = $_POST['phone'];
+        $phone = substr(preg_replace('/\D+/', '', $_POST['phone']), 0, 10);
 
         $email = $_POST['email'];
 
@@ -518,6 +516,11 @@ if (isset($_POST['addProject'])) {
         $reference = $_POST['reference'];
 
         $status = $_POST['status'];
+
+        if (strlen($phone) !== 10) {
+            echo "Phone number must be exactly 10 digits.";
+            exit;
+        }
 
 
 
@@ -587,7 +590,7 @@ if (isset($_POST['updatetaskhourstbl'])) {
 
 
 
-    $rowUpdateQry = "SELECT 0";
+    $rowUpdateQry = "update taskhourstbl set adminResponse='$adminResponse' where id=" . $rowId;
 
     if (mysqli_query($conn, $rowUpdateQry)) {
 
@@ -627,7 +630,7 @@ if (isset($_POST['updateTask'])) {
 
 
 
-    $qryeditTask = "SELECT 0";
+    $qryeditTask = "update taskhourstbl set worklog='$task_details' where id=" . $id;
 
     if (mysqli_query($conn, $qryeditTask)) {
 
@@ -967,11 +970,11 @@ if (isset($_POST['updateEmployee'])) {
 
     //$mobile1 = $_POST['mobile1'];
 
-    $mobile1 = mysqli_real_escape_string($conn, $_POST['mobile1']);
+    $mobile1 = substr(preg_replace('/\D+/', '', mysqli_real_escape_string($conn, $_POST['mobile1'])), 0, 10);
 
     //$mobile2 = $_POST['mobile2'];
 
-    $mobile2 = mysqli_real_escape_string($conn, $_POST['mobile2']);
+    $mobile2 = substr(preg_replace('/\D+/', '', mysqli_real_escape_string($conn, $_POST['mobile2'])), 0, 10);
 
     //$skypeUname = $_POST['skypeUname'];
 
@@ -994,6 +997,15 @@ if (isset($_POST['updateEmployee'])) {
     $bankAcNo = mysqli_real_escape_string($conn, $_POST['bankAcNo']);
 
     $birthdate = $_POST['birthdate'];
+
+    if (strlen($mobile1) !== 10) {
+        $mobile1Error = "Number must be 10 digit";
+        $errors = 1;
+    }
+    if (strlen($mobile2) !== 10) {
+        $mobile2Error = "Number must be 10 digit";
+        $errors = 1;
+    }
 
 
 
@@ -1233,19 +1245,27 @@ if (isset($_POST['addLeaveType'])) {
 
 if (isset($_POST['addLeadSource'])) {
 
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    oecrm_require_csrf();
+    oecrm_require_permission($conn,'clients','create');
+    $name = trim($_POST['name'] ?? '');
+    if ($name === '') {
+        $_SESSION['lead_source_flash'] = 'Lead source name is required.';
+        header('Location:manageLeadSource.php');
+        exit;
+    }
 
-    $qry = "INSERT INTO `followup_type_tbl`(`id`, `name`) VALUES (NULL,'$name')";
+    $name = mysqli_real_escape_string($conn, $name);
+
+    $qry = "INSERT INTO `lead_source_tbl`(`id`, `name`) VALUES (NULL,'$name')";
 
     if (mysqli_query($conn, $qry)) {
-
-        echo "Data Inserted succesfully.";
-
         header('Location:manageLeadSource.php');
+        exit;
 
     } else {
-
-        echo "Data not inserted succesfully.";
+        $_SESSION['lead_source_flash'] = 'Lead source could not be saved.';
+        header('Location:manageLeadSource.php');
+        exit;
 
     }
 
@@ -1254,20 +1274,37 @@ if (isset($_POST['addLeadSource'])) {
 
 
 if (isset($_POST['addFollowupType'])) {
+    oecrm_require_csrf();
+    oecrm_require_permission($conn,'clients','create');
+    $name = trim($_POST['name'] ?? '');
+    if ($name === '') {
+        $_SESSION['followup_type_flash'] = 'Follow-up type is required.';
+        header('Location:manageFollowupType.php');
+        exit;
+    }
+    $check = mysqli_prepare($conn, 'SELECT id FROM followup_type_tbl WHERE name=? LIMIT 1');
+    mysqli_stmt_bind_param($check, 's', $name);
+    mysqli_stmt_execute($check);
+    $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
+    mysqli_stmt_close($check);
+    if ($exists) {
+        $_SESSION['followup_type_flash'] = 'Follow-up type already exists.';
+        header('Location:manageFollowupType.php');
+        exit;
+    }
 
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $name = mysqli_real_escape_string($conn, $name);
 
     $qry = "INSERT INTO `followup_type_tbl`(`id`, `name`) VALUES (NULL,'$name')";
 
     if (mysqli_query($conn, $qry)) {
-
-        echo "Data Inserted succesfully.";
-
         header('Location:manageFollowupType.php');
+        exit;
 
     } else {
-
-        echo "Data not inserted succesfully.";
+        $_SESSION['followup_type_flash'] = 'Follow-up type could not be saved.';
+        header('Location:manageFollowupType.php');
+        exit;
 
     }
 
@@ -1306,7 +1343,10 @@ if (isset($_POST['leadSave'])) {
     oecrm_require_permission($conn,'clients','create');
     $companyId=oecrm_current_company_id($conn);$actor=(int)$_SESSION['adminId'];
     $leadDate=$_POST['leadDate']??'';$executiveName=trim($_POST['executiveName']??'');$company=trim($_POST['company']??'');$cperson=trim($_POST['cperson']??'');$mobileno1=trim($_POST['mobileno1']??'');$mobileno2=trim($_POST['mobileno2']??'');$emailid=trim($_POST['emailid']??'');$emailid2=trim($_POST['emailid2']??'');$city=trim($_POST['city']??'');$address=trim($_POST['address']??'');$leadType=$_POST['leadType']??'medium';$nick_name=trim($_POST['nick_name']??'');$status=$_POST['status']??'pending';$leadSource=(int)($_POST['lead_source']??0);$followupType=$_POST['followupType']??'Call';$remarks=trim($_POST['remarks']??'');$nextFollowupDate=$_POST['nextFollowupDate']?:null;$nextFollowupTime=$_POST['nextFollowupTime']?:null;
-    if($executiveName===''||!strtotime($leadDate)){$_SESSION['lead_flash']='Lead date and client name are required.';header('Location:add_lead.php');exit;}
+    $mobileno1 = substr(preg_replace('/\D+/', '', $mobileno1), 0, 10);
+    $mobileno2 = substr(preg_replace('/\D+/', '', $mobileno2), 0, 10);
+    if ($executiveName === '' || $company === '' || $cperson === '' || $leadSource <= 0 || !strtotime($leadDate)) { $_SESSION['lead_flash'] = 'Lead date, client name, company, contact person and lead source are required.'; header('Location:add_lead.php'); exit; }
+    if (strlen($mobileno1) !== 10 || strlen($mobileno2) !== 10) { $_SESSION['lead_flash'] = 'Both mobile numbers must contain exactly 10 digits.'; header('Location:add_lead.php'); exit; }
     mysqli_begin_transaction($conn);
     try{
         $stmt=mysqli_prepare($conn,'INSERT INTO leads(company_id,lead_date,executive_name,company_name,contact_person,mobile_no1,mobile_no2,email,personal_email,city,address,assign_to,is_active,created_at,created_by,lead_source,nick_name,status) VALUES(?,?,?,?,?,?,?,?,?,?,?,NULL,1,NOW(),?,?,?,?)');
@@ -1325,6 +1365,7 @@ if (isset($_POST['saveLeadFollowup'])) {
     oecrm_require_permission($conn,'client_communications','create');
     $companyId=oecrm_current_company_id($conn);$actor=(int)$_SESSION['adminId'];$leadType=$_POST['lead_type']??'';$followupType=$_POST['followupType']??'';$remarks=trim($_POST['remarks']??'');$nextFollowupDate=$_POST['next_followup_date']?:null;$nextFollowupTime=$_POST['next_followup_time']?:null;$lead_id=(int)($_POST['lead_id']??0);$status=$_POST['status']??'pending';
     $stmt=mysqli_prepare($conn,'SELECT lead_id FROM leads WHERE lead_id=? AND company_id=? AND is_active=1');mysqli_stmt_bind_param($stmt,'ii',$lead_id,$companyId);mysqli_stmt_execute($stmt);$valid=mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));mysqli_stmt_close($stmt);if(!$valid){http_response_code(404);exit('Lead not found.');}
+    if($nextFollowupDate && $nextFollowupDate < date('Y-m-d')){$_SESSION['lead_flash']='Next follow-up date cannot be in the past.';header("Location:lead_details.php?leadId=$lead_id");exit;}
     $stmt=mysqli_prepare($conn,'INSERT INTO lead_followup(lead_id,lead_type,followup_type,remarks,next_followup_date,next_followup_time,created_at,created_by,status) VALUES(?,?,?,?,?,?,NOW(),?,?)');mysqli_stmt_bind_param($stmt,'isssssis',$lead_id,$leadType,$followupType,$remarks,$nextFollowupDate,$nextFollowupTime,$actor,$status);mysqli_stmt_execute($stmt);$followupId=mysqli_insert_id($conn);mysqli_stmt_close($stmt);oecrm_audit($conn,'client_communications','create','lead_followup',$followupId,'Lead follow-up created',null,['lead_id'=>$lead_id,'status'=>$status]);
     header("Location:lead_details.php?leadId=$lead_id");exit;
 

@@ -2923,3 +2923,212 @@ body #page-wrapper{margin:0!important;padding:10px 15px 28px!important}body foot
 .attendance-day-badge{display:inline-flex;padding:5px 9px;border-radius:13px;background:#eef0f5;color:#697086;font-size:10px;font-weight:800;text-transform:uppercase}.attendance-day-badge.present,.attendance-day-badge.worked-off{background:#e3f8ec;color:#17864b}.attendance-day-badge.late,.attendance-day-badge.half-day,.attendance-day-badge.incomplete{background:#fff0d8;color:#a76a00}.attendance-day-badge.absent{background:#fde5e6;color:#c23d43}.attendance-day-badge.weekly-off,.attendance-day-badge.holiday{background:#e7f2ff;color:#3279b8}.attendance-day-badge.not-started,.attendance-day-badge.upcoming,.attendance-day-badge.not-joined,.attendance-day-badge.no-shift{background:#eef0f5;color:#7a8092}
 .attendance-day-absent{background:#fff7f7!important}.attendance-day-weekly-off,.attendance-day-holiday{background:#f6faff!important}.attendance-day-not-started,.attendance-day-upcoming{background:#fff!important}.attendance-empty{color:#a5a9b7}
 @media(max-width:767px){.attendance-review-toolbar{align-items:stretch;flex-direction:column}.attendance-period-filter,.attendance-review-actions{flex-wrap:wrap}.attendance-period-filter .form-control{width:calc(50% - 5px)}.attendance-period-filter .btn{width:100%}.attendance-review-actions .attendance-period-state{width:100%;margin:0}}
+
+/* Final topbar alignment */
+.admin-topbar{gap:18px;border-bottom:1px solid rgba(205,211,229,.9);background:rgba(235,237,247,.96)!important;box-shadow:0 2px 12px rgba(47,51,73,.06)}
+.admin-topbar-left{min-width:0}.admin-topbar-left>div{min-width:0}.admin-topbar-left h1{max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.admin-topbar-actions{flex:0 0 auto}.admin-company-pill{display:inline-flex;align-items:center;gap:8px;max-width:240px;padding:9px 12px;border-radius:8px;color:#5d6478;background:#fff;box-shadow:0 2px 9px rgba(47,51,73,.07);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.admin-company-pill i{color:#696cff}
+.admin-profile-menu{position:relative}.admin-topbar-profile{border:0;text-decoration:none}.admin-topbar-profile i{margin-left:4px;color:#9aa0b5}
+.admin-profile-dropdown{display:none;position:absolute;right:0;top:calc(100% + 10px);z-index:1100;min-width:210px;padding:8px;border:1px solid #e5e7f0;border-radius:10px;background:#fff;box-shadow:0 16px 36px rgba(33,40,70,.16)}
+.admin-profile-menu:hover .admin-profile-dropdown,.admin-profile-menu:focus-within .admin-profile-dropdown{display:block}
+.admin-profile-dropdown a{display:flex;align-items:center;gap:10px;padding:10px 11px;border-radius:8px;color:#4d5368;font-size:13px;text-decoration:none}.admin-profile-dropdown a:hover{background:#f3f2ff;color:#696cff}.admin-profile-dropdown a.danger{color:#ea5455}.admin-profile-dropdown a.danger:hover{background:#fff0f0}
+@media(max-width:991px){.admin-company-pill{display:none}.admin-topbar-left h1{max-width:300px}}
+@media(max-width:767px){.admin-topbar{gap:10px}.admin-topbar-actions{gap:8px}.admin-topbar-icon{width:38px;height:38px}.admin-profile-dropdown{position:fixed;top:62px;right:12px}.admin-topbar-profile i{display:none}}
+
+/* Lead-style action buttons across admin modules */
+.admin-portal .table td:last-child,
+.admin-portal .table th:last-child{white-space:nowrap}
+.admin-portal .table td:last-child > a:not(.btn):not(.icon-action),
+.admin-portal .table td:last-child > a.btn.btn-xs,
+.admin-portal .table td:last-child > .btn.btn-xs,
+.admin-portal .table td:last-child > .icon-action,
+.admin-portal .table td:last-child form > .btn.btn-xs,
+.admin-portal .table td:last-child form > .icon-action,
+.admin-portal .table td:last-child .notice-actions .icon-action,
+.admin-portal .table td:last-child .letter-actions .icon-action,
+.admin-portal .table td:last-child > a[data-confirm],
+.admin-portal .table td:last-child button.icon-action{
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:32px!important;
+    min-width:32px!important;
+    height:32px!important;
+    min-height:32px!important;
+    padding:0!important;
+    margin:1px 3px!important;
+    border:0!important;
+    border-radius:8px!important;
+    background:#f0f1ff!important;
+    color:#696cff!important;
+    box-shadow:none!important;
+    line-height:1!important;
+    vertical-align:middle!important;
+    text-decoration:none!important;
+}
+.admin-portal .table td:last-child > a:not(.btn):not(.icon-action):hover,
+.admin-portal .table td:last-child > a.btn.btn-xs:hover,
+.admin-portal .table td:last-child > .btn.btn-xs:hover,
+.admin-portal .table td:last-child > .icon-action:hover,
+.admin-portal .table td:last-child form > .btn.btn-xs:hover,
+.admin-portal .table td:last-child form > .icon-action:hover{
+    background:#e4e6ff!important;
+    color:#5046e5!important;
+}
+.admin-portal .table td:last-child .btn-danger,
+.admin-portal .table td:last-child .danger,
+.admin-portal .table td:last-child a[href*="delete"],
+.admin-portal .table td:last-child a[href*="Delete"],
+.admin-portal .table td:last-child a[href*="archive"],
+.admin-portal .table td:last-child a[href*="Archive"],
+.admin-portal .table td:last-child a[data-confirm*="Delete"],
+.admin-portal .table td:last-child a[data-confirm*="Archive"],
+.admin-portal .table td:last-child button.danger{
+    background:#fff0f1!important;
+    color:#ea5455!important;
+}
+.admin-portal .table td:last-child .btn-danger:hover,
+.admin-portal .table td:last-child .danger:hover,
+.admin-portal .table td:last-child a[href*="delete"]:hover,
+.admin-portal .table td:last-child a[href*="Delete"]:hover,
+.admin-portal .table td:last-child a[href*="archive"]:hover,
+.admin-portal .table td:last-child a[href*="Archive"]:hover,
+.admin-portal .table td:last-child button.danger:hover{
+    background:#ffe2e4!important;
+    color:#d92d3b!important;
+}
+.admin-portal .table td:last-child a i,
+.admin-portal .table td:last-child button i{margin:0!important;font-size:13px!important}
+.admin-portal .table td:last-child form{display:inline-flex!important;margin:0!important}
+.admin-portal .table td:last-child a[style],
+.admin-portal .table td:last-child i[style]{width:auto!important;font-size:13px!important;color:inherit!important}
+
+/* Separated admin shell: sidebar, topbar and content */
+.admin-portal{background:#f4f5fb!important}
+.admin-portal .sidebar{position:fixed!important;top:16px!important;bottom:16px!important;left:16px!important;width:246px!important;border:0!important;border-radius:12px!important;background:#fff!important;box-shadow:0 8px 28px rgba(47,51,73,.10)!important;overflow:hidden!important}
+.admin-portal .headerlogo{height:92px!important;border-bottom:1px solid #edf0f7!important;background:#fff!important}
+.admin-portal .sidebar .sidebar-nav{height:calc(100vh - 124px)!important;padding:14px 12px 26px!important;overflow-y:auto!important;scrollbar-width:thin}
+.admin-portal .admin-topbar{position:sticky!important;top:16px!important;margin:16px 16px 0 278px!important;min-height:74px!important;border:1px solid rgba(219,223,236,.95)!important;border-radius:12px!important;background:rgba(238,240,249,.98)!important;box-shadow:0 8px 24px rgba(47,51,73,.08)!important}
+.admin-portal #page-wrapper{margin:0 16px 0 278px!important;padding:14px 28px 38px!important;background:transparent!important;min-height:calc(100vh - 106px)!important}
+.admin-portal #page-wrapper>.panel,
+.admin-portal #page-wrapper>.row>.col-lg-12>.panel,
+.admin-portal .compact-admin-page>.panel,
+.admin-portal .panel.panel-default{border:1px solid #e6e9f2!important;border-radius:12px!important;box-shadow:0 6px 22px rgba(47,51,73,.07)!important;overflow:hidden}
+.admin-portal .panel-heading{border-bottom:1px solid #eef0f7!important;background:#fff!important}
+.admin-portal .table-responsive{border:0!important;border-radius:10px}
+.admin-portal .table>thead>tr>th{background:#f7f8fc!important;color:#3f4560!important;border-bottom:1px solid #e5e8f1!important}
+.admin-portal footer{margin-left:278px!important;margin-right:16px!important}
+@media(max-width:767px){
+    .admin-portal .sidebar{top:10px!important;bottom:10px!important;left:10px!important;width:min(284px,calc(100vw - 36px))!important;transform:translateX(calc(-100% - 20px))}
+    .admin-portal.admin-sidebar-open .sidebar,.admin-sidebar-open .admin-portal .sidebar{transform:translateX(0)}
+    .admin-portal .admin-topbar{top:0!important;margin:0!important;border-radius:0!important;border-left:0!important;border-right:0!important}
+    .admin-portal #page-wrapper{margin:0!important;padding:14px 15px 28px!important}
+    .admin-portal footer{margin-left:0!important;margin-right:0!important}
+}
+
+/* Admin project/task detail helpers */
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.detail-grid>div{background:#f8f9ff;border:1px solid #e7e9f8;border-radius:12px;padding:12px 14px}
+.detail-grid small{display:block;color:#8a93aa;text-transform:uppercase;font-size:11px;font-weight:700;letter-spacing:.04em}
+.detail-grid strong{display:block;color:#20243f;margin-top:4px}
+.task-attachment-list{display:flex;flex-wrap:wrap;gap:8px}
+
+/* Preadmin HRMS-inspired shell polish */
+:root{--oe-primary:#ff7a00;--oe-primary-soft:#fff2e6;--oe-dark:#202124;--oe-muted:#67748e;--oe-border:#edf0f5;--oe-page:#f7f8fb;--oe-card:#fff;--oe-shadow:0 8px 24px rgba(32,33,36,.06)}
+.admin-portal{font-family:"Inter","Segoe UI",Arial,sans-serif;background:var(--oe-page)!important;color:#202124}
+.admin-portal .sidebar{border-radius:0!important;top:0!important;bottom:0!important;left:0!important;width:260px!important;box-shadow:none!important;border-right:1px solid var(--oe-border)!important}
+.admin-portal .headerlogo{height:76px!important;display:flex!important;align-items:center!important;justify-content:center!important;border-bottom:1px solid var(--oe-border)!important}
+.admin-portal .headerlogo img{max-height:46px!important;width:auto!important}
+.admin-portal .sidebar .sidebar-nav{height:calc(100vh - 76px)!important;padding:16px 12px 28px!important}
+.admin-portal .erp-nav-label{font-size:11px!important;letter-spacing:.08em!important;color:#98a2b3!important;text-transform:uppercase!important;margin:18px 12px 8px!important;font-weight:800!important}
+.admin-portal #side-menu>li>a,.admin-portal #side-menu .nav-second-level>li>a{border-radius:8px!important;margin:2px 6px!important;color:#5f6b7a!important;font-weight:600!important;min-height:38px!important;display:flex!important;align-items:center!important;gap:10px!important}
+.admin-portal #side-menu>li>a:hover,.admin-portal #side-menu .nav-second-level>li>a:hover{background:#f5f6fa!important;color:var(--oe-dark)!important}
+.admin-portal #side-menu a.active,.admin-portal #side-menu li.active>a,.admin-portal #side-menu li.open>a{background:var(--oe-primary-soft)!important;color:var(--oe-primary)!important}
+.admin-portal #side-menu i{color:inherit!important;width:18px!important;text-align:center!important}
+.admin-portal .admin-topbar{top:0!important;margin:0 0 0 260px!important;border-radius:0!important;border:0!important;border-bottom:1px solid var(--oe-border)!important;background:#fff!important;box-shadow:none!important;min-height:76px!important;padding:0 24px!important}
+.admin-portal .admin-topbar h1{font-size:22px!important;font-weight:800!important;color:#202124!important;margin:2px 0 0!important}
+.admin-portal .admin-breadcrumb,.admin-portal .employee-breadcrumb{color:#8a94a6!important;font-size:12px!important}
+.admin-portal .admin-company-pill,.admin-portal .admin-today,.admin-portal .admin-topbar-icon,.admin-portal .admin-profile-link{background:#fff!important;border:1px solid var(--oe-border)!important;border-radius:10px!important;box-shadow:0 3px 10px rgba(32,33,36,.04)!important}
+.admin-portal .birthday-topbar-link{background:var(--oe-primary-soft)!important;color:var(--oe-primary)!important;border-color:#ffd7b3!important}
+.admin-portal #page-wrapper{margin:0 0 0 260px!important;padding:24px!important;background:var(--oe-page)!important;min-height:calc(100vh - 76px)!important}
+.admin-portal .panel.panel-default,.admin-portal #page-wrapper>.panel,.admin-portal .compact-admin-page>.panel{border:1px solid var(--oe-border)!important;border-radius:14px!important;box-shadow:var(--oe-shadow)!important;background:var(--oe-card)!important}
+.admin-portal .panel-heading,.admin-portal .foundation-heading{min-height:64px!important;padding:18px 20px!important;border-bottom:1px solid var(--oe-border)!important;background:#fff!important;color:#202124!important;font-size:18px!important;font-weight:800!important}
+.admin-portal .panel-body{padding:20px!important}
+.admin-portal .resource-summary>div,.admin-portal .leave-admin-stats>div,.admin-portal .employee-stat-card,.admin-portal .project-board-head>div{border:1px solid var(--oe-border)!important;border-radius:14px!important;background:#fff!important;box-shadow:var(--oe-shadow)!important}
+.admin-portal .btn-primary{background:var(--oe-primary)!important;border-color:var(--oe-primary)!important;color:#fff!important;box-shadow:0 4px 12px rgba(255,122,0,.22)!important}
+.admin-portal .btn-primary:hover{background:#e86f00!important;border-color:#e86f00!important}
+.admin-portal .btn-warning{background:#ffa940!important;border-color:#ffa940!important;color:#fff!important}
+.admin-portal .form-control{border-color:#dfe4ee!important;border-radius:8px!important;box-shadow:none!important;min-height:38px}
+.admin-portal .form-control:focus{border-color:var(--oe-primary)!important;box-shadow:0 0 0 3px rgba(255,122,0,.12)!important}
+.admin-portal .table.foundation-table,.admin-portal table.table{border-collapse:separate!important;border-spacing:0!important}
+.admin-portal .table>thead>tr>th{background:#f8fafc!important;color:#475467!important;font-size:12px!important;text-transform:uppercase!important;letter-spacing:.04em!important;font-weight:800!important;border-color:var(--oe-border)!important}
+.admin-portal .table>tbody>tr>td{border-color:var(--oe-border)!important;color:#344054!important;vertical-align:middle!important}
+.admin-portal .icon-action,.admin-portal .table td:last-child .btn{border-radius:9px!important}
+@media(max-width:767px){.admin-portal .sidebar{width:min(286px,calc(100vw - 32px))!important;transform:translateX(-105%)}.admin-portal.admin-sidebar-open .sidebar{transform:translateX(0)}.admin-portal .admin-topbar,.admin-portal #page-wrapper{margin-left:0!important}.admin-portal #page-wrapper{padding:16px!important}}
+
+/* SmartHR/Preadmin dashboard alignment */
+.admin-portal .preadmin-dashboard-page{background:#f7f8fa!important}
+.admin-portal .preadmin-dashboard-page>.row:first-child>.col-lg-12{float:none!important;width:100%!important;padding:0!important}
+.admin-portal .birthday-admin-alert{border:0!important;border-radius:12px!important;background:linear-gradient(90deg,#fff4e8,#fff)!important;box-shadow:0 4px 16px rgba(255,122,0,.10)!important;margin:0 0 18px!important;padding:16px 18px!important}
+.admin-portal .topboxes.analytics-summary{margin:0 0 22px!important}
+.admin-portal .analytics-summary-row{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:18px!important;margin:0!important}
+.admin-portal .analytics-summary-row>[class*="col-"]{float:none!important;width:auto!important;padding:0!important}
+.admin-portal .analytics-card{position:relative!important;display:block!important;min-height:138px!important;padding:20px!important;border:1px solid #edf0f5!important;border-radius:14px!important;background:#fff!important;box-shadow:0 8px 24px rgba(32,33,36,.06)!important;color:#202124!important;text-decoration:none!important;overflow:hidden!important}
+.admin-portal .analytics-card:after{content:"";position:absolute;right:-34px;bottom:-34px;width:106px;height:106px;border-radius:50%;background:rgba(255,122,0,.08)}
+.admin-portal .analytics-icon{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:42px!important;height:42px!important;border-radius:10px!important;background:#fff2e6!important;color:#ff7a00!important;font-size:18px!important;margin-bottom:16px!important}
+.admin-portal .analytics-card-primary .analytics-icon{background:#fff2e6!important;color:#ff7a00!important}
+.admin-portal .analytics-card-warning .analytics-icon{background:#fff8e6!important;color:#f59e0b!important}
+.admin-portal .analytics-card-info .analytics-icon{background:#e8f3ff!important;color:#0ea5e9!important}
+.admin-portal .analytics-card-success .analytics-icon{background:#eafaf2!important;color:#22c55e!important}
+.admin-portal .analytics-card-danger .analytics-icon{background:#fff0f0!important;color:#ef4444!important}
+.admin-portal .analytics-value{display:block!important;font-size:28px!important;line-height:1!important;font-weight:800!important;color:#202124!important;margin-bottom:8px!important}
+.admin-portal .analytics-label{display:block!important;font-size:14px!important;font-weight:700!important;color:#344054!important}
+.admin-portal .analytics-pill{display:inline-flex!important;margin-top:10px!important;padding:4px 9px!important;border-radius:999px!important;background:#f8fafc!important;color:#667085!important;font-size:11px!important;font-weight:700!important}
+.admin-portal .analytics-trend{position:absolute!important;top:20px!important;right:20px!important;border-radius:999px!important;padding:3px 8px!important;font-size:11px!important;font-weight:800!important;background:#eafaf2!important;color:#22c55e!important}
+.admin-portal .analytics-trend.trend-down{background:#fff0f0!important;color:#ef4444!important}
+.admin-portal .finance-balance-section,.admin-portal .bank_details{margin-top:0!important}
+.admin-portal .finance-balance-card{border-radius:14px!important;box-shadow:0 8px 24px rgba(32,33,36,.06)!important}
+.admin-portal .finance-summary-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:16px!important}
+.admin-portal .finance-summary-tile{border:1px solid #edf0f5!important;border-radius:12px!important;background:#fff!important;padding:18px!important;box-shadow:0 4px 16px rgba(32,33,36,.04)!important}
+.admin-portal .finance-summary-tile strong{font-size:22px!important;color:#202124!important}
+.admin-portal .finance-tile-icon{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:38px!important;height:38px!important;border-radius:10px!important;background:#fff2e6!important;color:#ff7a00!important}
+@media(max-width:1199px){.admin-portal .analytics-summary-row,.admin-portal .finance-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:767px){.admin-portal .analytics-summary-row,.admin-portal .finance-summary-grid{grid-template-columns:1fr!important}}
+
+/* CRM-wide SmartHR module normalization */
+.admin-portal .compact-admin-page,.admin-portal .resource-form-page,.admin-portal .project-workspace,.admin-portal .leave-admin-page,.admin-portal .notice-admin-page,.admin-portal .activity-audit-page,.admin-portal .asset-layout,.admin-portal .client-form-page{max-width:none!important}
+.admin-portal #page-wrapper>h1,.admin-portal #page-wrapper>h2,.admin-portal #page-wrapper>h3{font-weight:800!important;color:#202124!important;margin:0 0 18px!important}
+.admin-portal .foundation-titlebar{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;margin:0 0 18px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.admin-portal .foundation-titlebar h2{font-size:24px!important;font-weight:800!important;color:#202124!important;margin:6px 0 0!important}
+.admin-portal .foundation-titlebar>a{display:inline-flex!important;align-items:center!important;gap:6px!important;color:#ff7a00!important;font-weight:700!important;text-decoration:none!important}
+.admin-portal .row{margin-left:-9px!important;margin-right:-9px!important}
+.admin-portal [class*="col-"]{padding-left:9px!important;padding-right:9px!important}
+.admin-portal .panel{margin-bottom:18px!important}
+.admin-portal .panel-heading small{display:block!important;color:#8a94a6!important;font-size:12px!important;font-weight:600!important;margin-top:3px!important}
+.admin-portal .panel-heading.foundation-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important}
+.admin-portal .panel-heading.foundation-heading>span{font-size:18px!important;font-weight:800!important}
+.admin-portal .table-responsive{overflow:auto!important}
+.admin-portal .table{margin-bottom:0!important;background:#fff!important}
+.admin-portal .table>tbody>tr:hover>td{background:#fffaf5!important}
+.admin-portal .dataTables_wrapper .dataTables_length select,.admin-portal .dataTables_wrapper .dataTables_filter input{border:1px solid #dfe4ee!important;border-radius:8px!important;min-height:38px!important;padding:7px 10px!important}
+.admin-portal .dataTables_wrapper .dataTables_paginate .paginate_button,.admin-portal .pagination>li>a,.admin-portal .pagination>li>span{border-radius:8px!important;border:1px solid #edf0f5!important;margin:0 2px!important;color:#344054!important}
+.admin-portal .dataTables_wrapper .dataTables_paginate .paginate_button.current,.admin-portal .pagination>.active>a{background:#ff7a00!important;border-color:#ff7a00!important;color:#fff!important}
+.admin-portal .alert{border:0!important;border-radius:12px!important;box-shadow:0 4px 16px rgba(32,33,36,.06)!important}
+.admin-portal .modal-content{border:0!important;border-radius:14px!important;box-shadow:0 18px 50px rgba(32,33,36,.18)!important;overflow:hidden!important}
+.admin-portal .modal-header{border-bottom:1px solid #edf0f5!important;background:#fff!important}
+.admin-portal .modal-footer{border-top:1px solid #edf0f5!important;background:#f8fafc!important}
+.admin-portal .oecrm-select-toggle{border-radius:8px!important;border-color:#dfe4ee!important;min-height:38px!important}
+.admin-portal .oecrm-select-panel{border-radius:10px!important;border-color:#edf0f5!important;box-shadow:0 12px 30px rgba(32,33,36,.12)!important}
+.admin-profile-menu.open .admin-profile-dropdown{display:block!important}
+.sidebar-user-menu{position:relative}
+.sidebar-user-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent;border:0;padding:0;color:inherit;cursor:pointer}
+.sidebar-user-toggle:focus{outline:none}
+.sidebar-user-menu.open>.nav-second-level{display:block}
+.oecrm-password-field{position:relative;display:flex!important;align-items:stretch!important;width:100%!important;border:1px solid #8dc6f4!important;border-radius:8px!important;background:#fff!important;overflow:hidden!important}
+.oecrm-password-field .oecrm-password-prefix{flex:0 0 44px!important;display:flex!important;align-items:center!important;justify-content:center!important;color:#1d8fe5!important;background:#f4faff!important;border-right:1px solid #c8e4fb!important}
+.oecrm-password-field .oecrm-password-prefix i{font-size:14px!important}
+.oecrm-password-field .form-control{flex:1 1 auto!important;width:100%!important;border:0!important;box-shadow:none!important;height:40px!important;padding-left:12px!important;padding-right:0!important;border-radius:0!important}
+.oecrm-password-field .form-control:focus{box-shadow:none!important;outline:0!important}
+.oecrm-password-field .oecrm-password-toggle{flex:0 0 42px!important;position:relative!important;right:auto!important;top:auto!important;bottom:auto!important;width:42px!important;margin:0!important;border:0!important;border-left:1px solid #c8e4fb!important;border-radius:0!important;background:#eaf4ff!important;height:auto!important;display:flex!important;align-items:center!important;justify-content:center!important;color:#1d8fe5!important;z-index:3}
+.oecrm-password-field .oecrm-password-toggle:hover{background:#dff0ff!important}
+.oecrm-password-field .oecrm-password-toggle i{color:#1d8fe5!important;font-size:14px!important}

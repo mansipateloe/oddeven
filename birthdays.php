@@ -43,6 +43,14 @@ function oecrm_send_birthday_wish($conn, $companyId, $employeeId, $actorId, $mes
     $existing = mysqli_fetch_assoc(mysqli_query($conn, "SELECT n.id FROM notices n JOIN notice_targets t ON t.notice_id=n.id WHERE n.company_id=$companyId AND n.notice_type='hr' AND n.title='$safeTitle' AND t.employee_id=$employeeId AND YEAR(n.publish_at)=YEAR(CURDATE()) AND n.status<>'cancelled' LIMIT 1"));
     if ($existing) {
         $noticeId = (int) $existing['id'];
+        $birthdayMonthDay = '';
+        if (!empty($employee['birthdate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $employee['birthdate'])) {
+            $birthdayMonthDay = date('m-d', strtotime($employee['birthdate']));
+        }
+        if ($birthdayMonthDay !== date('m-d')) {
+            mysqli_query($conn, "UPDATE notices SET status='expired',expires_at=LEAST(COALESCE(expires_at,NOW()),NOW()) WHERE id=$noticeId AND company_id=$companyId");
+            return ['notice_id'=>$noticeId, 'created'=>false, 'personalized'=>false, 'employee'=>$employee, 'expired'=>true];
+        }
         if (trim($message) !== '') {
             $body = '<p>' . nl2br(oecrm_h($message)) . '</p><p>Best wishes from the Management Team.</p>';
             $stmt = mysqli_prepare($conn, 'UPDATE notices SET body_html=?,show_popup=1,priority="high",status="published",publish_at=NOW(),published_at=COALESCE(published_at,NOW()),expires_at=CONCAT(CURDATE()," 23:59:59") WHERE id=? AND company_id=?');
@@ -55,6 +63,10 @@ function oecrm_send_birthday_wish($conn, $companyId, $employeeId, $actorId, $mes
             mysqli_stmt_close($stmt);
             return ['notice_id'=>$noticeId, 'created'=>false, 'personalized'=>true, 'employee'=>$employee];
         }
+        $stmt = mysqli_prepare($conn, 'UPDATE notices SET show_popup=1,priority="high",status="published",publish_at=NOW(),published_at=NOW(),expires_at=CONCAT(CURDATE()," 23:59:59") WHERE id=? AND company_id=?');
+        mysqli_stmt_bind_param($stmt, 'ii', $noticeId, $companyId);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
         return ['notice_id'=>$noticeId, 'created'=>false, 'personalized'=>false, 'employee'=>$employee];
     }
 

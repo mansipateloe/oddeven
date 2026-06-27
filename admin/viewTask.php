@@ -39,7 +39,12 @@ unset($_SESSION['project_flash']);
                         <td>
                             <a class="btn btn-xs btn-primary" title="View" href="projectBoard.php?id=<?php echo (int) $task['projectId']; ?>"><i class="fa fa-eye"></i></a>
                             <a class="btn btn-xs btn-warning" title="Edit" href="taskEditor.php?id=<?php echo (int) $task['id']; ?>"><i class="fa fa-pencil"></i></a>
-                            <a class="btn btn-xs btn-danger" title="Delete" data-confirm="Delete this task?" href="deleteTask.php?delete=<?php echo (int) $task['id']; ?>&project_id=<?php echo (int) $task['projectId']; ?>"><i class="fa fa-trash"></i></a>
+                            <form method="post" action="deleteTask.php" style="display:inline;">
+                                <?php echo oecrm_csrf_field(); ?>
+                                <input type="hidden" name="delete" value="<?php echo (int) $task['id']; ?>">
+                                <input type="hidden" name="project_id" value="<?php echo (int) $task['projectId']; ?>">
+                                <button type="submit" class="btn btn-xs btn-danger" title="Delete" data-confirm="Delete this task?"><i class="fa fa-trash"></i></button>
+                            </form>
                         </td>
                     </tr>
                 <?php endwhile; ?>
