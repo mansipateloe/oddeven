@@ -12,7 +12,7 @@ $companyId = oecrm_current_company_id($conn);
             <div class="row">
                 <div class="col-md-12">
                     <div class="table-responsive">
-                        <table width="100%" class="table table-striped table-bordered table-hover dataTable no-footer dtr-inline" id="follow_table" role="grid" style="width: 100%;">
+                        <table width="100%" class="table table-striped table-bordered table-hover" id="follow_table" style="width: 100%;">
                             <thead>
                                 <tr role="row">
                                     <th>#</th>
@@ -64,24 +64,4 @@ $companyId = oecrm_current_company_id($conn);
         </div>
     </div>
 </div>
-<script src="../vendor/jquery/jquery.min.js"></script>
-<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
-<script src="../vendor/metisMenu/metisMenu.min.js"></script>
-<script src="../vendor/datatables/js/jquery.dataTables.min.js"></script>
-<script src="../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
-<script src="../vendor/datatables-responsive/dataTables.responsive.js"></script>
-<script src="../vendor/raphael/raphael.min.js"></script>
-<script src="../vendor/morrisjs/morris.min.js"></script>
-<script src="../data/morris-data.js"></script>
-<script src="../dist/js/sb-admin-2.js"></script>
-<script>
-$(function () {
-    $('#follow_table').DataTable({
-        responsive: false,
-        paging: true,
-        ordering: false,
-        info: false
-    });
-});
-</script>
 <?php include 'footer.php'; ?>
