@@ -8,7 +8,7 @@
     $data = new stdclass();
 
     if (isset($_POST['proj_id'])) {
-        $project_sql = "select * from projectsTbl where id = $proj_id limit 1" ;
+        $project_sql = "select * from projectstbl where id = $proj_id limit 1" ;
 
         $project_result = mysqli_query($conn, $project_sql);
 

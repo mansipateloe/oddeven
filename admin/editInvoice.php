@@ -39,7 +39,7 @@
                                                                 <select name="project_Id" id="project_Id" onchange="getPerson(this.value)" required class="form-control">
                                                                     <option value="">Select Project Name</option>
                                                                     <?php 
-                                                                        $qryProject = "SELECT * FROM projectsTbl where status = 'inprogress'";
+                                                                        $qryProject = "SELECT * FROM projectstbl where status = 'inprogress'";
                                                                         $resultProject = mysqli_query($conn,$qryProject);
                                                                         if($resultProject->num_rows > 0){
                                                                             while($resProject = $resultProject->fetch_assoc()){
@@ -196,7 +196,7 @@
                                             <?php
                                                 $i = 1;
                                                 $amounts = 0;
-                                                $invoice_qry = "SELECT invoiceTbl.*, projectsTbl.projectName FROM invoiceTbl left join projectsTbl on projectsTbl.id = invoiceTbl.project_Id order by invoiceTbl.invoice_id DESC";
+                                                $invoice_qry = "SELECT invoiceTbl.*, projectstbl.projectName FROM invoiceTbl left join projectstbl on projectstbl.id = invoiceTbl.project_Id order by invoiceTbl.invoice_id DESC";
                                                 $invoice_result = mysqli_query($conn,$invoice_qry); 
                                                 if($invoice_result->num_rows > 0){
                                                     while($invoice_row = $invoice_result->fetch_assoc()){

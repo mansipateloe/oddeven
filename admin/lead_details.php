@@ -12,6 +12,17 @@ if(!$details){http_response_code(404);exit('Lead not found.');}
             <h4>Lead Details</h4>
         </div>
         <div class="panel-body manage_project">
+            <div style="margin-bottom:15px;">
+                <?php if (oecrm_can($conn, 'clients', 'create')): ?>
+                    <form method="post" action="leadConvertAction.php" style="display:inline;">
+                        <?php echo oecrm_csrf_field(); ?>
+                        <input type="hidden" name="lead_id" value="<?php echo $id; ?>">
+                        <button type="submit" class="btn btn-success" onclick="return confirm('Convert this lead into a client?');">
+                            <i class="fa fa-exchange"></i> Convert to Client
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
     
             <div class="row">
                 <div class="col-md-12">

@@ -159,12 +159,23 @@ function oecrm_activity_risk($conn, $companyId, $actorType, $actorId, $action, $
     if (($hour < 6 || $hour >= 23) && in_array($action, ['login','failed_login','export','delete','purge','approve','lock'], true)) $reasons[] = 'Unusual hour';
     if ($action === 'failed_login') {
         $safeIp = mysqli_real_escape_string($conn, $ip);
-        $recent = mysqli_fetch_assoc(mysqli_query($conn, "SELECT COUNT(*) total FROM audit_logs WHERE ip_address='$safeIp' AND action='failed_login' AND created_at>=DATE_SUB(NOW(),INTERVAL 15 MINUTE)"));
+        if (!oecrm_ensure_audit_logs_table($conn)) return ['level'=>'normal','reasons'=>''];
+        try {
+            $result = mysqli_query($conn, "SELECT COUNT(*) total FROM audit_logs WHERE ip_address='$safeIp' AND action='failed_login' AND created_at>=DATE_SUB(NOW(),INTERVAL 15 MINUTE)");
+            $recent = $result ? mysqli_fetch_assoc($result) : [];
+        } catch (Throwable $exception) {
+            $recent = [];
+        }
         if ((int)($recent['total'] ?? 0) >= 3) $reasons[] = 'Repeated login failures';
     }
     if ($action === 'login' && $actorId > 0) {
+        if (!oecrm_ensure_audit_logs_table($conn)) return ['level'=>count($reasons)>=2?'suspicious':(count($reasons)===1?'review':'normal'),'reasons'=>implode(', ',$reasons)];
         $stmt = mysqli_prepare($conn, 'SELECT ip_address FROM audit_logs WHERE company_id=? AND actor_type=? AND actor_id=? AND action="login" ORDER BY id DESC LIMIT 1');
-        mysqli_stmt_bind_param($stmt, 'isi', $companyId, $actorType, $actorId);mysqli_stmt_execute($stmt);$prior=mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));mysqli_stmt_close($stmt);
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, 'isi', $companyId, $actorType, $actorId);mysqli_stmt_execute($stmt);$prior=mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));mysqli_stmt_close($stmt);
+        } else {
+            $prior = null;
+        }
         if ($prior && $prior['ip_address'] && $prior['ip_address'] !== $ip) $reasons[] = 'New IP address';
     }
     if (in_array($action, ['purge','delete','manage_permissions'], true)) $reasons[] = 'Sensitive administrative action';
@@ -173,14 +184,27 @@ function oecrm_activity_risk($conn, $companyId, $actorType, $actorId, $action, $
 
 function oecrm_write_audit($conn, $companyId, $actorType, $actorId, $employeeId, $module, $action, $entityType = null, $entityId = null, $description = null, $oldValues = null, $newValues = null)
 {
+    if (!oecrm_ensure_audit_logs_table($conn)) {
+        return false;
+    }
+
     $oldJson = $oldValues === null ? null : json_encode($oldValues, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $newJson = $newValues === null ? null : json_encode($newValues, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';$client=oecrm_activity_client();$method=$_SERVER['REQUEST_METHOD']??'';$uri=substr($_SERVER['REQUEST_URI']??'',0,500);$sessionKey=session_id();
     $risk=oecrm_activity_risk($conn,$companyId,$actorType,$actorId,$action,$module,$ip);$entityId=$entityId===null?null:(string)$entityId;
-    $stmt=mysqli_prepare($conn,'INSERT INTO audit_logs(company_id,actor_type,actor_id,employee_id,session_key,action,module_key,entity_type,entity_id,description,old_values,new_values,ip_address,user_agent,browser_name,device_type,platform_name,risk_level,risk_reasons,request_method,request_uri) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    try {
+        $stmt=mysqli_prepare($conn,'INSERT INTO audit_logs(company_id,actor_type,actor_id,employee_id,session_key,action,module_key,entity_type,entity_id,description,old_values,new_values,ip_address,user_agent,browser_name,device_type,platform_name,risk_level,risk_reasons,request_method,request_uri) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    } catch (Throwable $exception) {
+        return false;
+    }
     if(!$stmt)return false;
     mysqli_stmt_bind_param($stmt,'isiisssssssssssssssss',$companyId,$actorType,$actorId,$employeeId,$sessionKey,$action,$module,$entityType,$entityId,$description,$oldJson,$newJson,$ip,$client['agent'],$client['browser'],$client['device'],$client['platform'],$risk['level'],$risk['reasons'],$method,$uri);
-    $ok=mysqli_stmt_execute($stmt);mysqli_stmt_close($stmt);return $ok;
+    try {
+        $ok=mysqli_stmt_execute($stmt);
+    } catch (Throwable $exception) {
+        $ok=false;
+    }
+    mysqli_stmt_close($stmt);return $ok;
 }
 
 function oecrm_audit($conn, $module, $action, $entityType = null, $entityId = null, $description = null, $oldValues = null, $newValues = null)

@@ -2,6 +2,8 @@
 $active_menu= 'role';
 $active_submenu='view_role';
 include 'header.php';
+$flash = $_SESSION['role_flash'] ?? '';
+unset($_SESSION['role_flash']);
 ?>
 <div id="page-wrapper">
     <div class="panel panel-default">
@@ -9,6 +11,9 @@ include 'header.php';
             <h4>User Roles</h4>
         </div>
         <div class="panel-body manage_project">
+            <?php if ($flash): ?>
+                <div class="alert alert-info"><?php echo oecrm_h($flash); ?></div>
+            <?php endif; ?>
             <div class="row">
                 <div class="col-md-12">
                     

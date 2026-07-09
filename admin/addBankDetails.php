@@ -1,204 +1,108 @@
-<?php 
-$active_menu= 'setting';
-$active_submenu='add_bank_details';
-include 'header.php'; 
+<?php
+$active_menu = 'setting';
+$active_submenu = 'add_bank_details';
+include 'header.php';
 
-if(isset($_GET['edit']))
-{
-    $id = $_GET['edit'];
+$id = 0;
+$update = false;
+$bank_name = '';
+$flash = $_SESSION['bank_details_flash'] ?? '';
+unset($_SESSION['bank_details_flash']);
+
+if (isset($_GET['edit'])) {
+    $id = (int) $_GET['edit'];
     $update = true;
-    $getAccountQry = "select * from bank_details where bank_id = $id";
+    $getAccountQry = "SELECT * FROM bank_details WHERE bank_id = $id";
     $getAccountResult = mysqli_query($conn, $getAccountQry);
     $getAccountRes = mysqli_fetch_assoc($getAccountResult);
-    //echo '<pre>'; print_r($getAccountRes);die((__FILE__).'-->'.(__FUNCTION__).'--Line('. (__LINE__).')');
-    $bank_name = $getAccountRes['bank_name'];
-    $id = $getAccountRes['bank_id'];
+    if ($getAccountRes) {
+        $bank_name = $getAccountRes['bank_name'];
+        $id = (int) $getAccountRes['bank_id'];
+    } else {
+        $update = false;
+        $id = 0;
+    }
 }
-
 ?>
 
-
 <div id="page-wrapper">
-
     <div class="row">
-
         <div class="col-lg-12">
             <h4>Manage Bank Details</h4>
+            <?php if ($flash): ?>
+                <div class="alert alert-info"><?php echo oecrm_h($flash); ?></div>
+            <?php endif; ?>
             <div class="dataTablesbox2 dataTablesbox">
-
-                <form role="form" method="POST">
-
-                    <input type="hidden" name="id" value="<?php echo $id; ?>">
+                <form role="form" method="POST" action="validation.php">
+                    <?php echo oecrm_csrf_field(); ?>
+                    <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
                     <div class="row">
-
                         <div class="col-lg-3">
-
                             <label>Name :</label>
-
                             <div class="form-group">
-
-                                <input type="text" class="form-control" name="bank_name" value="<?php if(isset($_GET['edit'])){ echo $bank_name; } ?>" required maxlength="20">
-
+                                <input type="text" class="form-control" name="bank_name" value="<?php echo oecrm_h($bank_name); ?>" required maxlength="50">
                             </div>
-
                         </div>
-
-                       
                         <div class="col-lg-3" align="right">
-
                             <label>&nbsp;</label>
-
                             <div class="form-group">
-
-                                
-                                <?php if($update == false): ?>
+                                <?php if (!$update): ?>
                                     <input type="submit" class="btn btn-primary viewreport" name="addBankDetails" value="Add">
                                     <input class="btn btn-danger cancel_btn" type="reset" value="Cancel">
                                 <?php else: ?>
                                     <input type="submit" class="btn btn-primary viewreport" name="updateBankDetails" value="Update">
-                                    <!-- <input class="btn btn-danger cancel_btn" type="reset" value="Cancel"> -->
-                                <?php endif ?>  
-
-
+                                <?php endif; ?>
                             </div>
-
                         </div>
-
                     </div>
-
                 </form>
-
             </div>
-
         </div>
-
     </div>
 
     <br>
 
     <div class="row">
-
         <div class="col-lg-12">
-
             <div class="panel panel-default">
-
-                <div class="panel-heading">
-
-                    Bank Table
-
-                </div>
-
-                <!-- /.panel-heading -->
-
+                <div class="panel-heading">Bank Table</div>
                 <div class="panel-body">
-
-                    <div id="dataTables-example_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
-
-                        <div class="row">
-
-                            <div class="col-sm-6">
-
-                                <div class="dataTables_length" id="dataTables-example_length">
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-sm-6">
-
-                                <div id="dataTables-example_filter" class="dataTables_filter">
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <div class="row">
-
-                            <div class="col-sm-12">
-
-                                <table width="100%" class="table table-striped table-bordered table-hover dataTable no-footer dtr-inline" id="dataTables-example" role="grid" aria-describedby="dataTables-example_info" style="width: 100%;">
-
-                                    <thead>
-
-                                        <tr role="row">
-
-                                            <th tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Rendering engine: activate to sort column descending" style="width: 60%;">Name</th>
-
-                                        
-                                        
-                                            <th tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" aria-label="Browser: activate to sort column ascending" style="width: 10%; text-align:center;">Action</th>
-
-                                        </tr>
-
-                                    </thead>
-
-                                    <tbody>
-
-                                        <?php
-
-                                        $qryNotice = "SELECT * FROM bank_details";
-
-                                        $currencyResult = mysqli_query($conn, $qryNotice);
-
-                                        if ($currencyResult->num_rows > 0) {
-
-                                            while ($rowNotice = $currencyResult->fetch_assoc()) {
-
-                                                echo "<tr class='gradeA even' role='row'>";
-
-                                                echo "<td>" . $rowNotice['bank_name'] . "</td>";
-
-
-                                                echo '<td class="center" align="center"><a href="addBankDetails.php?edit=' . $rowNotice["bank_id"] . '" style="display: inline-block;width: 28px;"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;<a href="addBankDetails.php?bank_delete=' . $rowNotice["bank_id"] . '" onclick="return confirm(\'Are you sure you want to delete?\');" style="display: inline-block;width: 28px;"><i class="fa fa-trash-o"></i></a></td>';
-
-                                                echo "</tr>";
-                                            }
-                                        }
-
-                                        ?>
-
-                                    </tbody>
-
-                                </table>
-
-                            </div>
-
-                        </div>
-
+                    <div class="table-responsive">
+                        <table width="100%" class="table table-striped table-bordered table-hover" id="bank-details-table" style="width: 100%;">
+                            <thead>
+                                <tr role="row">
+                                    <th style="width: 60%;">Name</th>
+                                    <th style="width: 10%; text-align:center;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $qryNotice = "SELECT * FROM bank_details ORDER BY bank_name";
+                                $currencyResult = mysqli_query($conn, $qryNotice);
+                                if ($currencyResult && $currencyResult->num_rows > 0) {
+                                    while ($rowNotice = $currencyResult->fetch_assoc()) {
+                                        echo "<tr class='gradeA even' role='row'>";
+                                        echo "<td>" . oecrm_h($rowNotice['bank_name']) . "</td>";
+                                        echo '<td class="center" align="center"><a href="addBankDetails.php?edit=' . (int) $rowNotice["bank_id"] . '" style="display: inline-block;width: 28px;"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;<form method="post" action="validation.php" style="display:inline;">' . oecrm_csrf_field() . '<input type="hidden" name="deleteBankDetails" value="' . (int) $rowNotice["bank_id"] . '"><button type="submit" class="btn btn-link" style="padding:0;border:0;display:inline-block;width:28px;" onclick="return confirm(\'Are you sure you want to delete?\');"><i class="fa fa-trash-o"></i></button></form></td>';
+                                        echo "</tr>";
+                                    }
+                                }
+                                ?>
+                            </tbody>
+                        </table>
                     </div>
-
                 </div>
-
-                <!-- /.panel-body -->
-
             </div>
-
-            <!-- /.panel -->
-
         </div>
-
     </div>
-
 </div>
-
-</div>
-
-
 
 <script src="../vendor/jquery/jquery.min.js"></script>
-
 <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
-
 <script src="../vendor/metisMenu/metisMenu.min.js"></script>
-
 <script src="../vendor/raphael/raphael.min.js"></script>
-
 <script src="../vendor/morrisjs/morris.min.js"></script>
-
 <script src="../data/morris-data.js"></script>
-
 <script src="../dist/js/sb-admin-2.js"></script>
 
 <?php include 'footer.php'; ?>

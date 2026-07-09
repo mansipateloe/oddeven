@@ -45,7 +45,7 @@
                                     <p class='alert-link'>Password cannot exceed 13 characters.</p>
                                 </div></div>";
             } else {
-                $stmt = mysqli_prepare($conn, "SELECT * FROM employeesTbl WHERE employeeUname = ? AND status = 0 LIMIT 1");
+                $stmt = mysqli_prepare($conn, "SELECT * FROM employeestbl WHERE employeeUname = ? AND status = 0 LIMIT 1");
             mysqli_stmt_bind_param($stmt, 's', $username);
             mysqli_stmt_execute($stmt);
             $result = mysqli_stmt_get_result($stmt);
@@ -58,7 +58,7 @@
                 oecrm_initialize_authenticated_session();
                 $_SESSION['employeeId'] = (int)$check['id'];
                 $_SESSION['alert_displayed'] = "false";
-                oecrm_maybe_upgrade_password($conn, 'employeesTbl', 'id', (int)$check['id'], 'employeeUpass', $plainPassword, $check['employeeUpass']);
+                oecrm_maybe_upgrade_password($conn, 'employeestbl', 'id', (int)$check['id'], 'employeeUpass', $plainPassword, $check['employeeUpass']);
 
                 if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
                     $ipAddress = $_SERVER['HTTP_CLIENT_IP'];

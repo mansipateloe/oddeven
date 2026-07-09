@@ -13,14 +13,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 oecrm_require_csrf();
 $id = oecrm_int_param($_POST, 'id');
 $companyId = oecrm_current_company_id($conn);
-$stmt = mysqli_prepare($conn, 'SELECT id,name FROM user_type WHERE id=? AND is_deleted=0 AND org_id IN (0,?)');
+$stmt = mysqli_prepare($conn, 'SELECT id,name FROM user_type WHERE id=? AND is_deleted=0 AND (org_id IS NULL OR org_id IN (0,?))');
 mysqli_stmt_bind_param($stmt, 'ii', $id, $companyId);
 mysqli_stmt_execute($stmt);
 $role = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
 mysqli_stmt_close($stmt);
 if (!$role) {
-    http_response_code(404);
-    exit('Role not found.');
+    $_SESSION['role_error'] = 'Role not found.';
+    header('Location: all_user_roles.php');
+    exit;
 }
 $stmt = mysqli_prepare($conn, 'SELECT COUNT(*) total FROM employeestbl WHERE access_role=? AND is_admin_access=1 AND status=0');
 mysqli_stmt_bind_param($stmt, 'i', $id);

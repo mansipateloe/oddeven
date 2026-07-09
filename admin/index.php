@@ -74,7 +74,7 @@
                     exit;
                 }
 
-                $stmt = mysqli_prepare($conn, "SELECT * FROM employeesTbl WHERE employeeUname = ? AND status = 0 AND is_admin_access = 1 AND access_role > 0 LIMIT 1");
+                $stmt = mysqli_prepare($conn, "SELECT * FROM employeestbl WHERE employeeUname = ? AND status = 0 AND is_admin_access = 1 AND access_role > 0 LIMIT 1");
                 mysqli_stmt_bind_param($stmt, 's', $uname);
                 mysqli_stmt_execute($stmt);
                 $result = mysqli_stmt_get_result($stmt);
@@ -88,7 +88,7 @@
                     $_SESSION['adminName'] = $user['name'];
                     $_SESSION['admin_access_role'] = $user['access_role'];
                     $_SESSION['is_admin'] = '0';
-                    oecrm_maybe_upgrade_password($conn, 'employeesTbl', 'id', (int)$user['id'], 'employeeUpass', $plainPassword, $user['employeeUpass']);
+                    oecrm_maybe_upgrade_password($conn, 'employeestbl', 'id', (int)$user['id'], 'employeeUpass', $plainPassword, $user['employeeUpass']);
                     oecrm_auth_audit($conn, 'admin', (int)$user['id'], (int)$user['company_id'], 'login', 'Employee admin-access login successful', (int)$user['id'], ['username'=>$uname]);
                     header("Location:dashboard.php");
                     exit;

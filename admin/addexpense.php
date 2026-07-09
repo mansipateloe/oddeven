@@ -1,4 +1,24 @@
-<?php include 'header.php'; ?> 
+<?php include 'header.php'; ?>
+<?php
+$expenseCategories = [];
+foreach (['expenceCategory', 'expenseCategory', 'expense_categories', 'expensecategory'] as $tableName) {
+    $check = @mysqli_query($conn, "SELECT * FROM $tableName");
+    if ($check && mysqli_num_rows($check) > 0) {
+        while ($row = mysqli_fetch_assoc($check)) {
+            $expenseCategories[] = [
+                'id' => (int)($row['category_id'] ?? $row['id'] ?? 0),
+                'name' => $row['expenseCategory'] ?? $row['name'] ?? $row['category_name'] ?? '',
+            ];
+        }
+        if ($expenseCategories) break;
+    }
+}
+if (!$expenseCategories) {
+    foreach (['Salary', 'Rent', 'Hosting', 'AWS', 'Marketing', 'Software Subscriptions', 'Internet', 'Electricity', 'Miscellaneous'] as $index => $label) {
+        $expenseCategories[] = ['id' => $index + 1, 'name' => $label];
+    }
+}
+?>
         <div id="page-wrapper">
             <div class="row">
                 </br>
@@ -17,21 +37,15 @@
                             <div class="row">
                                 <div class="col-lg-6">
                                     <div class="form-group">
-                                        <label>Account Name :</label>
-                                        <select name="expenseCategory" id="expenseCategory" class="form-control" required>
-                                            <option value="">Select Expense Category</option>
-                                            <?php 
-                                                $qryCategory = "SELECT * FROM expenceCategory";
-                                                $resultCategory = mysqli_query($conn,$qryCategory);
-                                                if($resultCategory->num_rows > 0){
-                                                    while($resCategory = $resultCategory->fetch_assoc()){
-                                                        echo "<option value='".$resCategory['category_id']."'>".$resCategory['expenseCategory']."</option>";
-                                                    }
-                                                }
-                                            ?>
-                                        </select>
-                                    </div>
-                                </div>
+                                                <label>Expense Category :</label>
+                                                <select name="expenseCategory" id="expenseCategory" class="form-control" required>
+                                                    <option value="">Select Expense Category</option>
+                                                    <?php foreach ($expenseCategories as $category): ?>
+                                                        <option value="<?php echo oecrm_h($category['id']); ?>"><?php echo oecrm_h($category['name']); ?></option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                        </div>
                             </div>
                             <div class="row">
                                 <div class="col-lg-6">

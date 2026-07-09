@@ -7,7 +7,7 @@
 
         $id = oecrm_int_param($_GET, 'edit');
 
-        $qryView = "SELECT e.*, p.employment_type, p.employment_status, p.confirmation_date, p.notice_period_days, p.exit_date, p.exit_reason FROM employeesTbl e LEFT JOIN employee_profiles p ON p.employee_id=e.id WHERE e.id=".$id;
+        $qryView = "SELECT e.*, p.employment_type, p.employment_status, p.confirmation_date, p.notice_period_days, p.exit_date, p.exit_reason FROM employeestbl e LEFT JOIN employee_profiles p ON p.employee_id=e.id WHERE e.id=".$id;
 
         $resultView = mysqli_query($conn,$qryView);
 
