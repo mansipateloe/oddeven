@@ -211,7 +211,7 @@ if (isset($_POST['addemployee'])) {
 
     if ($errors != 1) {
 
-        $qry = "INSERT INTO employeesTbl (employeeCode, designation, name, birthdate, employeeUname, employeeUpass, companyEmail, personalEmail, mobile1, mobile2, skypeUname, joiningDate, salary, bankName, bankIFSCno, bankAcHolderName, bankAcNo, address, status) VALUES ('$employeeCode', '$designation', '$name', '$birthdate', '$employeeUname', '$employeeUpass', '$companyEmail', '$personalEmail', '$mobile1', '$mobile2', '$skypeUname', '$joiningDate', '$salary', '$bankName', '$bankIFSCno', '$bankAcHolderName', '$bankAcNo', '$address', '$status')";
+        $qry = "INSERT INTO employeestbl (employeeCode, designation, name, birthdate, employeeUname, employeeUpass, companyEmail, personalEmail, mobile1, mobile2, skypeUname, joiningDate, salary, bankName, bankIFSCno, bankAcHolderName, bankAcNo, address, status) VALUES ('$employeeCode', '$designation', '$name', '$birthdate', '$employeeUname', '$employeeUpass', '$companyEmail', '$personalEmail', '$mobile1', '$mobile2', '$skypeUname', '$joiningDate', '$salary', '$bankName', '$bankIFSCno', '$bankAcHolderName', '$bankAcNo', '$address', '$status')";
 
        // exit;
 
@@ -369,7 +369,11 @@ if (isset($_POST['addHoliday'])) {
 
 if (isset($_POST['addDesignation'])) {
     oecrm_require_csrf();
-    oecrm_require_permission($conn,'employees','create');
+    if (!oecrm_can($conn,'employees','create') && !oecrm_can($conn,'employees','edit')) {
+        $_SESSION['designation_flash'] = 'You do not have permission to add designations.';
+        header('Location:manageDesignation.php');
+        exit;
+    }
     $designation = trim($_POST['designation'] ?? '');
     if ($designation === '') {
         $_SESSION['designation_flash'] = 'Designation is required.';
@@ -403,7 +407,10 @@ if (isset($_POST['addDesignation'])) {
 
 if (isset($_POST['addProject'])) {
 
-    $developers = $_POST['developers'];
+    $developers = $_POST['developers'] ?? $_POST['team'] ?? [];
+    if (!is_array($developers)) {
+        $developers = [$developers];
+    }
 
     $serializedDevelopers = json_encode($developers);
 
@@ -453,7 +460,7 @@ if (isset($_POST['addProject'])) {
 
 
 
-    $insertProject = "insert into projectsTbl (projectName, developerId, description, attachment, startdate, enddate, amount, expence, customerName,nickName,projectType,platform, phone, email, location, country, reference, status) values ('$projectName', '$serializedDevelopers', '$description', '$attachment', '$startdate', '$enddate', '$amount', '$expence', '$customerName','$nickName','$projectType','$platform', '$phone', '$email', '$location', '$country', '$reference','$status')";
+    $insertProject = "insert into projectstbl (projectName, developerId, description, attachment, startdate, enddate, amount, expence, customerName,nickName,projectType,platform, phone, email, location, country, reference, status) values ('$projectName', '$serializedDevelopers', '$description', '$attachment', '$startdate', '$enddate', '$amount', '$expence', '$customerName','$nickName','$projectType','$platform', '$phone', '$email', '$location', '$country', '$reference','$status')";
 
 
 
@@ -483,7 +490,11 @@ if (isset($_POST['addProject'])) {
 
         $projectName = mysqli_real_escape_string($conn, $_POST['projectName']);
 
-        $developers = json_encode($_POST['developers']);
+        $developersInput = $_POST['developers'] ?? $_POST['team'] ?? [];
+        if (!is_array($developersInput)) {
+            $developersInput = [$developersInput];
+        }
+        $developers = json_encode($developersInput);
 
         $description = $_POST['description'];
 
@@ -524,7 +535,7 @@ if (isset($_POST['addProject'])) {
 
 
 
-        $editProject = "UPDATE projectsTbl SET projectName='$projectName', developerId='$developers', description='$description', attachment='$attachment',startdate='$startdate', enddate='$enddate', amount='$amount', expence='$expence', customerName='$customerName',platform='$platform',nickName='$nickName',projectType='$projectType', phone='$phone', email='$email', location='$location', country='$country', reference='$reference',status='$status' WHERE id=" . $id;
+        $editProject = "UPDATE projectstbl SET projectName='$projectName', developerId='$developers', description='$description', attachment='$attachment',startdate='$startdate', enddate='$enddate', amount='$amount', expence='$expence', customerName='$customerName',platform='$platform',nickName='$nickName',projectType='$projectType', phone='$phone', email='$email', location='$location', country='$country', reference='$reference',status='$status' WHERE id=" . $id;
 
         if (mysqli_query($conn, $editProject)) {
 
@@ -1009,7 +1020,7 @@ if (isset($_POST['updateEmployee'])) {
 
 
 
-     $qry = "UPDATE employeesTbl SET employeeCode='$employeeCode', designation='$designation', name='$name', birthdate='$birthdate',   employeeUname='$employeeUname', employeeUpass='$employeePassword', companyEmail='$companyEmail', personalEmail='$personalEmail', mobile1='$mobile1', mobile2='$mobile2', skypeUname='$skypeUname', joiningDate='$joiningDate', salary='$salary', bankName='$bankName', bankIFSCno='$bankIFSCno', bankAcHolderName='$bankAcHolderName', bankAcNo='$bankAcNo', address='$address' WHERE id=" . $id;
+     $qry = "UPDATE employeestbl SET employeeCode='$employeeCode', designation='$designation', name='$name', birthdate='$birthdate',   employeeUname='$employeeUname', employeeUpass='$employeePassword', companyEmail='$companyEmail', personalEmail='$personalEmail', mobile1='$mobile1', mobile2='$mobile2', skypeUname='$skypeUname', joiningDate='$joiningDate', salary='$salary', bankName='$bankName', bankIFSCno='$bankIFSCno', bankAcHolderName='$bankAcHolderName', bankAcNo='$bankAcNo', address='$address' WHERE id=" . $id;
 
 
 
@@ -1151,102 +1162,113 @@ if (isset($_POST['updateNotice'])) {
 
 <?php
 
+mysqli_query($conn, "CREATE TABLE IF NOT EXISTS currency_master (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    symbol VARCHAR(20) NOT NULL,
+    rate DECIMAL(14,6) NOT NULL DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)");
+
 if (isset($_POST['addCurrency'])) {
-
-    //$notice = $_POST['notice'];
-
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-
-    $symbol = mysqli_real_escape_string($conn, $_POST['symbol']);
-
-    $rate = mysqli_real_escape_string($conn, $_POST['rate']);
-
-
-
-
-
-    $qry = "INSERT INTO `currency_master`(`name`, `symbol`, `rate`) VALUES ('$name','$symbol','$rate')";
-
-    /*echo $qry; die();*/
-
-    if (mysqli_query($conn, $qry)) {
-
-        echo "Data inserted succesfully.";
-
+    oecrm_require_csrf();
+    $name = trim($_POST['name'] ?? '');
+    $symbol = trim($_POST['symbol'] ?? '');
+    $rate = (float) ($_POST['rate'] ?? 0);
+    if ($name === '' || $symbol === '' || $rate <= 0) {
+        $_SESSION['currency_flash'] = 'Please fill all currency fields.';
         header('Location:manageCurrency.php');
-
-    } else {
-
-        echo "Data not inserted succesfully.";
-
+        exit;
     }
-
+    $duplicate = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id FROM currency_master WHERE LOWER(name)=LOWER('" . mysqli_real_escape_string($conn, $name) . "') OR UPPER(symbol)=UPPER('" . mysqli_real_escape_string($conn, $symbol) . "') LIMIT 1"));
+    if ($duplicate) {
+        $_SESSION['currency_flash'] = 'Currency already exists.';
+        header('Location:manageCurrency.php');
+        exit;
+    }
+    $nameEsc = mysqli_real_escape_string($conn, $name);
+    $symbolEsc = mysqli_real_escape_string($conn, $symbol);
+    $qry = "INSERT INTO currency_master(name, symbol, rate) VALUES ('$nameEsc','$symbolEsc',$rate)";
+    if (mysqli_query($conn, $qry)) {
+        $_SESSION['currency_flash'] = 'Currency added successfully.';
+    } else {
+        $_SESSION['currency_flash'] = 'Currency could not be added.';
+    }
+    header('Location:manageCurrency.php');
+    exit;
 }
 
-
-
 if (isset($_POST['updateCurrency'])) {
-
-    //$notice = $_POST['notice'];
-
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-
-    $symbol = mysqli_real_escape_string($conn, $_POST['symbol']);
-
-    $rate = mysqli_real_escape_string($conn, $_POST['rate']);
-
-    $rate = mysqli_real_escape_string($conn, $_POST['rate']);
-
-    $id = mysqli_real_escape_string($conn, $_POST['id']);
-
-
-
-
-
-    $qry = "UPDATE `currency_master` SET name='$name', symbol='$symbol', rate='$rate' where id=$id";
-
-    /*echo $qry; die();*/
-
-    if (mysqli_query($conn, $qry)) {
-
-        echo "Data updated succesfully.";
-
+    oecrm_require_csrf();
+    $name = trim($_POST['name'] ?? '');
+    $symbol = trim($_POST['symbol'] ?? '');
+    $rate = (float) ($_POST['rate'] ?? 0);
+    $id = (int) ($_POST['id'] ?? 0);
+    if (!$id || $name === '' || $symbol === '' || $rate <= 0) {
+        $_SESSION['currency_flash'] = 'Please fill all currency fields.';
         header('Location:manageCurrency.php');
-
-    } else {
-
-        echo "Data not updated succesfully.";
-
+        exit;
     }
-
+    $nameEsc = mysqli_real_escape_string($conn, $name);
+    $symbolEsc = mysqli_real_escape_string($conn, $symbol);
+    $duplicate = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id FROM currency_master WHERE id <> $id AND (LOWER(name)=LOWER('$nameEsc') OR UPPER(symbol)=UPPER('$symbolEsc')) LIMIT 1"));
+    if ($duplicate) {
+        $_SESSION['currency_flash'] = 'Currency already exists.';
+        header('Location:manageCurrency.php');
+        exit;
+    }
+    $qry = "UPDATE currency_master SET name='$nameEsc', symbol='$symbolEsc', rate=$rate WHERE id=$id";
+    if (mysqli_query($conn, $qry)) {
+        $_SESSION['currency_flash'] = 'Currency updated successfully.';
+    } else {
+        $_SESSION['currency_flash'] = 'Currency could not be updated.';
+    }
+    header('Location:manageCurrency.php');
+    exit;
 }
 
 
 
 if (isset($_POST['addLeaveType'])) {
-
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-
-    $qry = "INSERT INTO `leavetypetbl`(`id`, `name`) VALUES (NULL,'$name')";
-
-    if (mysqli_query($conn, $qry)) {
-
-        echo "Data Inserted succesfully.";
-
+    oecrm_require_csrf();
+    $name = trim($_POST['name'] ?? '');
+    if ($name === '') {
+        $_SESSION['leave_type_flash'] = 'Leave type is required.';
         header('Location:manageLeaveType.php');
-
-    } else {
-
-        echo "Data not inserted succesfully.";
-
+        exit;
     }
+
+    $check = mysqli_prepare($conn, 'SELECT id FROM leavetypetbl WHERE LOWER(name)=LOWER(?) LIMIT 1');
+    mysqli_stmt_bind_param($check, 's', $name);
+    mysqli_stmt_execute($check);
+    $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
+    mysqli_stmt_close($check);
+    if ($exists) {
+        $_SESSION['leave_type_flash'] = 'Leave type already exists.';
+        header('Location:manageLeaveType.php');
+        exit;
+    }
+
+    $stmt = mysqli_prepare($conn, 'INSERT INTO leavetypetbl(name) VALUES (?)');
+    mysqli_stmt_bind_param($stmt, 's', $name);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    $_SESSION['leave_type_flash'] = 'Leave type added successfully.';
+    header('Location:manageLeaveType.php');
+    exit;
 
 }
 
 if (isset($_POST['addLeadSource'])) {
 
     oecrm_require_csrf();
-    oecrm_require_permission($conn,'clients','create');
+    // Allow users who can view leads via legacy access to add lead sources.
+    if (!oecrm_can($conn,'clients','create') && !oecrm_can($conn,'clients','edit') && check_is_access_new('view_lead')!==1) {
+        $_SESSION['lead_source_flash'] = 'You do not have permission to add lead sources.';
+        header('Location:manageLeadSource.php');
+        exit;
+    }
     $name = trim($_POST['name'] ?? '');
     if ($name === '') {
         $_SESSION['lead_source_flash'] = 'Lead source name is required.';
@@ -1256,6 +1278,16 @@ if (isset($_POST['addLeadSource'])) {
 
     $name = mysqli_real_escape_string($conn, $name);
 
+    $check = mysqli_prepare($conn, 'SELECT id FROM lead_source_tbl WHERE LOWER(name)=LOWER(?) LIMIT 1');
+    mysqli_stmt_bind_param($check, 's', $name);
+    mysqli_stmt_execute($check);
+    $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
+    mysqli_stmt_close($check);
+    if ($exists) {
+        $_SESSION['lead_source_flash'] = 'Lead source already exists.';
+        header('Location:manageLeadSource.php');
+        exit;
+    }
     $qry = "INSERT INTO `lead_source_tbl`(`id`, `name`) VALUES (NULL,'$name')";
 
     if (mysqli_query($conn, $qry)) {
@@ -1275,7 +1307,12 @@ if (isset($_POST['addLeadSource'])) {
 
 if (isset($_POST['addFollowupType'])) {
     oecrm_require_csrf();
-    oecrm_require_permission($conn,'clients','create');
+    // Allow users who can view leads via legacy access to add follow-up types.
+    if (!oecrm_can($conn,'clients','create') && !oecrm_can($conn,'clients','edit') && check_is_access_new('view_lead')!==1) {
+        $_SESSION['followup_type_flash'] = 'You do not have permission to add follow-up types.';
+        header('Location:manageFollowupType.php');
+        exit;
+    }
     $name = trim($_POST['name'] ?? '');
     if ($name === '') {
         $_SESSION['followup_type_flash'] = 'Follow-up type is required.';
@@ -1323,15 +1360,16 @@ if (isset($_POST['DashboardLeaveSave'])) {
 }
 if (isset($_POST['LeaveSave'])) {
 
-    $id = $_POST['id'];
+    $id = (int)($_POST['id'] ?? 0);
 
-    $status = $_POST['status'];
+    $status = (int)($_POST['status'] ?? 0);
 
-    $remarks = mysqli_real_escape_string($conn, $_POST['remarks']);
+    $remarks = mysqli_real_escape_string($conn, $_POST['remarks'] ?? '');
 
     mysqli_query($conn, "UPDATE leave_master SET is_approved='$status',remarks='$remarks' where id=$id");
 
     header('Location:manageLeave.php');
+    exit;
 
 }
 
@@ -1384,73 +1422,62 @@ if (isset($_POST['ReportSave'])) {
 
 
 if (isset($_POST['addBankDetails'])) {
-
-    //$notice = $_POST['notice'];
-
-    $bank_name = mysqli_real_escape_string($conn, $_POST['bank_name']);
-
-
-
-    $qry = "INSERT INTO `bank_details`(`bank_name`) VALUES ('$bank_name' )";
-
-    // echo $qry; die();
-
-    if (mysqli_query($conn, $qry)) {
-
-        echo "Data inserted succesfully.";
-
+    oecrm_require_csrf();
+    $bank_name = trim($_POST['bank_name'] ?? '');
+    if ($bank_name === '') {
+        $_SESSION['bank_details_flash'] = 'Bank name is required.';
         header('Location:addBankDetails.php');
-
-    } else {
-
-        echo "Data not inserted succesfully.";
-
+        exit;
     }
-
+    $bank_nameEsc = mysqli_real_escape_string($conn, $bank_name);
+    $qry = "INSERT INTO bank_details(bank_name) VALUES ('$bank_nameEsc')";
+    if (mysqli_query($conn, $qry)) {
+        $_SESSION['bank_details_flash'] = 'Bank added successfully.';
+    } else {
+        $_SESSION['bank_details_flash'] = 'Bank could not be added.';
+    }
+    header('Location:addBankDetails.php');
+    exit;
 }
 
 
 
 if (isset($_POST['updateBankDetails'])) {
-
-    //$notice = $_POST['notice'];
-
-    $bank_name = mysqli_real_escape_string($conn, $_POST['bank_name']);
-
-    $id = mysqli_real_escape_string($conn, $_POST['id']);
-
-
-
-    $qry = "UPDATE `bank_details` SET bank_name='$bank_name' where bank_id=$id";
-
-    /*echo $qry; die();*/
-
-    if (mysqli_query($conn, $qry)) {
-
-        echo "Data updated succesfully.";
-
+    oecrm_require_csrf();
+    $bank_name = trim($_POST['bank_name'] ?? '');
+    $id = (int) ($_POST['id'] ?? 0);
+    if (!$id || $bank_name === '') {
+        $_SESSION['bank_details_flash'] = 'Bank name is required.';
         header('Location:addBankDetails.php');
-
-    } else {
-
-        echo "Data not updated succesfully.";
-
+        exit;
     }
-
+    $bank_nameEsc = mysqli_real_escape_string($conn, $bank_name);
+    $qry = "UPDATE bank_details SET bank_name='$bank_nameEsc' where bank_id=$id";
+    if (mysqli_query($conn, $qry)) {
+        $_SESSION['bank_details_flash'] = 'Bank updated successfully.';
+    } else {
+        $_SESSION['bank_details_flash'] = 'Bank could not be updated.';
+    }
+    header('Location:addBankDetails.php');
+    exit;
 }
 
 
 
-if (isset($_GET['bank_delete'])) {
-
-    $id = $_GET['bank_delete'];
-
+if (isset($_POST['deleteBankDetails'])) {
+    oecrm_require_csrf();
+    oecrm_require_permission($conn, 'finance', 'delete');
+    $id = (int)($_POST['deleteBankDetails'] ?? 0);
+    $row = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM bank_details WHERE bank_id=' . (int) $id));
+    if (!$row) {
+        http_response_code(404);
+        exit('Bank record not found.');
+    }
     $deleteQry = "delete from bank_details where bank_id=$id";
-
-    $deleteResult = mysqli_query($conn, $deleteQry);
-
+    mysqli_query($conn, $deleteQry);
+    $_SESSION['bank_details_flash'] = 'Bank deleted successfully.';
     header("location: addBankDetails.php");
-
+    exit;
 }
 
 
@@ -1532,31 +1559,39 @@ if (isset($_GET['country_delete'])) {
 
 
 if (isset($_POST['roleSave'])) {
-
-    $name = $_POST['name'];
-
-    
-
-    if(isset($_REQUEST['id']))
-
-    {
-
-        $id=$_REQUEST['id'];
-
-        mysqli_query($conn, "UPDATE `user_type`  SET `name`= '$name' WHERE id='$id'");
-
-    }else
-
-    {
-
-        mysqli_query($conn, "INSERT INTO `user_type`(`name`) VALUES ('$name')");
-
-    }   
-
-    
-
+    oecrm_require_csrf();
+    $name = trim($_POST['name'] ?? '');
+    if ($name === '') {
+        $_SESSION['role_flash'] = 'Role name is required.';
+        header('Location:all_user_roles.php');
+        exit;
+    }
+    $id = (int)($_POST['id'] ?? 0);
+    $check = mysqli_prepare($conn, 'SELECT id FROM user_type WHERE LOWER(name)=LOWER(?) AND is_deleted=0 AND id<>? LIMIT 1');
+    mysqli_stmt_bind_param($check, 'si', $name, $id);
+    mysqli_stmt_execute($check);
+    $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
+    mysqli_stmt_close($check);
+    if ($exists) {
+        $_SESSION['role_flash'] = 'Role already exists.';
+        header('Location:all_user_roles.php');
+        exit;
+    }
+    if ($id > 0) {
+        $stmt = mysqli_prepare($conn, 'UPDATE user_type SET name=? WHERE id=?');
+        mysqli_stmt_bind_param($stmt, 'si', $name, $id);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        $_SESSION['role_flash'] = 'Role updated successfully.';
+    } else {
+        $stmt = mysqli_prepare($conn, 'INSERT INTO user_type(name) VALUES (?)');
+        mysqli_stmt_bind_param($stmt, 's', $name);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        $_SESSION['role_flash'] = 'Role added successfully.';
+    }
     header('Location:all_user_roles.php');
-
+    exit;
 }
 
 

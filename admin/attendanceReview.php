@@ -231,6 +231,7 @@ function attendance_minutes($minutes)
             </div>
             <?php if (!$isLocked && oecrm_can($conn, 'attendance_review', 'correct')): ?>
                 <button class="btn btn-primary" data-toggle="modal" data-target="#manualEventModal"><i class="fa fa-plus"></i> Add Event</button>
+                <button class="btn btn-info" data-toggle="modal" data-target="#bulkFillModal"><i class="fa fa-clone"></i> Bulk Fill Month</button>
             <?php endif; ?>
             <?php if (oecrm_can($conn, 'attendance_review', $isLocked ? 'unlock' : 'lock')): ?>
                 <button class="btn <?php echo $isLocked ? 'btn-warning' : 'btn-danger'; ?>" data-toggle="modal" data-target="#periodLockModal"><i class="fa <?php echo $isLocked ? 'fa-unlock' : 'fa-lock'; ?>"></i> <?php echo $isLocked ? 'Unlock' : 'Lock'; ?> Month</button>
@@ -297,6 +298,64 @@ function attendance_minutes($minutes)
                 <div class="form-group"><label>Reason</label><textarea class="form-control" name="reason" minlength="5" required placeholder="Example: Employee forgot to mark Sign In"></textarea></div>
             </div>
             <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button><button class="btn btn-primary"><i class="fa fa-save"></i> Add Event</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="bulkFillModal">
+    <div class="modal-dialog modal-lg">
+        <form class="modal-content" method="post" action="attendanceReviewAction.php">
+            <?php echo oecrm_csrf_field(); ?>
+            <input type="hidden" name="action" value="bulk_fill">
+            <input type="hidden" name="employee_id" value="<?php echo $employeeId; ?>">
+            <input type="hidden" name="return_query" value="<?php echo oecrm_h(http_build_query(['month' => $month, 'year' => $year, 'employee_id' => $employeeId])); ?>">
+            <div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h4>Bulk Fill Month Attendance</h4></div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    This will create full attendance for the selected date range and skip any days that already have records.
+                </div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group"><label>Start Date</label><input type="date" class="form-control" name="start_date" value="<?php echo oecrm_h($periodStart); ?>" required></div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group"><label>End Date</label><input type="date" class="form-control" name="end_date" value="<?php echo oecrm_h($periodEnd); ?>" required></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group"><label>Sign In Time</label><input type="time" class="form-control" name="sign_in_time" value="09:30" required></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group"><label>Sign Out Time</label><input type="time" class="form-control" name="sign_out_time" value="18:30" required></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group"><label>Lunch In Time</label><input type="time" class="form-control" name="lunch_in_time" value="13:00" required></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group"><label>Lunch Out Time</label><input type="time" class="form-control" name="lunch_out_time" value="13:30" required></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group"><label>Break In Time</label><input type="time" class="form-control" name="break_in_time" value="16:00" required></div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="form-group"><label>Break Out Time</label><input type="time" class="form-control" name="break_out_time" value="16:15" required></div>
+                    </div>
+                </div>
+                <div class="alert alert-warning" style="margin-top:10px;">
+                    Lunch and break times will be created for every valid day in the selected month, and the system will calculate break minutes automatically.
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" name="include_off_days" value="1"> Include weekly off / holiday days</label>
+                </div>
+                <div class="form-group">
+                    <label>Reason</label>
+                    <textarea class="form-control" name="reason" minlength="5" required placeholder="Example: Bulk manual fill for missed month attendance"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button><button class="btn btn-info"><i class="fa fa-clone"></i> Fill Month</button></div>
         </form>
     </div>
 </div>

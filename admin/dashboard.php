@@ -21,7 +21,7 @@
                     $completedProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectstbl WHERE company_id = " . (int) $companyId . " AND status = 'completed'");
                     $cancelProjects = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM projectstbl WHERE company_id = " . (int) $companyId . " AND status = 'cancel'");
                     $holidayCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM holidaytbl WHERE company_id IN (0, " . (int) $companyId . ")");
-                    $leaveCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM leave_master lm LEFT JOIN employeesTbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 AND e.company_id = " . (int) $companyId);
+                    $leaveCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM leave_master lm LEFT JOIN employeestbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 AND e.company_id = " . (int) $companyId);
                     $dashboardBirthdays = oecrm_employee_birthdays($conn, $companyId, 30);
                     $todayBirthdays = array_values(array_filter($dashboardBirthdays, static function ($employee) { return (int) $employee['days_until'] === 0; }));
                 ?>
@@ -276,7 +276,7 @@
         </div>        <br>
         <!-- leave -->
         <?php
-            $pendingLeaveCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM leave_master lm LEFT JOIN employeesTbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 AND e.company_id = " . (int) $companyId);
+            $pendingLeaveCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM leave_master lm LEFT JOIN employeestbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 AND e.company_id = " . (int) $companyId);
         ?>
         <div class="bank_details leave-approval-section">
             <div class="row">
@@ -292,7 +292,7 @@
                         <div class="panel-body">
                             <div class="leave-request-list">
                                 <?php
-                                    $leaveQuery = mysqli_query($conn, "SELECT lm.*, e.employeeUname, e.name, e.companyEmail FROM leave_master lm LEFT JOIN employeesTbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 AND e.company_id = " . (int) $companyId . " ORDER BY lm.created_at DESC LIMIT 8");
+                                    $leaveQuery = mysqli_query($conn, "SELECT lm.*, e.employeeUname, e.name, e.companyEmail FROM leave_master lm LEFT JOIN employeestbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 AND e.company_id = " . (int) $companyId . " ORDER BY lm.created_at DESC LIMIT 8");
                                     if ($leaveQuery && mysqli_num_rows($leaveQuery) > 0) {
                                         while ($leaveRow = mysqli_fetch_assoc($leaveQuery)) {
                                             $employeeName = !empty($leaveRow['name']) ? $leaveRow['name'] : $leaveRow['employeeUname'];

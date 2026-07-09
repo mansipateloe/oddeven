@@ -57,7 +57,7 @@ function employee_nav_class($pages, $currentPage)
                <ul class="nav" id="side-menu">
                <?php
                   $employeeId = (int) $_SESSION['employeeId'];
-                  $qryEmpView = "SELECT * FROM employeesTbl WHERE id=".$employeeId;
+                  $qryEmpView = "SELECT * FROM employeestbl WHERE id=".$employeeId;
                   $resultEmpView = mysqli_query($conn,$qryEmpView);
                   $rowEmpView = $resultEmpView ? $resultEmpView->fetch_assoc() : null;
                   if (!empty($rowEmpView['company_id'])) {

@@ -29,7 +29,7 @@
                 <?php
                     if(isset($_GET['id'])){
                         $id = $_GET['id'];
-                        $invoice_qry = "SELECT invoiceTbl.*, projectsTbl.projectName FROM invoiceTbl left join projectsTbl on projectsTbl.id = invoiceTbl.project_Id WHERE invoiceTbl.invoice_id = '$id' limit 1";
+                        $invoice_qry = "SELECT invoiceTbl.*, projectstbl.projectName FROM invoiceTbl left join projectstbl on projectstbl.id = invoiceTbl.project_Id WHERE invoiceTbl.invoice_id = '$id' limit 1";
 
 
                         $invoice_result = mysqli_query($conn,$invoice_qry);

@@ -6,7 +6,7 @@ oecrm_require_admin_login();
 oecrm_require_permission($conn, 'employees', 'create');
   if(isset($_POST['employeeUname'])){
     $name = mysqli_real_escape_string($conn,$_POST['employeeUname']);
-    $stmt=mysqli_prepare($conn,'SELECT id FROM employeesTbl WHERE employeeUname=? LIMIT 1');
+    $stmt=mysqli_prepare($conn,'SELECT id FROM employeestbl WHERE employeeUname=? LIMIT 1');
     mysqli_stmt_bind_param($stmt,'s',$name);
     mysqli_stmt_execute($stmt);
     $query=mysqli_stmt_get_result($stmt);
@@ -23,7 +23,7 @@ oecrm_require_permission($conn, 'employees', 'create');
     //$emailId=$_POST['companyEmail'];
     $emailId = mysqli_real_escape_string($conn,$_POST['companyEmail']);
 
-    $checkdata=" SELECT * FROM employeesTbl WHERE companyEmail='$emailId' ";
+    $checkdata=" SELECT * FROM employeestbl WHERE companyEmail='$emailId' ";
 
     $query=mysqli_query($conn,$checkdata);
 
@@ -37,7 +37,7 @@ oecrm_require_permission($conn, 'employees', 'create');
 
   if(isset($_POST['projectName'])){
     $projectName = mysqli_real_escape_string($conn,$_POST['projectName']);
-    $checkdata=" SELECT * FROM projectsTbl WHERE projectName='$projectName'";
+    $checkdata=" SELECT * FROM projectstbl WHERE projectName='$projectName'";
 
     $query=mysqli_query($conn,$checkdata);
 
@@ -53,7 +53,7 @@ oecrm_require_permission($conn, 'employees', 'create');
     $projectName = mysqli_real_escape_string($conn,$_POST['updateProjectName']);
     $projectId = $_POST['projectId'];
 
-    $checkdata=" SELECT * FROM projectsTbl WHERE projectName='$projectName' AND id!='$projectId'";
+    $checkdata=" SELECT * FROM projectstbl WHERE projectName='$projectName' AND id!='$projectId'";
 
     $query=mysqli_query($conn,$checkdata);
 

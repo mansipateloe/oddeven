@@ -180,6 +180,7 @@ try {
                  SET client_code=?, legal_name=?, display_name=?, client_type=?, status=?, industry=?, website=?, email=?, phone=?, billing_address=?, city=?, state=?, country=?, tax_id=?, currency_code=?, payment_terms_days=?, notes=?
                  WHERE id=? AND company_id=?'
             );
+            $phoneValue = $phone !== '' ? $phone : '';
             mysqli_stmt_bind_param(
                 $stmt,
                 'sssssssssssssssisii',
@@ -191,7 +192,7 @@ try {
                 $industry,
                 $website,
                 $email,
-                $phone !== '' ? $phone : '',
+                $phoneValue,
                 $billing_address,
                 $city,
                 $state,
@@ -211,6 +212,7 @@ try {
                 'INSERT INTO clients(company_id, client_code, legal_name, display_name, client_type, status, industry, website, email, phone, billing_address, city, state, country, tax_id, currency_code, payment_terms_days, notes, created_by)
                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
             );
+            $phoneValue = $phone !== '' ? $phone : '';
             mysqli_stmt_bind_param(
                 $stmt,
                 'issssssssssssssisis',
@@ -223,7 +225,7 @@ try {
                 $industry,
                 $website,
                 $email,
-                $phone !== '' ? $phone : '',
+                $phoneValue,
                 $billing_address,
                 $city,
                 $state,

@@ -29,7 +29,7 @@
                                                         <select name="project_Id" id="project_Id" class="form-control" required>
                                                             <option value="">Select Project Name</option>
                                                             <?php 
-                                                                $qryProject = "SELECT * FROM projectsTbl where status = 'inprogress' order by id desc";
+                                                                $qryProject = "SELECT * FROM projectstbl where status IN ('pending','inprogress') order by id desc";
                                                                 $resultProject = mysqli_query($conn,$qryProject);
                                                                 if($resultProject->num_rows > 0){
                                                                     while($resProject = $resultProject->fetch_assoc()){
@@ -115,7 +115,7 @@
                                                     <select name="project_Id" id="project_Id" class="form-control" required>
                                                         <option value="">Select Project Name</option>
                                                         <?php 
-                                                            $qryProject = "SELECT * FROM projectsTbl where status = 'inprogress' order by id desc";
+                                                            $qryProject = "SELECT * FROM projectstbl where status IN ('pending','inprogress') order by id desc";
                                                             $resultProject = mysqli_query($conn,$qryProject);
                                                             if($resultProject->num_rows > 0){
                                                                 while($resProject = $resultProject->fetch_assoc()){
@@ -220,7 +220,7 @@
                                                     while($row = $result->fetch_assoc()){
                                                     echo "<tr class='gradeA even' role='row'>";
                                                         echo "<td>".$row['expensedate']."</td>";
-                                                        $get_proj_qry = "select * from projectsTbl where id=".$row['project_Id'];
+                                                        $get_proj_qry = "select * from projectstbl where id=".$row['project_Id'];
                                                         $get_proj_result = mysqli_query($conn,$get_proj_qry);
                                                         $get_proj_row = $get_proj_result->fetch_assoc();
                                                         echo "<td>".$get_proj_row['projectName']."</td>";

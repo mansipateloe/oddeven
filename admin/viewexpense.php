@@ -1,4 +1,16 @@
 <?php include 'header.php'; ?>
+<?php
+$expenseCategoryMap = [];
+foreach (['expenceCategory', 'expenseCategory', 'expense_categories', 'expensecategory'] as $tableName) {
+    $check = @mysqli_query($conn, "SELECT * FROM $tableName");
+    if ($check && mysqli_num_rows($check) > 0) {
+        while ($row = mysqli_fetch_assoc($check)) {
+            $expenseCategoryMap[(string)($row['category_id'] ?? $row['id'] ?? '')] = $row['expenseCategory'] ?? $row['name'] ?? $row['category_name'] ?? '';
+        }
+        if ($expenseCategoryMap) break;
+    }
+}
+?>
        <div id="page-wrapper">
             <div class="row">
                                 <div class="col-lg-12">
@@ -103,10 +115,9 @@
                                             while($row = $result->fetch_assoc()){
                                             echo "<tr class='gradeA even' role='row'>";
                                                 echo "<td>".$row['expensedate']."</td>";
-                                                $qryexpense = "select * from expenceCategory where category_id=".$row['expenseCategory'];
-                                                $resultexpense = mysqli_query($conn,$qryexpense);
-                                                $rowresultExpense = $resultexpense->fetch_assoc();
-                                                echo "<td>".$rowresultExpense['expenseCategory']."</td>";
+                                                $categoryValue = (string)$row['expenseCategory'];
+                                                $categoryName = $expenseCategoryMap[$categoryValue] ?? $categoryValue;
+                                                echo "<td>".$categoryName."</td>";
                                                 echo "<td>".$row['amount']."</td>";
                                                 echo '<td><a href="editExpense.php?edit='.$row["expense_id"].'"><i class="fa fa-pencil" style="font-size:22px;"></i></a>&nbsp;&nbsp;
                                                 <a href="deleteExpense.php?delete='.$row["expense_id"].'" onclick="return confirm(\'Are you sure you want to delete?\');"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></a></td>';

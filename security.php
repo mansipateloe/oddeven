@@ -145,16 +145,73 @@ function oecrm_initialize_authenticated_session()
     unset($_SESSION['_oecrm_navigation']);
 }
 
+function oecrm_ensure_audit_logs_table($conn)
+{
+    static $checked = false;
+    if ($checked) {
+        return true;
+    }
+    $checked = true;
+
+    $sql = "CREATE TABLE IF NOT EXISTS audit_logs (
+      id BIGINT NOT NULL AUTO_INCREMENT,
+      company_id INT NOT NULL DEFAULT 0,
+      actor_type ENUM('admin','employee','system') NOT NULL DEFAULT 'system',
+      actor_id INT NOT NULL DEFAULT 0,
+      employee_id INT DEFAULT NULL,
+      session_key VARCHAR(128) DEFAULT NULL,
+      action VARCHAR(60) NOT NULL,
+      module_key VARCHAR(80) NOT NULL,
+      entity_type VARCHAR(100) DEFAULT NULL,
+      entity_id VARCHAR(100) DEFAULT NULL,
+      description VARCHAR(255) DEFAULT NULL,
+      old_values LONGTEXT DEFAULT NULL,
+      new_values LONGTEXT DEFAULT NULL,
+      ip_address VARCHAR(45) DEFAULT NULL,
+      user_agent VARCHAR(500) DEFAULT NULL,
+      browser_name VARCHAR(80) DEFAULT NULL,
+      device_type VARCHAR(40) DEFAULT NULL,
+      platform_name VARCHAR(80) DEFAULT NULL,
+      risk_level ENUM('normal','review','suspicious') NOT NULL DEFAULT 'normal',
+      risk_reasons VARCHAR(500) DEFAULT NULL,
+      request_method VARCHAR(10) DEFAULT NULL,
+      request_uri VARCHAR(500) DEFAULT NULL,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (id),
+      KEY idx_audit_company_created (company_id, created_at),
+      KEY idx_audit_actor (actor_type, actor_id),
+      KEY idx_audit_employee (employee_id, created_at),
+      KEY idx_audit_entity (entity_type, entity_id),
+      KEY idx_audit_module_action (module_key, action),
+      KEY idx_audit_risk (company_id, risk_level, created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+
+    try {
+        return (bool) mysqli_query($conn, $sql);
+    } catch (Throwable $exception) {
+        return false;
+    }
+}
+
 function oecrm_login_rate_limited($conn, $portal)
 {
+    if (!oecrm_ensure_audit_logs_table($conn)) {
+        return false;
+    }
+
     $ip = mysqli_real_escape_string($conn, (string) ($_SERVER['REMOTE_ADDR'] ?? ''));
     $description = mysqli_real_escape_string($conn, ucfirst($portal) . ' portal login failed');
-    $row = mysqli_fetch_assoc(mysqli_query(
-        $conn,
-        "SELECT COUNT(*) total FROM audit_logs
-         WHERE action='failed_login' AND ip_address='$ip' AND description='$description'
-         AND created_at>=DATE_SUB(NOW(),INTERVAL 15 MINUTE)"
-    ));
+    try {
+        $result = mysqli_query(
+            $conn,
+            "SELECT COUNT(*) total FROM audit_logs
+             WHERE action='failed_login' AND ip_address='$ip' AND description='$description'
+             AND created_at>=DATE_SUB(NOW(),INTERVAL 15 MINUTE)"
+        );
+        $row = $result ? mysqli_fetch_assoc($result) : [];
+    } catch (Throwable $exception) {
+        return false;
+    }
     return (int) ($row['total'] ?? 0) >= 10;
 }
 

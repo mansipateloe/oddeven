@@ -1,15 +1,21 @@
 <?php 
 include 'header.php';
+$flash = $_SESSION['leave_type_flash'] ?? '';
+unset($_SESSION['leave_type_flash']);
  ?>
 <div id="page-wrapper">
     <div class="row">
         <div class="col-lg-12">
             <div class="dataTablesbox">
-                <form role="form" method="POST">
+                <?php if ($flash): ?>
+                    <div class="alert alert-info"><?php echo oecrm_h($flash); ?></div>
+                <?php endif; ?>
+                <form role="form" method="POST" action="validation.php">
+                    <?php echo oecrm_csrf_field(); ?>
                     <div class="col-lg-4">
                         <div class="form-group">
                             <label>Leave Type</label>
-                            <input class="form-control" value="<?php echo $designation; ?>" type="text" name="name">
+                            <input class="form-control" value="" type="text" name="name" required>
                         </div>
 
                     </div>
@@ -69,9 +75,9 @@ include 'header.php';
                                                 while ($row = $result->fetch_assoc()) {
                                                     echo "<tr class='gradeA even' role='row'>";
                                                     echo "<td class='sorting_1'>" . $row['id'] . "</td>";
-                                                    echo "<td>" . $row['name'] . "</td>";
+                                                    echo "<td>" . oecrm_h($row['name']) . "</td>";
                                                     /*echo "<td class='center' align='center'>&nbsp;&nbsp;<a href='deleteDesignation.php?deleteDesignation=".$row['id']."'><i class='fa fa-trash-o' style='font-size:25px; color:red;'></i></a></td>";*/
-                                                    echo '<td class="center" align="center"><a href="deleteLeaveType.php?deleteLeaveType=' . $row["id"] . '" onclick="return confirm(\'Are you sure you want to delete?\');"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></a></td>';
+                                                    echo '<td class="center" align="center"><form method="post" action="deleteLeaveType.php" style="display:inline;">' . oecrm_csrf_field() . '<input type="hidden" name="deleteLeaveType" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link" style="padding:0;border:0;" onclick="return confirm(\'Are you sure you want to delete?\');"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
                                                     echo "</tr>";
                                                 }
                                             } else {
