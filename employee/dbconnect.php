@@ -1,8 +1,9 @@
 <?php
-$conn = mysqli_connect("localhost", "oddev213", "QSVtIhci4d989", "oddev213");
+$conn = mysqli_connect("localhost", "root", "", "oecrm");
 
-if($conn === false){
+if ($conn === false) {
     die("ERROR: Could not connect. " . mysqli_connect_error());
 }
 
-$today_date = date('Y-m-d'); //get today date
+mysqli_set_charset($conn, "utf8mb4");
+$today_date = date('Y-m-d');
