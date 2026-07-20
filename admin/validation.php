@@ -1,4 +1,4 @@
-<?php require_once __DIR__ . '/../security.php';
+﻿<?php require_once __DIR__ . '/../security.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();
 }
@@ -859,27 +859,41 @@ if (isset($_POST['updateDeposit'])) {
 <?php
 
 if (isset($_POST['addExpense'])) {
-
-    $expensedate = $_POST['expensedate'];
-
-    $expenseCategory = $_POST['expenseCategory'];
-
-    $amount = $_POST['amount'];
-
-    $description = $_POST['description'];
-
-
-
-    $expenseQry = "insert into expense (expenseCategory, expensedate, amount, description) values ('$expenseCategory', '$expensedate', '$amount', '$description')";
-
-    $expenseResult = mysqli_query($conn, $expenseQry);
-
-    if ($expenseResult) {
-
-        header('location:viewexpense.php');
-
+    if (!oecrm_can($conn, 'finance', 'create') && !oecrm_legacy_can($conn, 'expense')) {
+        http_response_code(403);
+        exit('You do not have permission to add expenses.');
     }
 
+    $expensedate = trim((string) ($_POST['expensedate'] ?? ''));
+    $expenseCategory = (int) ($_POST['expenseCategory'] ?? 0);
+    $amount = trim((string) ($_POST['amount'] ?? ''));
+    $description = trim((string) ($_POST['description'] ?? ''));
+
+    if ($expensedate === '' || $expenseCategory <= 0 || $amount === '' || $description === '' || !is_numeric($amount)) {
+        $_SESSION['expense_flash'] = 'Date, category, valid amount and description are required.';
+        header('Location:viewexpense.php');
+        exit;
+    }
+
+    $categoryStmt = mysqli_prepare($conn, 'SELECT category_id FROM expencecategory WHERE category_id=? LIMIT 1');
+    mysqli_stmt_bind_param($categoryStmt, 'i', $expenseCategory);
+    mysqli_stmt_execute($categoryStmt);
+    $validCategory = mysqli_fetch_assoc(mysqli_stmt_get_result($categoryStmt));
+    mysqli_stmt_close($categoryStmt);
+
+    if (!$validCategory) {
+        $_SESSION['expense_flash'] = 'Please select a valid expense category.';
+        header('Location:viewexpense.php');
+        exit;
+    }
+
+    $stmt = mysqli_prepare($conn, 'INSERT INTO expense (expenseCategory, expensedate, amount, description) VALUES (?, ?, ?, ?)');
+    mysqli_stmt_bind_param($stmt, 'isss', $expenseCategory, $expensedate, $amount, $description);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+
+    header('location:viewexpense.php');
+    exit;
 }
 
 ?>
@@ -889,31 +903,42 @@ if (isset($_POST['addExpense'])) {
 <?php
 
 if (isset($_POST['updateExpense'])) {
-
-    $id = $_GET['edit'];
-
-    $expensedate = $_POST['expensedate'];
-
-    $expencecategory = $_POST['expencecategory'];
-
-    $amount = $_POST['amount'];
-
-    $description = $_POST['description'];
-
-
-
-    $editExpense = "UPDATE `expense` SET `expenseCategory`='$expencecategory',`expensedate`='$expensedate',`amount`='$amount',`description`='$description' WHERE expense_id=" . $id;
-
-    $expenseResult = mysqli_query($conn, $editExpense);
-
-    if ($expenseResult) {
-
-        header('location:viewexpense.php');
-
+    if (!oecrm_can($conn, 'finance', 'edit') && !oecrm_legacy_can($conn, 'expense')) {
+        http_response_code(403);
+        exit('You do not have permission to update expenses.');
     }
 
-    //echo '<pre>'; print_r($_POST);die((__FILE__).'-->'.(__FUNCTION__).'--Line('. (__LINE__).')');
+    $id = (int) ($_POST['id'] ?? $_GET['edit'] ?? 0);
+    $expensedate = trim((string) ($_POST['expensedate'] ?? ''));
+    $expenseCategory = (int) ($_POST['expenseCategory'] ?? $_POST['expenceCategory'] ?? $_POST['expencecategory'] ?? 0);
+    $amount = trim((string) ($_POST['amount'] ?? ''));
+    $description = trim((string) ($_POST['description'] ?? ''));
 
+    if ($id <= 0 || $expensedate === '' || $expenseCategory <= 0 || $amount === '' || $description === '' || !is_numeric($amount)) {
+        $_SESSION['expense_flash'] = 'Date, category, valid amount and description are required.';
+        header('Location:' . ($id > 0 ? 'editExpense.php?edit=' . $id : 'viewexpense.php'));
+        exit;
+    }
+
+    $categoryStmt = mysqli_prepare($conn, 'SELECT category_id FROM expencecategory WHERE category_id=? LIMIT 1');
+    mysqli_stmt_bind_param($categoryStmt, 'i', $expenseCategory);
+    mysqli_stmt_execute($categoryStmt);
+    $validCategory = mysqli_fetch_assoc(mysqli_stmt_get_result($categoryStmt));
+    mysqli_stmt_close($categoryStmt);
+
+    if (!$validCategory) {
+        $_SESSION['expense_flash'] = 'Please select a valid expense category.';
+        header('Location:editExpense.php?edit=' . $id);
+        exit;
+    }
+
+    $stmt = mysqli_prepare($conn, 'UPDATE expense SET expenseCategory=?, expensedate=?, amount=?, description=? WHERE expense_id=?');
+    mysqli_stmt_bind_param($stmt, 'isssi', $expenseCategory, $expensedate, $amount, $description, $id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+
+    header('location:viewexpense.php');
+    exit;
 }
 
 
@@ -1246,10 +1271,29 @@ if (isset($_POST['addLeaveType'])) {
 if (isset($_POST['addLeadSource'])) {
 
     oecrm_require_csrf();
-    oecrm_require_permission($conn,'clients','create');
+    if (
+        !oecrm_can($conn, 'clients', 'create')
+        && !oecrm_can($conn, 'clients', 'edit')
+        && !oecrm_legacy_can($conn, 'add_lead')
+        && !oecrm_legacy_can($conn, 'view_lead')
+    ) {
+        http_response_code(403);
+        exit('You do not have permission to manage lead sources.');
+    }
     $name = trim($_POST['name'] ?? '');
     if ($name === '') {
         $_SESSION['lead_source_flash'] = 'Lead source name is required.';
+        header('Location:manageLeadSource.php');
+        exit;
+    }
+
+    $check = mysqli_prepare($conn, 'SELECT id FROM lead_source_tbl WHERE LOWER(name)=LOWER(?) LIMIT 1');
+    mysqli_stmt_bind_param($check, 's', $name);
+    mysqli_stmt_execute($check);
+    $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
+    mysqli_stmt_close($check);
+    if ($exists) {
+        $_SESSION['lead_source_flash'] = 'Lead source already exists.';
         header('Location:manageLeadSource.php');
         exit;
     }
@@ -1275,7 +1319,15 @@ if (isset($_POST['addLeadSource'])) {
 
 if (isset($_POST['addFollowupType'])) {
     oecrm_require_csrf();
-    oecrm_require_permission($conn,'clients','create');
+    if (
+        !oecrm_can($conn, 'clients', 'create')
+        && !oecrm_can($conn, 'clients', 'edit')
+        && !oecrm_legacy_can($conn, 'add_lead')
+        && !oecrm_legacy_can($conn, 'view_lead')
+    ) {
+        http_response_code(403);
+        exit('You do not have permission to manage follow-up types.');
+    }
     $name = trim($_POST['name'] ?? '');
     if ($name === '') {
         $_SESSION['followup_type_flash'] = 'Follow-up type is required.';
@@ -1567,6 +1619,7 @@ if (isset($_POST['roleAccessSave'])) {
     exit;
 
 }
+
 
 
 

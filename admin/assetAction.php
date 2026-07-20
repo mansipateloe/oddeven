@@ -1,7 +1,157 @@
-<?php
-require_once __DIR__.'/dbconnect.php';require_once __DIR__.'/../security.php';require_once __DIR__.'/../foundation.php';oecrm_require_admin_login();if($_SERVER['REQUEST_METHOD']!=='POST'){http_response_code(405);exit;}oecrm_require_csrf();$companyId=oecrm_current_company_id($conn);$actor=(int)$_SESSION['adminId'];$action=$_POST['action']??'';$id=(int)($_POST['id']??0);
-try{if($action==='save'){oecrm_require_permission($conn,'assets',$id?'edit':'create');$code=strtoupper(trim($_POST['asset_code']??''));$type=$_POST['asset_type']??'other';$brand=trim($_POST['brand']??'');$model=trim($_POST['model']??'');$serial=trim($_POST['serial_number']??'');$purchase=trim($_POST['purchase_date']??'')?:null;$cost=(float)($_POST['purchase_cost']??0);$warranty=trim($_POST['warranty_until']??'')?:null;$condition=$_POST['condition_status']??'good';$status=$_POST['lifecycle_status']??'available';$notes=trim($_POST['notes']??'');if(!$id){$prefix='AST-'.str_pad($companyId,2,'0',STR_PAD_LEFT).'-'.date('Ym').'-';$last=mysqli_fetch_assoc(mysqli_query($conn,"SELECT asset_code FROM assets WHERE company_id=$companyId AND asset_code LIKE '$prefix%' ORDER BY id DESC LIMIT 1"));$sequence=1;if(!empty($last['asset_code'])&&preg_match('/(\\d+)$/',$last['asset_code'],$match))$sequence=(int)$match[1]+1;$code=$prefix.str_pad($sequence,4,'0',STR_PAD_LEFT);}if($id){$old=mysqli_fetch_assoc(mysqli_query($conn,'SELECT * FROM assets WHERE id='.$id.' AND company_id='.$companyId));$s=mysqli_prepare($conn,'UPDATE assets SET asset_code=?,asset_type=?,brand=?,model=?,serial_number=?,purchase_date=?,purchase_cost=?,warranty_until=?,condition_status=?,lifecycle_status=?,notes=? WHERE id=? AND company_id=?');mysqli_stmt_bind_param($s,'ssssssdssssii',$code,$type,$brand,$model,$serial,$purchase,$cost,$warranty,$condition,$status,$notes,$id,$companyId);}else{$old=null;$s=mysqli_prepare($conn,'INSERT INTO assets(company_id,asset_code,asset_type,brand,model,serial_number,purchase_date,purchase_cost,warranty_until,condition_status,lifecycle_status,notes,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)');mysqli_stmt_bind_param($s,'isssssssdsssi',$companyId,$code,$type,$brand,$model,$serial,$purchase,$cost,$warranty,$condition,$status,$notes,$actor);}mysqli_stmt_execute($s);if(!$id)$id=mysqli_insert_id($conn);mysqli_stmt_close($s);$event=$old?'updated':'created';mysqli_query($conn,"INSERT INTO asset_history(company_id,asset_id,event_type,details,performed_by) VALUES($companyId,$id,'$event','Asset profile saved',$actor)");oecrm_audit($conn,'assets',$event,'asset',$id,'Asset saved',$old,['asset_code'=>$code,'status'=>$status]);}
-elseif($action==='allocate'){oecrm_require_permission($conn,'assets','allocate');$employee=(int)($_POST['employee_id']??0);$date=$_POST['allocated_on']??date('Y-m-d');$asset=mysqli_fetch_assoc(mysqli_query($conn,'SELECT * FROM assets WHERE id='.$id.' AND company_id='.$companyId.' AND lifecycle_status="available"'));$emp=mysqli_fetch_assoc(mysqli_query($conn,'SELECT id FROM employeestbl WHERE id='.$employee.' AND company_id='.$companyId.' AND status=0'));if(!$asset||!$emp)throw new RuntimeException('Asset is unavailable or employee is invalid.');$s=mysqli_prepare($conn,'INSERT INTO asset_allocations(company_id,asset_id,employee_id,allocated_on,issue_condition,allocated_by) VALUES(?,?,?,?,?,?)');mysqli_stmt_bind_param($s,'iiissi',$companyId,$id,$employee,$date,$asset['condition_status'],$actor);mysqli_stmt_execute($s);mysqli_stmt_close($s);mysqli_query($conn,'UPDATE assets SET lifecycle_status="allocated" WHERE id='.$id);mysqli_query($conn,"INSERT INTO asset_history(company_id,asset_id,event_type,employee_id,details,performed_by) VALUES($companyId,$id,'allocated',$employee,'Asset allocated',$actor)");oecrm_audit($conn,'assets','allocate','asset',$id,'Asset allocated',null,['employee_id'=>$employee]);}
-elseif($action==='return'){oecrm_require_permission($conn,'assets','return');$condition=$_POST['return_condition']??'good';$allocation=mysqli_fetch_assoc(mysqli_query($conn,'SELECT * FROM asset_allocations WHERE asset_id='.$id.' AND company_id='.$companyId.' AND status="allocated"'));if(!$allocation)throw new RuntimeException('No active allocation found.');mysqli_query($conn,"UPDATE asset_allocations SET status='returned',returned_on=CURDATE(),return_condition='".mysqli_real_escape_string($conn,$condition)."',returned_by=$actor WHERE id=".(int)$allocation['id']);$next=$condition==='damaged'?'repair':'available';mysqli_query($conn,"UPDATE assets SET lifecycle_status='$next',condition_status='".mysqli_real_escape_string($conn,$condition)."' WHERE id=$id");mysqli_query($conn,"INSERT INTO asset_history(company_id,asset_id,event_type,employee_id,details,performed_by) VALUES($companyId,$id,'returned',".(int)$allocation['employee_id'].",'Asset returned',$actor)");oecrm_audit($conn,'assets','return','asset',$id,'Asset returned',null,['employee_id'=>$allocation['employee_id'],'condition'=>$condition]);}
-elseif($action==='retire'){oecrm_require_permission($conn,'assets','delete');$old=mysqli_fetch_assoc(mysqli_query($conn,'SELECT * FROM assets WHERE id='.$id.' AND company_id='.$companyId));if(!$old)throw new RuntimeException('Asset not found.');mysqli_query($conn,"UPDATE asset_allocations SET status='returned',returned_on=COALESCE(returned_on,CURDATE()),returned_by=$actor WHERE asset_id=$id AND company_id=$companyId AND status='allocated'");mysqli_query($conn,"UPDATE assets SET lifecycle_status='retired' WHERE id=$id AND company_id=$companyId");mysqli_query($conn,"INSERT INTO asset_history(company_id,asset_id,event_type,details,performed_by) VALUES($companyId,$id,'retired','Asset retired',$actor)");oecrm_audit($conn,'assets','delete','asset',$id,'Asset retired',$old,['status'=>'retired']);}
-else throw new RuntimeException('Invalid action.');$_SESSION['asset_flash']='Asset information updated.';header('Location: '.($action==='retire'?'assets.php':'assetEditor.php?id='.$id));exit;}catch(Throwable $e){$_SESSION['asset_error']=$e->getMessage();header('Location: '.($id?'assetEditor.php?id='.$id:'assetEditor.php'));exit;}
+﻿<?php
+require_once __DIR__ . '/dbconnect.php';
+require_once __DIR__ . '/../security.php';
+require_once __DIR__ . '/../foundation.php';
+
+oecrm_require_admin_login();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    exit;
+}
+
+oecrm_require_csrf();
+
+$companyId = oecrm_current_company_id($conn);
+$actor = (int) $_SESSION['adminId'];
+$action = $_POST['action'] ?? '';
+$id = (int) ($_POST['id'] ?? 0);
+
+function oecrm_asset_date_or_null($value, string $label, string $yearMode = 'start'): ?string
+{
+    $value = trim((string) $value);
+
+    if ($value === '') {
+        return null;
+    }
+
+    if (preg_match('/^\d{4}$/', $value)) {
+        return $value . ($yearMode === 'end' ? '-12-31' : '-01-01');
+    }
+
+    if (preg_match('/^\d{4}-\d{2}$/', $value)) {
+        $date = DateTime::createFromFormat('!Y-m-d', $value . '-01');
+
+        if ($date && $date->format('Y-m') === $value) {
+            return $yearMode === 'end' ? $date->format('Y-m-t') : $date->format('Y-m-01');
+        }
+    }
+
+    $date = DateTime::createFromFormat('!Y-m-d', $value);
+
+    if ($date && $date->format('Y-m-d') === $value) {
+        return $value;
+    }
+
+    throw new RuntimeException($label . ' must be a valid date in YYYY-MM-DD format.');
+}
+
+try {
+    if ($action === 'save') {
+        oecrm_require_permission($conn, 'assets', $id ? 'edit' : 'create');
+
+        $code = strtoupper(trim($_POST['asset_code'] ?? ''));
+        $type = $_POST['asset_type'] ?? 'other';
+        $brand = trim($_POST['brand'] ?? '');
+        $model = trim($_POST['model'] ?? '');
+        $serial = trim($_POST['serial_number'] ?? '');
+        $purchase = oecrm_asset_date_or_null($_POST['purchase_date'] ?? '', 'Purchase date', 'start');
+        $cost = (float) ($_POST['purchase_cost'] ?? 0);
+        $warranty = oecrm_asset_date_or_null($_POST['warranty_until'] ?? '', 'Warranty until', 'end');
+        $condition = $_POST['condition_status'] ?? 'good';
+        $status = $_POST['lifecycle_status'] ?? 'available';
+        $notes = trim($_POST['notes'] ?? '');
+
+        if (!$id) {
+            $prefix = 'AST-' . str_pad($companyId, 2, '0', STR_PAD_LEFT) . '-' . date('Ym') . '-';
+            $last = mysqli_fetch_assoc(mysqli_query($conn, "SELECT asset_code FROM assets WHERE company_id=$companyId AND asset_code LIKE '$prefix%' ORDER BY id DESC LIMIT 1"));
+            $sequence = 1;
+
+            if (!empty($last['asset_code']) && preg_match('/(\d+)$/', $last['asset_code'], $match)) {
+                $sequence = (int) $match[1] + 1;
+            }
+
+            $code = $prefix . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        }
+
+        if ($id) {
+            $old = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM assets WHERE id=' . $id . ' AND company_id=' . $companyId));
+            $stmt = mysqli_prepare($conn, 'UPDATE assets SET asset_code=?,asset_type=?,brand=?,model=?,serial_number=?,purchase_date=?,purchase_cost=?,warranty_until=?,condition_status=?,lifecycle_status=?,notes=? WHERE id=? AND company_id=?');
+            mysqli_stmt_bind_param($stmt, 'ssssssdssssii', $code, $type, $brand, $model, $serial, $purchase, $cost, $warranty, $condition, $status, $notes, $id, $companyId);
+        } else {
+            $old = null;
+            $stmt = mysqli_prepare($conn, 'INSERT INTO assets(company_id,asset_code,asset_type,brand,model,serial_number,purchase_date,purchase_cost,warranty_until,condition_status,lifecycle_status,notes,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)');
+            mysqli_stmt_bind_param($stmt, 'isssssssdsssi', $companyId, $code, $type, $brand, $model, $serial, $purchase, $cost, $warranty, $condition, $status, $notes, $actor);
+        }
+
+        mysqli_stmt_execute($stmt);
+
+        if (!$id) {
+            $id = mysqli_insert_id($conn);
+        }
+
+        mysqli_stmt_close($stmt);
+
+        $event = $old ? 'updated' : 'created';
+        mysqli_query($conn, "INSERT INTO asset_history(company_id,asset_id,event_type,details,performed_by) VALUES($companyId,$id,'$event','Asset profile saved',$actor)");
+        oecrm_audit($conn, 'assets', $event, 'asset', $id, 'Asset saved', $old, ['asset_code' => $code, 'status' => $status]);
+    } elseif ($action === 'allocate') {
+        oecrm_require_permission($conn, 'assets', 'allocate');
+
+        $employee = (int) ($_POST['employee_id'] ?? 0);
+        $date = oecrm_asset_date_or_null($_POST['allocated_on'] ?? date('Y-m-d'), 'Allocated on') ?: date('Y-m-d');
+        $asset = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM assets WHERE id=' . $id . ' AND company_id=' . $companyId . ' AND lifecycle_status="available"'));
+        $emp = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT id FROM employeestbl WHERE id=' . $employee . ' AND company_id=' . $companyId . ' AND status=0'));
+
+        if (!$asset || !$emp) {
+            throw new RuntimeException('Asset is unavailable or employee is invalid.');
+        }
+
+        $stmt = mysqli_prepare($conn, 'INSERT INTO asset_allocations(company_id,asset_id,employee_id,allocated_on,issue_condition,allocated_by) VALUES(?,?,?,?,?,?)');
+        mysqli_stmt_bind_param($stmt, 'iiissi', $companyId, $id, $employee, $date, $asset['condition_status'], $actor);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+
+        mysqli_query($conn, 'UPDATE assets SET lifecycle_status="allocated" WHERE id=' . $id);
+        mysqli_query($conn, "INSERT INTO asset_history(company_id,asset_id,event_type,employee_id,details,performed_by) VALUES($companyId,$id,'allocated',$employee,'Asset allocated',$actor)");
+        oecrm_audit($conn, 'assets', 'allocate', 'asset', $id, 'Asset allocated', null, ['employee_id' => $employee]);
+    } elseif ($action === 'return') {
+        oecrm_require_permission($conn, 'assets', 'return');
+
+        $condition = $_POST['return_condition'] ?? 'good';
+        $allocation = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM asset_allocations WHERE asset_id=' . $id . ' AND company_id=' . $companyId . ' AND status="allocated"'));
+
+        if (!$allocation) {
+            throw new RuntimeException('No active allocation found.');
+        }
+
+        mysqli_query($conn, "UPDATE asset_allocations SET status='returned',returned_on=CURDATE(),return_condition='" . mysqli_real_escape_string($conn, $condition) . "',returned_by=$actor WHERE id=" . (int) $allocation['id']);
+        $next = $condition === 'damaged' ? 'repair' : 'available';
+        mysqli_query($conn, "UPDATE assets SET lifecycle_status='$next',condition_status='" . mysqli_real_escape_string($conn, $condition) . "' WHERE id=$id");
+        mysqli_query($conn, "INSERT INTO asset_history(company_id,asset_id,event_type,employee_id,details,performed_by) VALUES($companyId,$id,'returned'," . (int) $allocation['employee_id'] . ",'Asset returned',$actor)");
+        oecrm_audit($conn, 'assets', 'return', 'asset', $id, 'Asset returned', null, ['employee_id' => $allocation['employee_id'], 'condition' => $condition]);
+    } elseif ($action === 'retire') {
+        oecrm_require_permission($conn, 'assets', 'delete');
+
+        $old = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM assets WHERE id=' . $id . ' AND company_id=' . $companyId));
+
+        if (!$old) {
+            throw new RuntimeException('Asset not found.');
+        }
+
+        mysqli_query($conn, "UPDATE asset_allocations SET status='returned',returned_on=COALESCE(returned_on,CURDATE()),returned_by=$actor WHERE asset_id=$id AND company_id=$companyId AND status='allocated'");
+        mysqli_query($conn, "UPDATE assets SET lifecycle_status='retired' WHERE id=$id AND company_id=$companyId");
+        mysqli_query($conn, "INSERT INTO asset_history(company_id,asset_id,event_type,details,performed_by) VALUES($companyId,$id,'retired','Asset retired',$actor)");
+        oecrm_audit($conn, 'assets', 'delete', 'asset', $id, 'Asset retired', $old, ['status' => 'retired']);
+    } else {
+        throw new RuntimeException('Invalid action.');
+    }
+
+    $_SESSION['asset_flash'] = 'Asset information updated.';
+    header('Location: ' . ($action === 'retire' ? 'assets.php' : 'assetEditor.php?id=' . $id));
+    exit;
+} catch (Throwable $e) {
+    $_SESSION['asset_error'] = $e->getMessage();
+    header('Location: ' . ($id ? 'assetEditor.php?id=' . $id : 'assetEditor.php'));
+    exit;
+}

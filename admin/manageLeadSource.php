@@ -6,7 +6,7 @@ include 'header.php';
     <div class="row">
         <div class="col-lg-12">
             <div class="dataTablesbox">
-                <form role="form" method="POST" action="validation.php">
+                <form role="form" method="POST" action="manageLeadSource.php">
                     <?php echo oecrm_csrf_field(); ?>
                     <div class="col-lg-4">
                         <div class="form-group">

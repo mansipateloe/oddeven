@@ -144,12 +144,12 @@
                                         </thead>
                                         <tbody>
                                             <?php
-                                            //  -- where invoiceTbl.status = 1 
+                                            //  -- where invoicetbl.status = 1 
                                                 $i = 1;
                                                 $amounts = 0;
-                                                $invoice_qry = "SELECT invoiceTbl.*, projectsTbl.projectName FROM invoiceTbl left join projectsTbl on projectsTbl.id = invoiceTbl.project_Id 
+                                                $invoice_qry = "SELECT invoicetbl.*, projectsTbl.projectName FROM invoicetbl left join projectsTbl on projectsTbl.id = invoicetbl.project_Id 
                                                    
-                                                    order by invoiceTbl.invoice_id DESC";
+                                                    order by invoicetbl.invoice_id DESC";
                                                 $invoice_result = mysqli_query($conn,$invoice_qry); 
                                                 if($invoice_result->num_rows > 0){
                                                     while($invoice_row = $invoice_result->fetch_assoc()){
