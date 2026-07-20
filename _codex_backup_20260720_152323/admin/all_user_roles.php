@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $active_menu = 'role';
 $active_submenu = 'view_role';
 include 'header.php';
