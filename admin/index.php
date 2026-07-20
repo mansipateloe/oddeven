@@ -5,6 +5,7 @@ if (ob_get_level() === 0) {
 require_once __DIR__ . '/../security.php';
 include 'dbconnect.php';
 require_once __DIR__ . '/../foundation.php';
+
 if (isset($_SESSION['adminId'])) {
     header("Location:dashboard.php");
     exit;
@@ -42,16 +43,16 @@ if (isset($_POST['submit'])) {
         if ($admin && oecrm_password_verify($plainPassword, $admin['password'])) {
             session_regenerate_id(true);
             oecrm_initialize_authenticated_session();
-            $_SESSION['adminId'] = (int)$admin['id'];
+            $_SESSION['adminId'] = (int) $admin['id'];
             $_SESSION['adminName'] = $admin['uname'];
             $_SESSION['is_admin'] = '1';
-            oecrm_maybe_upgrade_password($conn, 'admins', 'id', (int)$admin['id'], 'password', $plainPassword, $admin['password']);
-            oecrm_auth_audit($conn, 'admin', (int)$admin['id'], (int)($admin['company_id'] ?? 0), 'login', 'Admin login successful', null, ['username'=>$uname]);
+            oecrm_maybe_upgrade_password($conn, 'admins', 'id', (int) $admin['id'], 'password', $plainPassword, $admin['password']);
+            oecrm_auth_audit($conn, 'admin', (int) $admin['id'], (int) ($admin['company_id'] ?? 0), 'login', 'Admin login successful', null, ['username' => $uname]);
             header("Location:dashboard.php");
             exit;
         }
 
-        $stmt = mysqli_prepare($conn, "SELECT * FROM employeesTbl WHERE employeeUname = ? AND status = 0 AND is_admin_access = 1 AND access_role > 0 LIMIT 1");
+        $stmt = mysqli_prepare($conn, "SELECT * FROM employeestbl WHERE employeeUname = ? AND status = 0 AND is_admin_access = 1 AND access_role > 0 LIMIT 1");
         mysqli_stmt_bind_param($stmt, 's', $uname);
         mysqli_stmt_execute($stmt);
         $result = mysqli_stmt_get_result($stmt);
@@ -61,25 +62,24 @@ if (isset($_POST['submit'])) {
         if ($user && oecrm_password_verify($plainPassword, $user['employeeUpass'])) {
             session_regenerate_id(true);
             oecrm_initialize_authenticated_session();
-            $_SESSION['adminId'] = (int)$user['id'];
+            $_SESSION['adminId'] = (int) $user['id'];
             $_SESSION['adminName'] = $user['name'];
             $_SESSION['admin_access_role'] = $user['access_role'];
             $_SESSION['is_admin'] = '0';
-            oecrm_maybe_upgrade_password($conn, 'employeesTbl', 'id', (int)$user['id'], 'employeeUpass', $plainPassword, $user['employeeUpass']);
-            oecrm_auth_audit($conn, 'admin', (int)$user['id'], (int)$user['company_id'], 'login', 'Employee admin-access login successful', (int)$user['id'], ['username'=>$uname]);
+            oecrm_maybe_upgrade_password($conn, 'employeestbl', 'id', (int) $user['id'], 'employeeUpass', $plainPassword, $user['employeeUpass']);
+            oecrm_auth_audit($conn, 'admin', (int) $user['id'], (int) $user['company_id'], 'login', 'Employee admin-access login successful', (int) $user['id'], ['username' => $uname]);
             header("Location:dashboard.php");
             exit;
         }
 
-        oecrm_auth_audit($conn, 'system', 0, 0, 'failed_login', 'Admin portal login failed', null, ['username'=>$uname]);
+        oecrm_auth_audit($conn, 'system', 0, 0, 'failed_login', 'Admin portal login failed', null, ['username' => $uname]);
         $loginError = "<div class='form-group'><div class='alert alert-danger alert-dismissable'>
                             <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>x</button>
                             <p class='alert-link'>Invalid login credentials.</p>
                         </div></div>";
     }
 }
-?>
-<!DOCTYPE html>
+?><!DOCTYPE html>
 <html lang="en">
 
 <head>

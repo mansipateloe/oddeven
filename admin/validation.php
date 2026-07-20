@@ -1,4 +1,4 @@
-﻿<?php require_once __DIR__ . '/../security.php';
+<?php require_once __DIR__ . '/../security.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();
 }
@@ -1288,22 +1288,15 @@ if (isset($_POST['addLeaveType'])) {
 if (isset($_POST['addLeadSource'])) {
 
     oecrm_require_csrf();
-<<<<<<< HEAD
     if (
         !oecrm_can($conn, 'clients', 'create')
         && !oecrm_can($conn, 'clients', 'edit')
         && !oecrm_legacy_can($conn, 'add_lead')
         && !oecrm_legacy_can($conn, 'view_lead')
     ) {
-        http_response_code(403);
-        exit('You do not have permission to manage lead sources.');
-=======
-    // Allow users who can view leads via legacy access to add lead sources.
-    if (!oecrm_can($conn,'clients','create') && !oecrm_can($conn,'clients','edit') && check_is_access_new('view_lead')!==1) {
         $_SESSION['lead_source_flash'] = 'You do not have permission to add lead sources.';
         header('Location:manageLeadSource.php');
         exit;
->>>>>>> 16f952b06473752f063dd7dad31e1ed1d31da926
     }
     $name = trim($_POST['name'] ?? '');
     if ($name === '') {
@@ -1354,22 +1347,15 @@ if (isset($_POST['addLeadSource'])) {
 
 if (isset($_POST['addFollowupType'])) {
     oecrm_require_csrf();
-<<<<<<< HEAD
     if (
         !oecrm_can($conn, 'clients', 'create')
         && !oecrm_can($conn, 'clients', 'edit')
         && !oecrm_legacy_can($conn, 'add_lead')
         && !oecrm_legacy_can($conn, 'view_lead')
     ) {
-        http_response_code(403);
-        exit('You do not have permission to manage follow-up types.');
-=======
-    // Allow users who can view leads via legacy access to add follow-up types.
-    if (!oecrm_can($conn,'clients','create') && !oecrm_can($conn,'clients','edit') && check_is_access_new('view_lead')!==1) {
         $_SESSION['followup_type_flash'] = 'You do not have permission to add follow-up types.';
         header('Location:manageFollowupType.php');
         exit;
->>>>>>> 16f952b06473752f063dd7dad31e1ed1d31da926
     }
     $name = trim($_POST['name'] ?? '');
     if ($name === '') {
