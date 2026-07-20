@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 ob_start();
 $active_menu = 'lead';
 require_once __DIR__ . '/../security.php';

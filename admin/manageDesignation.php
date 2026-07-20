@@ -1,7 +1,20 @@
 <?php
 $active_menu = 'employees';
 include 'header.php';
-oecrm_require_permission($conn, 'employees', 'view');
+
+function oecrm_designation_can_manage($conn, $action = 'view')
+{
+    return oecrm_is_super_admin()
+        || oecrm_can($conn, 'employees', $action)
+        || oecrm_legacy_can($conn, 'employee')
+        || oecrm_legacy_can($conn, 'settings');
+}
+
+if (!oecrm_designation_can_manage($conn, 'view')) {
+    $_SESSION['designation_flash'] = 'You do not have permission to view designations.';
+    header('Location:dashboard.php');
+    exit;
+}
 
 $designations = mysqli_query($conn, 'SELECT id,designation FROM designation ORDER BY designation');
 $flash = $_SESSION['designation_flash'] ?? '';
@@ -16,17 +29,21 @@ unset($_SESSION['designation_flash']);
     <div class="panel panel-default">
         <div class="panel-heading">Manage Designation</div>
         <div class="panel-body">
-            <form method="post" action="validation.php" class="exit-init-form">
-                <?php echo oecrm_csrf_field(); ?>
-                <div class="form-group">
-                    <label for="designation">Designation</label>
-                    <input id="designation" class="form-control" type="text" name="designation" placeholder="Enter designation" required>
-                </div>
-                <button class="btn btn-primary" type="submit" name="addDesignation" value="1">
-                    <i class="fa fa-plus"></i> Add Designation
-                </button>
-                <a class="btn btn-default" href="manageDesignation.php">Cancel</a>
-            </form>
+            <?php if (oecrm_designation_can_manage($conn, 'create')): ?>
+                <form method="post" action="manageDesignation.php" class="exit-init-form" novalidate>
+                    <?php echo oecrm_csrf_field(); ?>
+                    <div class="form-group">
+                        <label for="designation">Designation <span class="text-danger">*</span></label>
+                        <input id="designation" class="form-control" type="text" name="designation" placeholder="Enter designation" required maxlength="255">
+                    </div>
+                    <button class="btn btn-primary" type="submit" name="addDesignation" value="1">
+                        <i class="fa fa-plus"></i> Add Designation
+                    </button>
+                    <a class="btn btn-default" href="manageDesignation.php">Cancel</a>
+                </form>
+            <?php else: ?>
+                <div class="alert alert-warning">You do not have permission to add designations.</div>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -42,19 +59,28 @@ unset($_SESSION['designation_flash']);
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($designation = mysqli_fetch_assoc($designations)): ?>
-                        <tr>
-                            <td><?php echo (int) $designation['id']; ?></td>
-                            <td><?php echo oecrm_h($designation['designation']); ?></td>
-                            <td>
-                                <form method="post" action="deleteDesignation.php" style="display:inline;">
-                                    <?php echo oecrm_csrf_field(); ?>
-                                    <input type="hidden" name="deleteDesignation" value="<?php echo (int) $designation['id']; ?>">
-                                    <button type="submit" class="icon-action" data-confirm="Delete this designation?" title="Delete"><i class="fa fa-trash"></i></button>
-                                </form>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
+                    <?php if ($designations && mysqli_num_rows($designations) > 0): ?>
+                        <?php $counter = 0; ?>
+                        <?php while ($designation = mysqli_fetch_assoc($designations)): ?>
+                            <tr>
+                                <td><?php echo ++$counter; ?></td>
+                                <td><?php echo oecrm_h($designation['designation']); ?></td>
+                                <td>
+                                    <?php if (oecrm_designation_can_manage($conn, 'delete') || oecrm_designation_can_manage($conn, 'edit')): ?>
+                                        <form method="post" action="deleteDesignation.php" style="display:inline;">
+                                            <?php echo oecrm_csrf_field(); ?>
+                                            <input type="hidden" name="deleteDesignation" value="<?php echo (int) $designation['id']; ?>">
+                                            <button type="submit" class="icon-action" data-confirm="Delete this designation?" title="Delete"><i class="fa fa-trash"></i></button>
+                                        </form>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr><td colspan="3" class="text-center">No designations found.</td></tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

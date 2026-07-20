@@ -805,7 +805,7 @@ if (isset($_POST['addDeposit'])) {
 
 
 
-        $editAccount = "update invoicetbl set status='2' where invoice_id=" . $invoice_id;
+        $editAccount = "update invoiceTbl set status='2' where invoice_id=" . $invoice_id;
 
         mysqli_query($conn, $editAccount);
 

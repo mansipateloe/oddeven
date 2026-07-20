@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 ob_start();
 $active_menu = 'role';
 $active_submenu = 'add_role';
