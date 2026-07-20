@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = 'projects';
 include 'header.php';
 require_once __DIR__ . '/../foundation.php';
@@ -32,12 +32,12 @@ unset($_SESSION['project_flash']);
                     }
                 ?>
                     <tr>
-                        <td><strong><?php echo oecrm_h($project['projectName']); ?></strong></td>
+                        <td><strong><?php echo oecrm_h($project['projectName']); ?></strong><small>Budget: <?php echo number_format((float) $project['amount'], 2); ?></small></td>
                         <td><?php echo oecrm_h($project['client_name'] ?: $project['customerName']); ?></td>
                         <td><span class="priority-<?php echo oecrm_h($project['priority']); ?>"><?php echo ucfirst($project['priority']); ?></span></td>
                         <td><?php echo (int) $project['done_tasks']; ?> / <?php echo (int) $project['task_count']; ?></td>
                         <td><div class="project-progress"><span style="width:<?php echo $progress; ?>%"></span></div><small><?php echo $progress; ?>%</small></td>
-                        <td><?php echo !empty($project['enddate']) && $project['enddate'] !== '0000-00-00' ? date('d M Y', strtotime($project['enddate'])) : '-'; ?></td>
+                        <td><?php echo date('d M Y', strtotime($project['enddate'])); ?></td>
                         <td><span class="client-status <?php echo oecrm_h($project['status']); ?>"><?php echo ucfirst($project['status']); ?></span></td>
                         <td>
                             <a class="btn btn-xs btn-primary" title="View" href="projectBoard.php?id=<?php echo (int) $project['id']; ?>"><i class="fa fa-eye"></i></a>
@@ -58,4 +58,3 @@ unset($_SESSION['project_flash']);
     </div>
 </div>
 <?php include 'footer.php'; ?>
-

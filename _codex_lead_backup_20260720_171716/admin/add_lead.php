@@ -1,6 +1,5 @@
-﻿<?php include 'header.php'; $flash = $_SESSION['lead_flash'] ?? ''; unset($_SESSION['lead_flash']); ?>
+<?php include 'header.php'; ?>
 <div id="page-wrapper" class="compact-admin-page">
-    <?php if ($flash): ?><div class="alert alert-info"><?php echo oecrm_h($flash); ?></div><?php endif; ?>
     <div class="">
         <div class="panel panel-default lead-compact-panel">
             <div class="panel-heading panel-box lead-compact-heading">
@@ -15,13 +14,13 @@
                     <?php echo oecrm_csrf_field(); ?>
                     <div class="lead-compact-grid">
                         <div class="form-group">
-                            <label for="leadDate">Lead Date</label>
-                            <input type="date" class="form-control" placeholder="dd-mm-yyyy" id="leadDate" name="leadDate" value="<?php echo $today_date; ?>">
+                            <label for="leadDate">Lead Date *</label>
+                            <input type="date" class="form-control" placeholder="dd-mm-yyyy" id="leadDate" name="leadDate" value="<?php echo $today_date; ?>" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="executiveName">Client Name</label>
-                            <input type="text" class="form-control" placeholder="Client Name" id="executiveName" name="executiveName">
+                            <label for="executiveName">Client Name *</label>
+                            <input type="text" class="form-control" placeholder="Client Name" id="executiveName" name="executiveName" required>
                         </div>
 
                         <div class="form-group">
@@ -30,13 +29,13 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="company">Company Name</label>
-                            <input type="text" name="company" id="company" class="form-control" placeholder="Company Name" maxlength="100">
+                            <label for="company">Company Name *</label>
+                            <input type="text" name="company" id="company" class="form-control" placeholder="Company Name" maxlength="100" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="cperson">Contact Person</label>
-                            <input type="text" name="cperson" id="cperson" class="form-control" placeholder="Contact Person" maxlength="100">
+                            <label for="cperson">Contact Person *</label>
+                            <input type="text" name="cperson" id="cperson" class="form-control" placeholder="Contact Person" maxlength="100" required>
                             <span class="help" id="msg1"></span>
                         </div>
 
@@ -69,9 +68,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="lead_source">Lead Source</label>
+                            <label for="lead_source">Lead Source *</label>
                             <select class="form-control" id="lead_source" name="lead_source">
-                                <option value="" selected>Select Lead Source</option>
+                                <option value="" disabled selected>Select Lead Source</option>
                                 <?php
                                     $sel_lead_sources = mysqli_query($conn, "SELECT * from lead_source_tbl");
                                     while ($fet_sources = mysqli_fetch_assoc($sel_lead_sources)) {
@@ -82,11 +81,11 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="leadType">Lead Priority</label>
-                            <select class="form-control" id="leadType" name="leadType">
-                                <option value="medium" selected>Medium</option>
+                            <label for="leadType">Lead Priority *</label>
+                            <select class="form-control" id="leadType" name="leadType" required>
+                                <option value="" selected disabled>Select Lead priority</option>
                                 <option value="low">Low</option>
-                                
+                                <option value="medium">Medium</option>
                                 <option value="high">High</option>
                             </select>
                         </div>
@@ -118,12 +117,12 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="status">Status</label>
-                            <select class="form-control" id="status" name="status">
-                                <option value="" selected>Select Status</option>
-                                <option value="closed">Closed</option>
+                            <label for="status">Status *</label>
+                            <select class="form-control" id="status" name="status" required>
+                                <option value="" selected disabled>Select Status</option>
+                                <option value="close">Close</option>
                                 <option value="inprogress">Inprogress</option>
-                                <option value="completed">Completed</option>
+                                <option value="complete">Complete</option>
                                 <option value="pending">Pending</option>
                             </select>
                         </div>
@@ -149,4 +148,3 @@
     </div>
 </div>
 <?php include 'footer.php'; ?>
-

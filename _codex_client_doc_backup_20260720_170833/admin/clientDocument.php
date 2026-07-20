@@ -8,7 +8,7 @@ oecrm_require_permission($conn, 'client_documents', 'download');
 
 $id = oecrm_int_param($_GET, 'id');
 $companyId = oecrm_current_company_id($conn);
-$downloadRequested = !empty($_GET['download']);
+$inlineRequested = !empty($_GET['inline']) || (($_GET['mode'] ?? '') === 'view');
 
 $stmt = mysqli_prepare(
     $conn,
@@ -47,15 +47,15 @@ if (function_exists('finfo_open')) {
 }
 
 $filename = str_replace(['"', "\r", "\n"], '', (string) ($document['original_name'] ?: $document['stored_name']));
-$disposition = $downloadRequested ? 'attachment' : 'inline';
+$disposition = $inlineRequested || preg_match('/^image\//', $mime) ? 'inline' : 'attachment';
 
 oecrm_audit(
     $conn,
     'client_documents',
-    $downloadRequested ? 'download' : 'view',
+    $inlineRequested ? 'view' : 'download',
     'client_document',
     $id,
-    $downloadRequested ? 'Client document downloaded' : 'Client document opened',
+    $inlineRequested ? 'Client document opened' : 'Client document downloaded',
     null,
     ['client_id' => $document['client_id']]
 );

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = 'projects';
 include 'header.php';
 require_once __DIR__ . '/../foundation.php';
@@ -6,7 +6,7 @@ require_once __DIR__ . '/../foundation.php';
 oecrm_require_permission($conn, 'projects', 'view');
 $companyId = oecrm_current_company_id($conn);
 $projects = mysqli_query($conn, 'SELECT id,projectName FROM projectstbl WHERE company_id=' . (int) $companyId . ' ORDER BY projectName');
-$tasks = mysqli_query($conn, 'SELECT t.*,p.projectName,(SELECT COUNT(*) FROM task_attachments a WHERE a.task_id=t.id) attachment_count,GROUP_CONCAT(DISTINCT e.name ORDER BY ta.is_primary DESC,e.name SEPARATOR ", ") employee_name FROM tasktbl t LEFT JOIN projectstbl p ON p.id=CAST(t.projectId AS UNSIGNED) LEFT JOIN task_assignees ta ON ta.task_id=t.id LEFT JOIN employeestbl e ON e.id=ta.employee_id WHERE t.company_id=' . (int) $companyId . ' GROUP BY t.id ORDER BY t.id DESC');
+$tasks = mysqli_query($conn, 'SELECT t.*,p.projectName,GROUP_CONCAT(DISTINCT e.name ORDER BY ta.is_primary DESC,e.name SEPARATOR ", ") employee_name FROM tasktbl t LEFT JOIN projectstbl p ON p.id=CAST(t.projectId AS UNSIGNED) LEFT JOIN task_assignees ta ON ta.task_id=t.id LEFT JOIN employeestbl e ON e.id=ta.employee_id WHERE t.company_id=' . (int) $companyId . ' GROUP BY t.id ORDER BY t.id DESC');
 $flash = $_SESSION['project_flash'] ?? '';
 unset($_SESSION['project_flash']);
 ?>
@@ -25,9 +25,9 @@ unset($_SESSION['project_flash']);
         </div>
         <div class="panel-body">
             <table class="table foundation-table" id="dataTables-example">
-                <thead><tr><th>Project</th><th>Task</th><th>Owner</th><th>Priority</th><th>Due</th><th>Status</th><th>Attachment</th><th>Actions</th></tr></thead>
+                <thead><tr><th>Project</th><th>Task</th><th>Owner</th><th>Priority</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
-                <?php if (mysqli_num_rows($tasks) === 0): ?><tr><td colspan="8" class="empty-cell">No tasks created yet.</td></tr><?php endif; ?>
+                <?php if (mysqli_num_rows($tasks) === 0): ?><tr><td colspan="7" class="empty-cell">No tasks created yet.</td></tr><?php endif; ?>
                 <?php while ($task = mysqli_fetch_assoc($tasks)): ?>
                     <tr>
                         <td><?php echo oecrm_h($task['projectName'] ?: '-'); ?></td>
@@ -36,7 +36,6 @@ unset($_SESSION['project_flash']);
                         <td><?php echo ucfirst($task['priority']); ?></td>
                         <td><?php echo oecrm_h($task['expectedDate']); ?></td>
                         <td><?php echo oecrm_h(ucwords(str_replace('_', ' ', $task['status']))); ?></td>
-                        <td><?php if ((int)($task['attachment_count'] ?? 0) > 0): ?><a class="btn btn-xs btn-default" href="projectBoard.php?id=<?php echo (int) $task['projectId']; ?>" title="View attachments"><i class="fa fa-paperclip"></i> <?php echo (int) $task['attachment_count']; ?></a><?php else: ?>-<?php endif; ?></td>
                         <td>
                             <a class="btn btn-xs btn-primary" title="View" href="projectBoard.php?id=<?php echo (int) $task['projectId']; ?>"><i class="fa fa-eye"></i></a>
                             <a class="btn btn-xs btn-warning" title="Edit" href="taskEditor.php?id=<?php echo (int) $task['id']; ?>"><i class="fa fa-pencil"></i></a>
@@ -65,4 +64,3 @@ function goAddTask() {
 }
 </script>
 <?php include 'footer.php'; ?>
-

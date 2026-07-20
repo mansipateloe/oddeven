@@ -1,4 +1,4 @@
-﻿<?php require_once __DIR__ . '/../security.php';
+<?php require_once __DIR__ . '/../security.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();
 }
@@ -1446,19 +1446,16 @@ if (isset($_POST['leadSave'])) {
     $nextFollowupTime = !empty($_POST['nextFollowupTime']) ? $_POST['nextFollowupTime'] : null;
 
     $allowedStatuses = ['pending', 'inprogress', 'completed', 'closed'];
-    if ($status !== '' && !in_array($status, $allowedStatuses, true)) {
-        $_SESSION['lead_flash'] = 'Please select a valid status.';
+    if ($company === '' || $cperson === '' || !in_array($status, $allowedStatuses, true)) {
+        $_SESSION['lead_flash'] = 'Company Name, Contact Person and Status are required.';
         header('Location:add_lead.php');
         exit;
-    }
-    if ($status === '') {
-        $status = 'pending';
     }
     if ($leadDate === '' || !strtotime($leadDate)) {
         $leadDate = date('Y-m-d');
     }
     if ($executiveName === '') {
-        $executiveName = $company ?: ($cperson ?: 'Lead');
+        $executiveName = $company ?: $cperson;
     }
     if ($mobileno1 !== '' && strlen($mobileno1) !== 10) {
         $_SESSION['lead_flash'] = 'Mobile No1 must contain exactly 10 digits when entered.';
@@ -1717,7 +1714,6 @@ if (isset($_POST['roleAccessSave'])) {
     exit;
 
 }
-
 
 
 

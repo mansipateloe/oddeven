@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/dbconnect.php';
 require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../foundation.php';
@@ -28,16 +28,11 @@ function oecrm_sync_task_assignee($conn, $taskId, $projectId, $employeeId, $acto
     return oecrm_assign_task_qa_reviewers($conn, $taskId, $actorId);
 }
 
-function oecrm_ensure_task_attachment_table($conn)
-{
-    mysqli_query($conn, 'CREATE TABLE IF NOT EXISTS task_attachments (id BIGINT AUTO_INCREMENT PRIMARY KEY, task_id INT NOT NULL, stored_name VARCHAR(255) NOT NULL, original_name VARCHAR(255) NOT NULL, mime_type VARCHAR(100) NULL, file_size BIGINT NOT NULL DEFAULT 0, uploaded_by INT NOT NULL DEFAULT 0, created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, INDEX idx_task_attachments_task (task_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-}
 function oecrm_store_task_attachment($conn, $taskId, $actorId)
 {
     if (empty($_FILES['task_attachment']) || ($_FILES['task_attachment']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
         return;
     }
-    oecrm_ensure_task_attachment_table($conn);
     if ($_FILES['task_attachment']['error'] !== UPLOAD_ERR_OK) {
         throw new RuntimeException('Task attachment upload failed.');
     }
@@ -59,17 +54,12 @@ function oecrm_store_task_attachment($conn, $taskId, $actorId)
     if (!move_uploaded_file($_FILES['task_attachment']['tmp_name'], $target)) {
         throw new RuntimeException('Task attachment could not be saved.');
     }
-    $mime = function_exists('mime_content_type') ? (mime_content_type($target) ?: 'application/octet-stream') : ($_FILES['task_attachment']['type'] ?? 'application/octet-stream');
+    $mime = mime_content_type($target) ?: 'application/octet-stream';
     $size = (int) filesize($target);
     $stmt = mysqli_prepare($conn, 'INSERT INTO task_attachments(task_id,stored_name,original_name,mime_type,file_size,uploaded_by) VALUES(?,?,?,?,?,?)');
     mysqli_stmt_bind_param($stmt, 'isssii', $taskId, $stored, $original, $mime, $size, $actorId);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
-
-    $legacyStmt = mysqli_prepare($conn, 'UPDATE tasktbl SET files=?,filePath=? WHERE id=?');
-    mysqli_stmt_bind_param($legacyStmt, 'ssi', $original, $stored, $taskId);
-    mysqli_stmt_execute($legacyStmt);
-    mysqli_stmt_close($legacyStmt);
 }
 
 try {
@@ -139,4 +129,3 @@ try {
     header('Location: taskEditor.php' . ($redirectTask ? '?id=' . $redirectTask : '?project_id=' . $redirectProject));
     exit;
 }
-

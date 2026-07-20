@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/dbconnect.php';
 require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../foundation.php';
@@ -19,19 +19,17 @@ function oecrm_project_payload($conn, $companyId)
     $clientId = (int) ($_POST['client_id'] ?? 0);
     $priority = $_POST['priority'] ?? 'medium';
     $status = $_POST['status'] ?? 'pending';
-    $start = trim((string) ($_POST['start_date'] ?? ''));
-    $end = trim((string) ($_POST['end_date'] ?? ''));
-    $end = $end !== '' ? date('Y-m-d', strtotime($end)) : null;
+    $start = $_POST['start_date'] ?? '';
+    $end = $_POST['end_date'] ?? '';
     $budget = (float) ($_POST['budget'] ?? 0);
     $hours = (float) ($_POST['budget_hours'] ?? 0);
     $description = trim($_POST['description'] ?? '');
     $team = array_values(array_unique(array_filter(array_map('intval', $_POST['team'] ?? []))));
 
-    if ($name === '' || !$clientId || !strtotime($start)) {
-        throw new RuntimeException('Project name, client and start date are required.');
+    if ($name === '' || !$clientId || !strtotime($start) || !strtotime($end)) {
+        throw new RuntimeException('Project name, client and dates are required.');
     }
-    $start = date('Y-m-d', strtotime($start));
-    if ($end !== null && strtotime($end) < strtotime($start)) {
+    if (strtotime($end) < strtotime($start)) {
         throw new RuntimeException('Deadline date cannot be earlier than the start date.');
     }
 
@@ -108,4 +106,3 @@ try {
     header('Location: projectEditor.php' . ($id ? '?id=' . $id : ''));
     exit;
 }
-
