@@ -1,4 +1,4 @@
-﻿<?php include 'header.php'; $flash = $_SESSION['lead_flash'] ?? ''; unset($_SESSION['lead_flash']); ?>
+<?php include 'header.php'; $flash = $_SESSION['lead_flash'] ?? ''; unset($_SESSION['lead_flash']); ?>
 <div id="page-wrapper" class="compact-admin-page">
     <?php if ($flash): ?><div class="alert alert-info"><?php echo oecrm_h($flash); ?></div><?php endif; ?>
     <div class="">
@@ -30,13 +30,13 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="company">Company Name</label>
-                            <input type="text" name="company" id="company" class="form-control" placeholder="Company Name" maxlength="100">
+                            <label for="company">Company Name *</label>
+                            <input type="text" name="company" id="company" class="form-control" placeholder="Company Name" maxlength="100" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="cperson">Contact Person</label>
-                            <input type="text" name="cperson" id="cperson" class="form-control" placeholder="Contact Person" maxlength="100">
+                            <label for="cperson">Contact Person *</label>
+                            <input type="text" name="cperson" id="cperson" class="form-control" placeholder="Contact Person" maxlength="100" required>
                             <span class="help" id="msg1"></span>
                         </div>
 
@@ -118,9 +118,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="status">Status</label>
-                            <select class="form-control" id="status" name="status">
-                                <option value="" selected>Select Status</option>
+                            <label for="status">Status *</label>
+                            <select class="form-control" id="status" name="status" required>
+                                <option value="" selected disabled>Select Status</option>
                                 <option value="closed">Closed</option>
                                 <option value="inprogress">Inprogress</option>
                                 <option value="completed">Completed</option>
@@ -149,4 +149,3 @@
     </div>
 </div>
 <?php include 'footer.php'; ?>
-

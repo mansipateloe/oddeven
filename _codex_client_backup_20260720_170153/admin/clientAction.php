@@ -158,7 +158,7 @@ try {
             throw new RuntimeException('This phone number is already used for another client in this company.');
         }
 
-        if ($tax_id !== '' && !oecrm_validate_gst(strtoupper($tax_id))) {
+        if (!oecrm_validate_gst(strtoupper($tax_id))) {
             throw new RuntimeException('Please enter a valid 15-character GST / Tax ID.');
         }
 

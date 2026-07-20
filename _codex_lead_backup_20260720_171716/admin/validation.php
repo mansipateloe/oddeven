@@ -1,4 +1,4 @@
-﻿<?php require_once __DIR__ . '/../security.php';
+<?php require_once __DIR__ . '/../security.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();
 }
@@ -1422,97 +1422,26 @@ if (isset($_POST['LeaveSave'])) {
 
 
 if (isset($_POST['leadSave'])) {
-    oecrm_require_permission($conn, 'clients', 'create');
-    $companyId = oecrm_current_company_id($conn);
-    $actor = (int) $_SESSION['adminId'];
-
-    $leadDate = trim((string) ($_POST['leadDate'] ?? ''));
-    $executiveName = trim((string) ($_POST['executiveName'] ?? ''));
-    $company = trim((string) ($_POST['company'] ?? ''));
-    $cperson = trim((string) ($_POST['cperson'] ?? ''));
-    $mobileno1 = substr(preg_replace('/\D+/', '', (string) ($_POST['mobileno1'] ?? '')), 0, 10);
-    $mobileno2 = substr(preg_replace('/\D+/', '', (string) ($_POST['mobileno2'] ?? '')), 0, 10);
-    $emailid = trim((string) ($_POST['emailid'] ?? ''));
-    $emailid2 = trim((string) ($_POST['emailid2'] ?? ''));
-    $city = trim((string) ($_POST['city'] ?? ''));
-    $address = trim((string) ($_POST['address'] ?? ''));
-    $leadType = $_POST['leadType'] ?? 'medium';
-    $nick_name = trim((string) ($_POST['nick_name'] ?? ''));
-    $status = trim((string) ($_POST['status'] ?? ''));
-    $leadSource = (int) ($_POST['lead_source'] ?? 0);
-    $followupType = $_POST['followupType'] ?? 'Call';
-    $remarks = trim((string) ($_POST['remarks'] ?? ''));
-    $nextFollowupDate = !empty($_POST['nextFollowupDate']) ? $_POST['nextFollowupDate'] : null;
-    $nextFollowupTime = !empty($_POST['nextFollowupTime']) ? $_POST['nextFollowupTime'] : null;
-
-    $allowedStatuses = ['pending', 'inprogress', 'completed', 'closed'];
-    if ($status !== '' && !in_array($status, $allowedStatuses, true)) {
-        $_SESSION['lead_flash'] = 'Please select a valid status.';
-        header('Location:add_lead.php');
-        exit;
-    }
-    if ($status === '') {
-        $status = 'pending';
-    }
-    if ($leadDate === '' || !strtotime($leadDate)) {
-        $leadDate = date('Y-m-d');
-    }
-    if ($executiveName === '') {
-        $executiveName = $company ?: ($cperson ?: 'Lead');
-    }
-    if ($mobileno1 !== '' && strlen($mobileno1) !== 10) {
-        $_SESSION['lead_flash'] = 'Mobile No1 must contain exactly 10 digits when entered.';
-        header('Location:add_lead.php');
-        exit;
-    }
-    if ($mobileno2 !== '' && strlen($mobileno2) !== 10) {
-        $_SESSION['lead_flash'] = 'Mobile No2 must contain exactly 10 digits when entered.';
-        header('Location:add_lead.php');
-        exit;
-    }
-    if ($emailid !== '' && !filter_var($emailid, FILTER_VALIDATE_EMAIL)) {
-        $_SESSION['lead_flash'] = 'Please enter a valid company email address.';
-        header('Location:add_lead.php');
-        exit;
-    }
-    if ($emailid2 !== '' && !filter_var($emailid2, FILTER_VALIDATE_EMAIL)) {
-        $_SESSION['lead_flash'] = 'Please enter a valid personal email address.';
-        header('Location:add_lead.php');
-        exit;
-    }
-    if ($nextFollowupDate && $nextFollowupDate < date('Y-m-d')) {
-        $_SESSION['lead_flash'] = 'Next follow-up date cannot be in the past.';
-        header('Location:add_lead.php');
-        exit;
-    }
-
+    oecrm_require_permission($conn,'clients','create');
+    $companyId=oecrm_current_company_id($conn);$actor=(int)$_SESSION['adminId'];
+    $leadDate=$_POST['leadDate']??'';$executiveName=trim($_POST['executiveName']??'');$company=trim($_POST['company']??'');$cperson=trim($_POST['cperson']??'');$mobileno1=trim($_POST['mobileno1']??'');$mobileno2=trim($_POST['mobileno2']??'');$emailid=trim($_POST['emailid']??'');$emailid2=trim($_POST['emailid2']??'');$city=trim($_POST['city']??'');$address=trim($_POST['address']??'');$leadType=$_POST['leadType']??'medium';$nick_name=trim($_POST['nick_name']??'');$status=$_POST['status']??'pending';$leadSource=(int)($_POST['lead_source']??0);$followupType=$_POST['followupType']??'Call';$remarks=trim($_POST['remarks']??'');$nextFollowupDate=$_POST['nextFollowupDate']?:null;$nextFollowupTime=$_POST['nextFollowupTime']?:null;
+    $mobileno1 = substr(preg_replace('/\D+/', '', $mobileno1), 0, 10);
+    $mobileno2 = substr(preg_replace('/\D+/', '', $mobileno2), 0, 10);
+    if ($executiveName === '' || $company === '' || $cperson === '' || $leadSource <= 0 || !strtotime($leadDate)) { $_SESSION['lead_flash'] = 'Lead date, client name, company, contact person and lead source are required.'; header('Location:add_lead.php'); exit; }
+    if (strlen($mobileno1) !== 10 || strlen($mobileno2) !== 10) { $_SESSION['lead_flash'] = 'Both mobile numbers must contain exactly 10 digits.'; header('Location:add_lead.php'); exit; }
     mysqli_begin_transaction($conn);
-    try {
-        $stmt = mysqli_prepare($conn, 'INSERT INTO leads(company_id,lead_date,executive_name,company_name,contact_person,mobile_no1,mobile_no2,email,personal_email,city,address,assign_to,is_active,created_at,created_by,lead_source,nick_name,status) VALUES(?,?,?,?,?,?,?,?,?,?,?,NULL,1,NOW(),?,?,?,?)');
-        mysqli_stmt_bind_param($stmt, 'issssssssssiiss', $companyId, $leadDate, $executiveName, $company, $cperson, $mobileno1, $mobileno2, $emailid, $emailid2, $city, $address, $actor, $leadSource, $nick_name, $status);
-        mysqli_stmt_execute($stmt);
-        $id = mysqli_insert_id($conn);
-        mysqli_stmt_close($stmt);
+    try{
+        $stmt=mysqli_prepare($conn,'INSERT INTO leads(company_id,lead_date,executive_name,company_name,contact_person,mobile_no1,mobile_no2,email,personal_email,city,address,assign_to,is_active,created_at,created_by,lead_source,nick_name,status) VALUES(?,?,?,?,?,?,?,?,?,?,?,NULL,1,NOW(),?,?,?,?)');
+        mysqli_stmt_bind_param($stmt,'issssssssssiiss',$companyId,$leadDate,$executiveName,$company,$cperson,$mobileno1,$mobileno2,$emailid,$emailid2,$city,$address,$actor,$leadSource,$nick_name,$status);
+        mysqli_stmt_execute($stmt);$id=mysqli_insert_id($conn);mysqli_stmt_close($stmt);
+        if($remarks!==''){$stmt=mysqli_prepare($conn,'INSERT INTO lead_followup(lead_id,lead_type,followup_type,remarks,next_followup_date,next_followup_time,created_at,created_by,status) VALUES(?,?,?,?,?,?,NOW(),?,"pending")');mysqli_stmt_bind_param($stmt,'isssssi',$id,$leadType,$followupType,$remarks,$nextFollowupDate,$nextFollowupTime,$actor);mysqli_stmt_execute($stmt);mysqli_stmt_close($stmt);}
+        mysqli_commit($conn);oecrm_audit($conn,'clients','create','lead',$id,'Lead created',null,['company_name'=>$company,'status'=>$status]);$_SESSION['lead_flash']='Lead created successfully.';
+    }catch(Throwable $exception){mysqli_rollback($conn);$_SESSION['lead_flash']=$exception->getMessage();}
+    header('Location:leads.php');exit;
 
-        if ($remarks !== '') {
-            $stmt = mysqli_prepare($conn, 'INSERT INTO lead_followup(lead_id,lead_type,followup_type,remarks,next_followup_date,next_followup_time,created_at,created_by,status) VALUES(?,?,?,?,?,?,NOW(),?,"pending")');
-            mysqli_stmt_bind_param($stmt, 'isssssi', $id, $leadType, $followupType, $remarks, $nextFollowupDate, $nextFollowupTime, $actor);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
-        }
-
-        mysqli_commit($conn);
-        oecrm_audit($conn, 'clients', 'create', 'lead', $id, 'Lead created', null, ['company_name' => $company, 'status' => $status]);
-        $_SESSION['lead_flash'] = 'Lead created successfully.';
-    } catch (Throwable $exception) {
-        mysqli_rollback($conn);
-        $_SESSION['lead_flash'] = $exception->getMessage();
-        header('Location:add_lead.php');
-        exit;
-    }
-    header('Location:leads.php');
-    exit;
 }
+
+
 
 if (isset($_POST['saveLeadFollowup'])) {
     oecrm_require_permission($conn,'client_communications','create');
@@ -1717,7 +1646,6 @@ if (isset($_POST['roleAccessSave'])) {
     exit;
 
 }
-
 
 
 

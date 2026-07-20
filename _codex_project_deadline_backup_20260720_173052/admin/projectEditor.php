@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = 'projects';
 include 'header.php';
 require_once __DIR__ . '/../foundation.php';
@@ -57,7 +57,7 @@ unset($_SESSION['project_error']);
                 <div class="form-group"><label>Status</label><select class="form-control" name="status"><?php foreach (['pending', 'inprogress', 'completed', 'cancel'] as $value): ?><option value="<?php echo $value; ?>" <?php echo ($project['status'] ?? 'pending') === $value ? 'selected' : ''; ?>><?php echo ucwords(str_replace('_', ' ', $value)); ?></option><?php endforeach; ?></select></div>
                 <div class="form-group"><label>Priority</label><select class="form-control" name="priority"><?php foreach (['low', 'medium', 'high', 'critical'] as $value): ?><option value="<?php echo $value; ?>" <?php echo ($project['priority'] ?? 'medium') === $value ? 'selected' : ''; ?>><?php echo ucfirst($value); ?></option><?php endforeach; ?></select></div>
                 <div class="form-group"><label>Start Date</label><input class="form-control" type="date" name="start_date" value="<?php echo oecrm_h($project['startdate'] ?? date('Y-m-d')); ?>" required></div>
-                <div class="form-group"><label>Deadline</label><input class="form-control" type="date" name="end_date" value="<?php echo oecrm_h(($project['enddate'] ?? '') === '0000-00-00' ? '' : ($project['enddate'] ?? '')); ?>"><small class="text-muted">Optional</small></div>
+                <div class="form-group"><label>Deadline</label><input class="form-control" type="date" name="end_date" value="<?php echo oecrm_h($project['enddate'] ?? ''); ?>" required></div>
                 <div class="form-group"><label>Budget Amount</label><input class="form-control" type="number" min="0" step=".01" name="budget" value="<?php echo oecrm_h($project['amount'] ?? ''); ?>"></div>
                 <div class="form-group"><label>Budget Hours</label><input class="form-control" type="number" min="0" step=".25" name="budget_hours" value="<?php echo oecrm_h($project['budget_hours'] ?? ''); ?>"></div>
                 <div class="form-group">
@@ -79,4 +79,3 @@ unset($_SESSION['project_error']);
     </div>
 </div>
 <?php include 'footer.php'; ?>
-

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 include 'dbconnect.php';
 require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../foundation.php';
@@ -38,18 +38,15 @@ $address = trim((string) ($_POST['address'] ?? ''));
 $city = trim((string) ($_POST['city'] ?? ''));
 
 $allowedStatuses = ['pending', 'inprogress', 'completed', 'closed'];
-if ($status !== '' && !in_array($status, $allowedStatuses, true)) {
-    oecrm_lead_redirect_with_error($id, 'Please select a valid status.');
-}
-if ($status === '') {
-    $status = 'pending';
+if ($companyname === '' || $contact === '' || !in_array($status, $allowedStatuses, true)) {
+    oecrm_lead_redirect_with_error($id, 'Company Name, Contact Person and Status are required.');
 }
 
 if ($leaddate === '' || !strtotime($leaddate)) {
     $leaddate = date('Y-m-d');
 }
 if ($executive === '') {
-    $executive = $companyname ?: ($contact ?: 'Lead');
+    $executive = $companyname ?: $contact;
 }
 if ($mobileone !== '' && strlen($mobileone) !== 10) {
     oecrm_lead_redirect_with_error($id, 'Mobile No1 must contain exactly 10 digits when entered.');

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = 'projects';
 include 'header.php';
 require_once __DIR__ . '/../foundation.php';
@@ -61,15 +61,6 @@ $taskStatuses = [
 ];
 $error = $_SESSION['task_error'] ?? '';
 unset($_SESSION['task_error']);
-$attachments = [];
-if ($id) {
-    $attachmentResult = mysqli_query($conn, 'SELECT id,original_name,file_size,created_at FROM task_attachments WHERE task_id=' . (int) $id . ' ORDER BY id DESC');
-    if ($attachmentResult) {
-        while ($attachment = mysqli_fetch_assoc($attachmentResult)) {
-            $attachments[] = $attachment;
-        }
-    }
-}
 ?>
 <div id="page-wrapper" class="compact-admin-page resource-form-page">
     <div class="foundation-titlebar">
@@ -135,21 +126,6 @@ if ($id) {
                 <div class="form-group"><label>Assign Date</label><input class="form-control" type="date" name="assign_date" value="<?php echo oecrm_h($task['assignDate'] ?? date('Y-m-d')); ?>"></div>
                 <div class="form-group"><label>Expected Date</label><input class="form-control" type="date" name="expected_date" value="<?php echo oecrm_h($task['expectedDate'] ?? ''); ?>"></div>
                 <div class="form-group"><label>Estimated Hours</label><input class="form-control" type="number" min="0" step=".25" name="estimated_hours" value="<?php echo oecrm_h($task['estimated_hours'] ?? '0'); ?>"></div>
-                <div class="form-group">
-                    <label>Attachment</label>
-                    <input class="form-control" type="file" name="task_attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt">
-                    <small class="text-muted">Optional. Allowed: PDF, Word, Excel, image, TXT. Max 10MB.</small>
-                </div>
-                <?php if (!empty($attachments)): ?>
-                    <div class="form-group resource-notes">
-                        <label>Existing Attachments</label>
-                        <div class="task-attachment-list">
-                            <?php foreach ($attachments as $attachment): ?>
-                                <a class="btn btn-default btn-sm" target="_blank" href="taskAttachment.php?id=<?php echo (int) $attachment['id']; ?>"><i class="fa fa-paperclip"></i> <?php echo oecrm_h($attachment['original_name']); ?></a>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                <?php endif; ?>
                 <div class="form-group resource-notes"><label>Description</label><textarea class="form-control" name="task_details" rows="4"><?php echo oecrm_h($task['task_details'] ?? ''); ?></textarea></div>
                 <div class="resource-actions">
                     <button class="btn btn-primary"><i class="fa fa-save"></i> <?php echo $id ? 'Update Task' : 'Create Task'; ?></button>
@@ -160,5 +136,3 @@ if ($id) {
     </div>
 </div>
 <?php include 'footer.php'; ?>
-
-
