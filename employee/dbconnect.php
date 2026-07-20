@@ -10,4 +10,3 @@ mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     if($conn === false){
         die("ERROR: Could not connect. " . mysqli_connect_error());
     }
- ?>
