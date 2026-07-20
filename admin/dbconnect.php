@@ -5,4 +5,3 @@
     }
     
     $today_date = date('Y-m-d'); //get today date
- ?>
