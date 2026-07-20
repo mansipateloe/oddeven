@@ -22,7 +22,7 @@
                                                 <select name="project_Id" id="project_Id" class="form-control" onchange="getInvoices(this.value)" required>
                                                     <option value="">Select Project Name</option>
                                                     <?php 
-                                                        $qryProject = "SELECT * FROM projectsTbl where status = 'inprogress' order by id desc";
+                                                        $qryProject = "SELECT * FROM projectstbl where status IN ('pending','inprogress') order by id desc";
                                                         $resultProject = mysqli_query($conn,$qryProject);
                                                         if($resultProject->num_rows > 0){
                                                             while($resProject = $resultProject->fetch_assoc()){
@@ -109,7 +109,7 @@
                                                         <select name="project_Id" id="project" class="form-control">
                                                             <option value="all" selected>Select Project Name</option>
                                                             <?php 
-                                                                $qryProject = "SELECT * FROM projectsTbl";
+                                                                $qryProject = "SELECT * FROM projectstbl";
                                                                 $resultProject = mysqli_query($conn,$qryProject);
                                                                 if($resultProject->num_rows > 0){
                                                                     while($resProject = $resultProject->fetch_assoc()){
@@ -173,7 +173,7 @@
                                                                 $resultAccount = mysqli_query($conn,$qryAccount);
                                                                 $rowAccount = $resultAccount->fetch_assoc();
                                                                 echo "<td>".$rowAccount['account_name']."</td>";
-                                                                $qryProject = "SELECT * FROM projectsTbl where id=".$rowDeposit['project_Id'];
+                                                                $qryProject = "SELECT * FROM projectstbl where id=".$rowDeposit['project_Id'];
                                                                 $resultProject = mysqli_query($conn,$qryProject);
                                                                 $resProject = $resultProject->fetch_assoc();
                                                                 echo "<td>".$resProject['projectName']."</td>";

@@ -1,4 +1,15 @@
 <?php include 'header.php'; ?>
+<?php
+mysqli_query($conn, "CREATE TABLE IF NOT EXISTS domainHostingTbl (
+    domain_id INT AUTO_INCREMENT PRIMARY KEY,
+    clientname VARCHAR(255) NOT NULL,
+    service VARCHAR(100) NOT NULL,
+    domainname VARCHAR(255) NOT NULL,
+    startdate DATE NOT NULL,
+    enddate DATE NOT NULL,
+    amount DECIMAL(12,2) NOT NULL DEFAULT 0
+)");
+?>
         <div id="page-wrapper">
             <div class="row">
                 <div class="col-lg-12">

@@ -2,6 +2,7 @@
 $active_menu = 'role';
 $active_submenu = 'view_role';
 include 'header.php';
+<<<<<<< HEAD
 function oecrm_role_can_manage($conn, $action)
 {
     return oecrm_is_super_admin()
@@ -21,6 +22,10 @@ $stmt = mysqli_prepare($conn, 'SELECT id,name,org_id FROM user_type WHERE is_del
 mysqli_stmt_bind_param($stmt, 'i', $companyId);
 mysqli_stmt_execute($stmt);
 $roles = mysqli_stmt_get_result($stmt);
+=======
+$flash = $_SESSION['role_flash'] ?? '';
+unset($_SESSION['role_flash']);
+>>>>>>> 16f952b06473752f063dd7dad31e1ed1d31da926
 ?>
 <div id="page-wrapper" class="compact-admin-page">
     <?php if (!empty($roleFlash['message'])): ?>
@@ -43,6 +48,7 @@ $roles = mysqli_stmt_get_result($stmt);
             <?php endif; ?>
         </div>
         <div class="panel-body manage_project">
+<<<<<<< HEAD
             <div class="table-responsive">
                 <table class="table table-striped table-bordered table-hover" id="role_table">
                     <thead>
@@ -56,6 +62,17 @@ $roles = mysqli_stmt_get_result($stmt);
                         <?php $counter = 0; ?>
                         <?php if ($roles && mysqli_num_rows($roles) > 0): ?>
                             <?php while ($row = mysqli_fetch_assoc($roles)): ?>
+=======
+            <?php if ($flash): ?>
+                <div class="alert alert-info"><?php echo oecrm_h($flash); ?></div>
+            <?php endif; ?>
+            <div class="row">
+                <div class="col-md-12">
+                    
+                    <div class="table-responsive">
+                        <table class="table" id="role_table">
+                            <thead>
+>>>>>>> 16f952b06473752f063dd7dad31e1ed1d31da926
                                 <tr>
                                     <td class="text-center"><?php echo ++$counter; ?></td>
                                     <td><?php echo oecrm_h($row['name']); ?></td>

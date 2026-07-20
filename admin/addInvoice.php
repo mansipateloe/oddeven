@@ -28,7 +28,7 @@
                                                 <select name="project_Id" id="project_Id" required onchange="getPerson(this.value)" class="form-control">
                                                     <option value="">Select Project Name</option>
                                                     <?php 
-                                                        $qryProject = "SELECT * FROM projectsTbl where status = 'inprogress' order by id desc";
+                                                        $qryProject = "SELECT * FROM projectstbl where status IN ('pending','inprogress') order by id desc";
                                                         $resultProject = mysqli_query($conn,$qryProject);
                                                         if($resultProject->num_rows > 0){
                                                             while($resProject = $resultProject->fetch_assoc()){
@@ -147,7 +147,11 @@
                                             //  -- where invoicetbl.status = 1 
                                                 $i = 1;
                                                 $amounts = 0;
+<<<<<<< HEAD
                                                 $invoice_qry = "SELECT invoicetbl.*, projectsTbl.projectName FROM invoicetbl left join projectsTbl on projectsTbl.id = invoicetbl.project_Id 
+=======
+                                                $invoice_qry = "SELECT invoiceTbl.*, projectstbl.projectName FROM invoiceTbl left join projectstbl on projectstbl.id = invoiceTbl.project_Id 
+>>>>>>> 16f952b06473752f063dd7dad31e1ed1d31da926
                                                    
                                                     order by invoicetbl.invoice_id DESC";
                                                 $invoice_result = mysqli_query($conn,$invoice_qry); 
@@ -223,14 +227,7 @@
                                                                                             <select name="projects_Id" id="projects_Id" class="form-control" onchange="getInvoices(this.value)" disabled>';
                                                                                                 // <option value="">Select Project Name</option>';
                                                                                                 
-                                                                                                    $qryProject = "SELECT * FROM projectsTbl
-                                                                                                    where status = 'inprogress'  order by id desc";
-                                                                                                    $resultProject = mysqli_query($conn,$qryProject);
-                                                                                                    if($resultProject->num_rows > 0){
-                                                                                                        while($resProject = $resultProject->fetch_assoc()){
-                                                                                                            echo "<option value='".$resProject['id']."'>".$invoice_row['projectName']."</option>";
-                                                                                                        }
-                                                                                                    }
+                                                                                                    echo "<option value='".$invoice_row['project_Id']."'>".$invoice_row['projectName']."</option>";
                                                                                                
                                                                                      echo  '</select>
                                                                                         </div>

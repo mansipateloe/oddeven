@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿<?php
 ob_start();
 $active_menu = 'role';
@@ -6,6 +7,35 @@ require_once __DIR__ . '/../security.php';
 include __DIR__ . '/dbconnect.php';
 require_once __DIR__ . '/../foundation.php';
 oecrm_require_admin_login();
+=======
+<?php include 'header.php'; $flash = $_SESSION['role_flash'] ?? ''; unset($_SESSION['role_flash']); ?>
+<div id="page-wrapper">
+    <div class="">
+        <div class="panel panel-default">
+            <div class="panel-heading panel-box">
+                <h4>Add Role</h4>
+            </div>
+            <div class="panel-body manage_project">    
+                <?php if ($flash): ?>
+                    <div class="alert alert-info"><?php echo oecrm_h($flash); ?></div>
+                <?php endif; ?>
+                <form id="leadForm" method="post" action="validation.php"  enctype="multipart/form-data">
+                    <?php echo oecrm_csrf_field(); ?>
+                    <?php
+                        if(isset($_REQUEST['id']))
+                        {
+                            $roleId = (int) $_REQUEST['id'];
+                            $sel_role_details=mysqli_query($conn,"SELECT * FROM user_type WHERE id=".$roleId);
+                            $fet_role_details=mysqli_fetch_assoc($sel_role_details);
+                            echo '<input type="hidden" id="id" name="id" value="'.$roleId.'">';
+                        }
+                    ?>
+                    <!-- Repeat the following block for each form field -->
+                    <div class="form-group col-sm-12">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control" value="<?php if(isset($_REQUEST['id']) && isset($fet_role_details['name']) ){echo oecrm_h($fet_role_details['name']);}?>" placeholder="Name" id="name" name="name" required>
+                    </div>
+>>>>>>> 16f952b06473752f063dd7dad31e1ed1d31da926
 
 function oecrm_role_flash($type, $message)
 {
@@ -157,3 +187,10 @@ include 'header.php';
 <?php include 'footer.php'; ?>
 
 
+<<<<<<< HEAD
+=======
+
+<?php
+include 'footer.php';
+?>
+>>>>>>> 16f952b06473752f063dd7dad31e1ed1d31da926

@@ -25,11 +25,11 @@ if (isset($_POST['updateEmployee'])) {
     }
 
     if ($employeeUpass === $oldEmployeeUpass) {
-        $stmt = mysqli_prepare($conn, "UPDATE employeesTbl SET name=?, mobile1=?, personalEmail=?, mobile2=?, skypeUname=?, bankName=?, bankIFSCno=?, bankAcHolderName=?, bankAcNo=?, address=? WHERE id=?");
+        $stmt = mysqli_prepare($conn, "UPDATE employeestbl SET name=?, mobile1=?, personalEmail=?, mobile2=?, skypeUname=?, bankName=?, bankIFSCno=?, bankAcHolderName=?, bankAcNo=?, address=? WHERE id=?");
         mysqli_stmt_bind_param($stmt, 'ssssssssssi', $name, $mobile1, $personalEmail, $mobile2, $skypeUname, $bankName, $bankIFSCno, $bankAcHolderName, $bankAcNo, $address, $employeeId);
     } else {
         $newEmployeeUpass = oecrm_password_hash($employeeUpass);
-        $stmt = mysqli_prepare($conn, "UPDATE employeesTbl SET name=?, employeeUpass=?, personalEmail=?, mobile1=?, mobile2=?, skypeUname=?, bankName=?, bankIFSCno=?, bankAcHolderName=?, bankAcNo=?, address=? WHERE id=?");
+        $stmt = mysqli_prepare($conn, "UPDATE employeestbl SET name=?, employeeUpass=?, personalEmail=?, mobile1=?, mobile2=?, skypeUname=?, bankName=?, bankIFSCno=?, bankAcHolderName=?, bankAcNo=?, address=? WHERE id=?");
         mysqli_stmt_bind_param($stmt, 'sssssssssssi', $name, $newEmployeeUpass, $personalEmail, $mobile1, $mobile2, $skypeUname, $bankName, $bankIFSCno, $bankAcHolderName, $bankAcNo, $address, $employeeId);
     }
     if (mysqli_stmt_execute($stmt)) {

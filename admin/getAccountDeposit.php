@@ -36,7 +36,7 @@
                     $resultAccount = mysqli_query($conn,$qryAccount);
                     $rowAccount = $resultAccount->fetch_assoc();
                     echo "<td>".$rowAccount['account_name']."</td>";
-                    $qryProject = "SELECT * FROM projectsTbl where id=".$getReportRes['project_Id'];
+                    $qryProject = "SELECT * FROM projectstbl where id=".$getReportRes['project_Id'];
                     $resultProject = mysqli_query($conn,$qryProject);
                     $resProject = $resultProject->fetch_assoc();
                     echo "<td>".$resProject['projectName']."</td>";

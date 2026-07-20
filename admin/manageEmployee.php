@@ -114,8 +114,8 @@ $employees = mysqli_stmt_get_result($stmt);
                                 </form>
                             </td>
                             <td class="employee-actions">
-                                <a href="employeeProfile.php?id=<?php echo (int) $employee['id']; ?>" title="Employee Profile"><i class="fa fa-id-card-o"></i></a>
-                                <a href="editEmployee.php?edit=<?php echo (int) $employee['id']; ?>" title="Edit"><i class="fa fa-pencil"></i></a>
+                                <a class="icon-action" href="employeeProfile.php?id=<?php echo (int) $employee['id']; ?>" title="Employee Profile" aria-label="Employee Profile"><i class="fa fa-user"></i></a>
+                                <a class="icon-action" href="editEmployee.php?edit=<?php echo (int) $employee['id']; ?>" title="Edit" aria-label="Edit Employee"><i class="fa fa-pencil"></i></a>
                                 <form method="post" action="deleteEmployee.php" style="display:inline;">
                                     <?php echo oecrm_csrf_field(); ?>
                                     <input type="hidden" name="delete" value="<?php echo (int) $employee['id']; ?>">

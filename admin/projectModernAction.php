@@ -29,6 +29,9 @@ function oecrm_project_payload($conn, $companyId)
     if ($name === '' || !$clientId || !strtotime($start) || !strtotime($end)) {
         throw new RuntimeException('Project name, client and dates are required.');
     }
+    if (strtotime($end) < strtotime($start)) {
+        throw new RuntimeException('Deadline date cannot be earlier than the start date.');
+    }
 
     $client = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM clients WHERE id=' . (int) $clientId . ' AND company_id=' . (int) $companyId));
     if (!$client) {

@@ -34,7 +34,7 @@
                                                 <select name="project_Id" id="project_Id" onchange="getInvoices(this.value)" class="form-control" required>
                                                     <option value="">Select Project Name</option>
                                                     <?php 
-                                                        $qryProject = "SELECT * FROM projectsTbl order by id desc";
+                                                        $qryProject = "SELECT * FROM projectstbl order by id desc";
                                                         $resultProject = mysqli_query($conn,$qryProject);
                                                         if($resultProject->num_rows > 0){
                                                             while($resProject = $resultProject->fetch_assoc()){
