@@ -309,7 +309,7 @@
                                             <span class="leave-avatar"><?php echo htmlspecialchars($initial); ?></span>
                                             <span>
                                                 <strong><?php echo htmlspecialchars($employeeName); ?></strong>
-                                                <small>@<?php echo htmlspecialchars($employeeUser); ?> � <?php echo htmlspecialchars($employeeEmail); ?></small>
+                                                <small>@<?php echo htmlspecialchars($employeeUser); ?> ï¿½ <?php echo htmlspecialchars($employeeEmail); ?></small>
                                             </span>
                                         </div>
                                         <div class="leave-detail-block">
@@ -383,9 +383,9 @@
                                         <?php
                                             $first_date = date('Y-m-d', strtotime('today'));
                                             $last_date = date('Y-m-d', strtotime('today + 30 days'));
-                                            $displayhosting = "select * from domainHostingTbl WHERE DATE(enddate) >= DATE('$first_date') AND DATE(enddate) <= DATE('$last_date') order by enddate";
+                                            $displayhosting = "select * from domainhostingtbl WHERE DATE(enddate) >= DATE('$first_date') AND DATE(enddate) <= DATE('$last_date') order by enddate";
                                             $result = mysqli_query($conn, $displayhosting);
-                                            if ($result->num_rows > 0) {
+                                            if ($result && $result->num_rows > 0) {
                                                 while ($row = $result->fetch_assoc()) {
                                                     $clientName = $row['clientname'] ?? '-';
                                                     $service = $row['service'] ?? '-';
