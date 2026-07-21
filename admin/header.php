@@ -1,4 +1,4 @@
-<?php include 'dbconnect.php'; ?>
+﻿<?php include 'dbconnect.php'; ?>
 <?php require_once __DIR__ . '/../security.php'; ?>
 <?php require_once __DIR__ . '/../foundation.php'; ?>
 <?php oecrm_require_admin_login(); ?>
@@ -72,7 +72,7 @@
     'projectWorkspace.php'=>'Projects','projectEditor.php'=>'Project Editor','projectBoard.php'=>'Project Board',
     'viewTask.php'=>'Tasks','taskEditor.php'=>'Task Editor','timesheets.php'=>'Timesheets',
     'manageEmployee.php'=>'Employees','addEmployee.php'=>'Add Employee','editEmployee.php'=>'Edit Employee',
-    'employeeProfile.php'=>'Employee Profile','attendanceReview.php'=>'Attendance Review',
+    'employeeProfile.php'=>'Employee Profile','employeeContinuations.php'=>'Employee Continuations','attendanceReview.php'=>'Attendance Review',
     'manageLeave.php'=>'Leave Management','payrollManagement.php'=>'Payroll','salary.php'=>'Salary Reports',
     'assets.php'=>'Assets','resources.php'=>'Resources','finance.php'=>'Finance',
     'noticeCenter.php'=>'Notices','birthdayCenter.php'=>'Birthdays','workforceReports.php'=>'Workforce Reports',
@@ -86,6 +86,49 @@
   $birthdayTodayCount = (int) ($birthdayTodayCountRow['total'] ?? 0);
   $adminCompanyRow = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT display_name FROM companies WHERE id=' . (int) $birthdayCompanyId . ' LIMIT 1'));
   $adminCompanyName = $adminCompanyRow['display_name'] ?? 'Active Company';
+  if (!function_exists('admin_sidebar_is_active')) {
+    function admin_sidebar_is_active($pages, $currentPage)
+    {
+      return in_array($currentPage, (array) $pages, true);
+    }
+  }
+  if (!function_exists('admin_sidebar_link')) {
+    function admin_sidebar_link($href, $label, $icon, $currentPage, $pages = null)
+    {
+      $matchPages = $pages ?: [$href];
+      $active = admin_sidebar_is_active($matchPages, $currentPage) ? ' class="active"' : '';
+      echo '<li><a href="' . oecrm_h($href) . '"' . $active . '><i class="fa ' . oecrm_h($icon) . ' fa-fw"></i><span>' . oecrm_h($label) . '</span></a></li>';
+    }
+  }
+  if (!function_exists('admin_sidebar_parent')) {
+    function admin_sidebar_parent($label, $icon, $items, $currentPage)
+    {
+      $allowedItems = [];
+      $isActive = false;
+      foreach ($items as $item) {
+        if (empty($item['show'])) {
+          continue;
+        }
+        $item['pages'] = $item['pages'] ?? [$item['href']];
+        if (admin_sidebar_is_active($item['pages'], $currentPage)) {
+          $isActive = true;
+        }
+        $allowedItems[] = $item;
+      }
+      if (!$allowedItems) {
+        return;
+      }
+      $parentClass = 'oecrm-sidebar-parent' . ($isActive ? ' active open' : '');
+      $style = $isActive ? ' style="display:block"' : '';
+      echo '<li class="' . $parentClass . '">';
+      echo '<a href="#" aria-expanded="' . ($isActive ? 'true' : 'false') . '"><i class="fa ' . oecrm_h($icon) . ' fa-fw"></i><span>' . oecrm_h($label) . '</span><span class="fa arrow"></span></a>';
+      echo '<ul class="nav nav-second-level"' . $style . '>';
+      foreach ($allowedItems as $item) {
+        admin_sidebar_link($item['href'], $item['label'], $item['icon'], $currentPage, $item['pages']);
+      }
+      echo '</ul></li>';
+    }
+  }
   ?>
   <div id="wrapper">
     <!-- Navigation -->
@@ -112,73 +155,97 @@
             <li class="erp-company-context"><form method="post" action="switch_company.php"><?php echo oecrm_csrf_field();?><label><i class="fa fa-building"></i> Active Company</label><select name="company_id" onchange="this.form.submit()" title="Active company"><?php while($companyOption=mysqli_fetch_assoc($companyOptions)):?><option value="<?php echo (int)$companyOption['id'];?>" <?php echo $currentCompanyId===(int)$companyOption['id']?'selected':'';?>><?php echo oecrm_h($companyOption['display_name']);?></option><?php endwhile;?></select></form></li>
             <?php } ?>
 
-            <li><a href="dashboard.php" class="<?php echo (isset($active_menu)&&$active_menu==='dashboard')?'active':'';?>"><i class="fa fa-tachometer fa-fw"></i><span>Dashboard</span></a></li>
+            <?php
+            admin_sidebar_link('dashboard.php', 'Dashboard', 'fa-tachometer', $adminCurrentPage, ['dashboard.php']);
 
-            <li class="erp-nav-label">Operations</li>
-            <?php if(check_is_access_new('lead')==1):?>
-            <li><a href="#" class="<?php echo (isset($active_menu)&&$active_menu==='lead')?'active':'';?>"><i class="fa fa-handshake-o fa-fw"></i><span>CRM & Sales</span><span class="fa arrow"></span></a><ul class="nav nav-second-level">
-              <?php if(oecrm_can($conn,'clients','view')):?><li><a href="clients.php"><i class="fa fa-building-o fa-fw"></i> Client Directory</a></li><?php endif;?>
-              <?php if(check_is_access_new('add_lead')==1):?><li><a href="add_lead.php"><i class="fa fa-user-plus fa-fw"></i> Add Lead</a></li><?php endif;?>
-              <?php if(check_is_access_new('view_lead')==1):?><li><a href="leads.php"><i class="fa fa-address-book-o fa-fw"></i> Lead Pipeline</a></li><li><a href="followup.php"><i class="fa fa-calendar-check-o fa-fw"></i> Follow-ups</a></li><li><a href="manageLeadSource.php"><i class="fa fa-code-fork fa-fw"></i> Lead Sources</a></li><li><a href="manageFollowupType.php"><i class="fa fa-tags fa-fw"></i> Follow-up Types</a></li><?php endif;?>
-            </ul></li>
-            <?php endif;?>
+            echo '<li class="erp-nav-label">Business</li>';
+            admin_sidebar_parent('CRM & Sales', 'fa-handshake-o', [
+              ['href'=>'clients.php','label'=>'Clients','icon'=>'fa-building-o','show'=>oecrm_can($conn,'clients','view'),'pages'=>['clients.php','clientProfile.php']],
+              ['href'=>'add_lead.php','label'=>'Add Lead','icon'=>'fa-user-plus','show'=>check_is_access_new('add_lead')==1,'pages'=>['add_lead.php']],
+              ['href'=>'leads.php','label'=>'Lead Pipeline','icon'=>'fa-address-book-o','show'=>check_is_access_new('view_lead')==1,'pages'=>['leads.php','action_update_lead.php']],
+              ['href'=>'followup.php','label'=>'Follow-ups','icon'=>'fa-calendar-check-o','show'=>check_is_access_new('view_lead')==1,'pages'=>['followup.php','action_update_followup.php']],
+              ['href'=>'manageLeadSource.php','label'=>'Lead Sources','icon'=>'fa-code-fork','show'=>check_is_access_new('view_lead')==1,'pages'=>['manageLeadSource.php']],
+              ['href'=>'manageFollowupType.php','label'=>'Follow-up Types','icon'=>'fa-tags','show'=>check_is_access_new('view_lead')==1,'pages'=>['manageFollowupType.php']],
+            ], $adminCurrentPage);
 
-            <?php if(check_is_access_new('project')==1||check_is_access_new('lead')==1):?>
-            <li><a href="#"><i class="fa fa-briefcase fa-fw"></i><span>Projects & Tasks</span><span class="fa arrow"></span></a><ul class="nav nav-second-level">
-              <?php if(check_is_access_new('project')==1||oecrm_can($conn,'projects','view')):?><li><a href="projectWorkspace.php"><i class="fa fa-folder-open fa-fw"></i> Project Portfolio</a></li><li><a href="projectEditor.php"><i class="fa fa-plus-square fa-fw"></i> New Project</a></li><?php endif;?>
-              <?php if(check_is_access_new('lead')==1):?><li><a href="viewTask.php"><i class="fa fa-tasks fa-fw"></i> Task Management</a></li><?php endif;?>
-              <?php if(oecrm_can($conn,'timesheets','view')):?><li><a href="timesheets.php"><i class="fa fa-clock-o fa-fw"></i> Timesheets</a></li><?php endif;?>
-              <?php if(oecrm_can($conn,'project_sprints','view')):?><li><a href="projectKanban.php"><i class="fa fa-columns fa-fw"></i> Kanban & Sprints</a></li><?php endif;?>
-            </ul></li>
-            <?php endif;?>
+            admin_sidebar_parent('Projects & Tasks', 'fa-briefcase', [
+              ['href'=>'projectWorkspace.php','label'=>'Projects','icon'=>'fa-folder-open','show'=>check_is_access_new('project')==1||oecrm_can($conn,'projects','view'),'pages'=>['projectWorkspace.php','projectEditor.php','projectBoard.php']],
+              ['href'=>'projectEditor.php','label'=>'New Project','icon'=>'fa-plus-square','show'=>check_is_access_new('project')==1||oecrm_can($conn,'projects','create'),'pages'=>['projectEditor.php']],
+              ['href'=>'viewTask.php','label'=>'Tasks','icon'=>'fa-tasks','show'=>check_is_access_new('lead')==1||oecrm_can($conn,'tasks','view'),'pages'=>['viewTask.php','taskEditor.php']],
+              ['href'=>'projectKanban.php','label'=>'Task Board','icon'=>'fa-columns','show'=>oecrm_can($conn,'project_sprints','view')||oecrm_can($conn,'tasks','view'),'pages'=>['projectKanban.php']],
+              ['href'=>'timesheets.php','label'=>'Timesheets','icon'=>'fa-clock-o','show'=>oecrm_can($conn,'timesheets','view'),'pages'=>['timesheets.php']],
+            ], $adminCurrentPage);
 
-            <li class="erp-nav-label">People & HR</li>
-            <?php if(check_is_access_new('employee')==1||oecrm_can($conn,'employees','view')):?>
-            <li><a href="#" class="<?php echo (isset($active_menu)&&$active_menu==='employee')?'active':'';?>"><i class="fa fa-users fa-fw"></i><span>Employee Management</span><span class="fa arrow"></span></a><ul class="nav nav-second-level"><li><a href="manageEmployee.php"><i class="fa fa-address-card-o fa-fw"></i> Employee Directory</a></li><li><a href="addEmployee.php"><i class="fa fa-user-plus fa-fw"></i> Add Employee</a></li><li><a href="manageDesignation.php"><i class="fa fa-id-badge fa-fw"></i> Designations</a></li><li><a href="departments.php"><i class="fa fa-sitemap fa-fw"></i> Departments</a></li></ul></li>
-            <?php endif;?>
+            echo '<li class="erp-nav-label">People & HR</li>';
+            admin_sidebar_parent('Employees', 'fa-users', [
+              ['href'=>'manageEmployee.php','label'=>'Employee Directory','icon'=>'fa-address-card-o','show'=>check_is_access_new('employee')==1||oecrm_can($conn,'employees','view'),'pages'=>['manageEmployee.php','employeeProfile.php','editEmployee.php']],
+              ['href'=>'addEmployee.php','label'=>'Add Employee','icon'=>'fa-user-plus','show'=>check_is_access_new('employee')==1||oecrm_can($conn,'employees','create'),'pages'=>['addEmployee.php']],
+              ['href'=>'employeeContinuations.php','label'=>'Job Renewal / Continuation','icon'=>'fa-refresh','show'=>check_is_access_new('employee')==1||oecrm_can($conn,'employees','view'),'pages'=>['employeeContinuations.php']],
+              ['href'=>'departments.php','label'=>'Departments','icon'=>'fa-sitemap','show'=>oecrm_can($conn,'departments','view')||check_is_access_new('employee')==1,'pages'=>['departments.php']],
+              ['href'=>'manageDesignation.php','label'=>'Designations','icon'=>'fa-id-badge','show'=>check_is_access_new('employee')==1||oecrm_can($conn,'designations','view'),'pages'=>['manageDesignation.php']],
+              ['href'=>'employeeExits.php','label'=>'Employee Exit & F&F','icon'=>'fa-sign-out','show'=>oecrm_can($conn,'employee_exit','view'),'pages'=>['employeeExits.php']],
+            ], $adminCurrentPage);
 
-            <li><a href="#" class="<?php echo in_array($active_menu??'',['attendance','employee_leave'],true)?'active':'';?>"><i class="fa fa-clock-o fa-fw"></i><span>Attendance & Leave</span><span class="fa arrow"></span></a><ul class="nav nav-second-level">
-              <?php if(oecrm_can($conn,'shifts','view')):?><li><a href="shifts.php"><i class="fa fa-clock-o fa-fw"></i> Shift Master</a></li><?php endif;?>
-              <?php if(oecrm_can($conn,'shift_assignments','view')):?><li><a href="activeShiftAssignments.php"><i class="fa fa-random fa-fw"></i> Shift Assignments</a></li><?php endif;?>
-              <?php if(oecrm_can($conn,'attendance_review','view')):?><li><a href="attendanceReview.php"><i class="fa fa-check-square-o fa-fw"></i> Review & Exceptions</a></li><?php endif;?>
-              <?php if(check_is_access_new('leave')==1||oecrm_can($conn,'leave_requests','view')):?><li><a href="manageLeave.php"><i class="fa fa-calendar-minus-o fa-fw"></i> Leave Approvals</a></li><li><a href="leavePolicies.php"><i class="fa fa-sliders fa-fw"></i> Leave & Comp-Off Rules</a></li><?php endif;?>
-            </ul></li>
+            admin_sidebar_parent('Attendance & Leave', 'fa-clock-o', [
+              ['href'=>'attendanceReview.php','label'=>'Attendance Review','icon'=>'fa-check-square-o','show'=>oecrm_can($conn,'attendance_review','view'),'pages'=>['attendanceReview.php']],
+              ['href'=>'manageLeave.php','label'=>'Leave Requests','icon'=>'fa-calendar-minus-o','show'=>check_is_access_new('leave')==1||oecrm_can($conn,'leave_requests','view'),'pages'=>['manageLeave.php']],
+              ['href'=>'manageLeaveType.php','label'=>'Leave Types','icon'=>'fa-calendar-plus-o','show'=>check_is_access_new('settings')==1||oecrm_can($conn,'leave_types','view'),'pages'=>['manageLeaveType.php']],
+              ['href'=>'leavePolicies.php','label'=>'Leave & Comp-Off Rules','icon'=>'fa-sliders','show'=>check_is_access_new('leave')==1||oecrm_can($conn,'leave_policies','view'),'pages'=>['leavePolicies.php']],
+              ['href'=>'manageHoliday.php','label'=>'Holidays','icon'=>'fa-calendar','show'=>check_is_access_new('settings')==1||oecrm_can($conn,'holidays','view'),'pages'=>['manageHoliday.php']],
+              ['href'=>'shifts.php','label'=>'Shifts','icon'=>'fa-clock-o','show'=>oecrm_can($conn,'shifts','view'),'pages'=>['shifts.php']],
+              ['href'=>'activeShiftAssignments.php','label'=>'Shift Assignments','icon'=>'fa-random','show'=>oecrm_can($conn,'shift_assignments','view'),'pages'=>['activeShiftAssignments.php']],
+            ], $adminCurrentPage);
 
-            <?php if(oecrm_can($conn,'hr_letters','view')||oecrm_can($conn,'hr_letter_templates','view')):?><li><a href="#" class="<?php echo (isset($active_menu)&&$active_menu==='hr_letters')?'active':'';?>"><i class="fa fa-file-text-o fa-fw"></i><span>HR Documents</span><span class="fa arrow"></span></a><ul class="nav nav-second-level"><?php if(oecrm_can($conn,'hr_letters','view')):?><li><a href="hrLetters.php"><i class="fa fa-envelope-open-o fa-fw"></i> Letters & History</a></li><?php endif;?><?php if(oecrm_can($conn,'hr_letter_templates','view')):?><li><a href="hrLetterTemplates.php"><i class="fa fa-files-o fa-fw"></i> Letter Templates</a></li><?php endif;?></ul></li><?php endif;?>
-            <?php if(oecrm_can($conn,'notices','view')):?><li><a href="noticeCenter.php" class="<?php echo (isset($active_menu)&&$active_menu==='notices')?'active':'';?>"><i class="fa fa-bullhorn fa-fw"></i><span>Notices & Policies</span></a></li><?php endif;?>
-            <?php if(oecrm_can($conn,'employee_exit','view')):?><li><a href="employeeExits.php" class="<?php echo ($active_menu??'')==='employee_exit'?'active':'';?>"><i class="fa fa-sign-out fa-fw"></i><span>Employee Exit & F&amp;F</span></a></li><?php endif;?>
+            admin_sidebar_parent('HR Documents', 'fa-file-text-o', [
+              ['href'=>'hrLetterTemplates.php','label'=>'Letter Templates','icon'=>'fa-files-o','show'=>oecrm_can($conn,'hr_letter_templates','view'),'pages'=>['hrLetterTemplates.php']],
+              ['href'=>'hrLetters.php','label'=>'Employee Letters','icon'=>'fa-envelope-open-o','show'=>oecrm_can($conn,'hr_letters','view'),'pages'=>['hrLetters.php']],
+            ], $adminCurrentPage);
 
-            <?php if(oecrm_can($conn,'payroll','view')):?><li><a href="#" class="<?php echo (isset($active_menu)&&$active_menu==='payroll')?'active':'';?>"><i class="fa fa-money fa-fw"></i><span>Payroll</span><span class="fa arrow"></span></a><ul class="nav nav-second-level"><li><a href="payrollManagement.php"><i class="fa fa-calculator fa-fw"></i> Payroll Runs & Reports</a></li><li><a href="salaryPolicies.php"><i class="fa fa-list-alt fa-fw"></i> Salary Policies</a></li></ul></li><?php endif;?>
+            echo '<li class="erp-nav-label">Finance & Resources</li>';
+            admin_sidebar_parent('Finance & Accounting', 'fa-line-chart', [
+              ['href'=>'finance.php','label'=>'Finance Overview','icon'=>'fa-dashboard','show'=>oecrm_can($conn,'finance','view'),'pages'=>['finance.php']],
+              ['href'=>'addInvoice.php','label'=>'Invoices','icon'=>'fa-file-text-o','show'=>check_is_access_new('lead')==1||oecrm_can($conn,'finance','view'),'pages'=>['addInvoice.php','invoiceEditor.php']],
+              ['href'=>'addDeposit.php','label'=>'Collections & Deposits','icon'=>'fa-arrow-circle-down','show'=>check_is_access_new('deposit')==1,'pages'=>['addDeposit.php']],
+              ['href'=>'viewexpense.php','label'=>'Expenses','icon'=>'fa-credit-card','show'=>check_is_access_new('expense')==1||oecrm_can($conn,'finance','view'),'pages'=>['viewexpense.php','expenseEditor.php']],
+              ['href'=>'projectExpense.php','label'=>'Project Expenses','icon'=>'fa-pie-chart','show'=>check_is_access_new('project_expense')==1,'pages'=>['projectExpense.php']],
+              ['href'=>'payrollManagement.php','label'=>'Payroll','icon'=>'fa-calculator','show'=>oecrm_can($conn,'payroll','view'),'pages'=>['payrollManagement.php','salary.php']],
+              ['href'=>'salaryPolicies.php','label'=>'Salary Policies','icon'=>'fa-list-alt','show'=>oecrm_can($conn,'payroll','view'),'pages'=>['salaryPolicies.php']],
+              ['href'=>'manageCurrency.php','label'=>'Currency','icon'=>'fa-exchange','show'=>true,'pages'=>['manageCurrency.php']],
+              ['href'=>'addBankDetails.php','label'=>'Bank Details','icon'=>'fa-bank','show'=>true,'pages'=>['addBankDetails.php','addaccount.php']],
+              ['href'=>'manageProfessionalTax.php','label'=>'Professional Tax','icon'=>'fa-percent','show'=>true,'pages'=>['manageProfessionalTax.php']],
+              ['href'=>'gstReport.php','label'=>'GST Reports','icon'=>'fa-percent','show'=>oecrm_can($conn,'gst','view'),'pages'=>['gstReport.php']],
+              ['href'=>'bankReconciliation.php','label'=>'Cash Flow & Reconciliation','icon'=>'fa-balance-scale','show'=>oecrm_can($conn,'bank_reconciliation','view'),'pages'=>['bankReconciliation.php']],
+            ], $adminCurrentPage);
 
-            <li class="erp-nav-label">Finance & Resources</li>
-            <?php if(oecrm_can($conn,'resources','view')):?><li><a href="#" class="<?php echo ($active_menu??'')==='resources'?'active':'';?>"><i class="fa fa-random fa-fw"></i><span>Resource Management</span><span class="fa arrow"></span></a><ul class="nav nav-second-level"><li><a href="resources.php"><i class="fa fa-users fa-fw"></i> Allocations & Bench</a></li><li><a href="resourceAllocation.php"><i class="fa fa-user-plus fa-fw"></i> New Allocation</a></li></ul></li><?php endif;?>
-            <?php if(oecrm_can($conn,'assets','view')):?><li><a href="#" class="<?php echo ($active_menu??'')==='assets'?'active':'';?>"><i class="fa fa-laptop fa-fw"></i><span>Asset Management</span><span class="fa arrow"></span></a><ul class="nav nav-second-level"><li><a href="assets.php"><i class="fa fa-list fa-fw"></i> Asset Register</a></li><li><a href="assetEditor.php"><i class="fa fa-plus-circle fa-fw"></i> Add Asset</a></li></ul></li><?php endif;?>
-            <?php if(oecrm_can($conn,'access_management','view')):?><li><a href="#" class="<?php echo ($active_menu??'')==='access_management'?'active':'';?>"><i class="fa fa-key fa-fw"></i><span>Access Management</span><span class="fa arrow"></span></a><ul class="nav nav-second-level"><li><a href="accessManagement.php"><i class="fa fa-shield fa-fw"></i> Access Register</a></li><li><a href="accessAccount.php"><i class="fa fa-plus-circle fa-fw"></i> Add Account</a></li></ul></li><?php endif;?>
-            <li><a href="#" class="<?php echo ($active_menu??'')==='finance'?'active':'';?>"><i class="fa fa-line-chart fa-fw"></i><span>Finance & Accounting</span><span class="fa arrow"></span></a><ul class="nav nav-second-level">
-              <?php if(oecrm_can($conn,'finance','view')):?><li><a href="finance.php"><i class="fa fa-dashboard fa-fw"></i> Finance Overview</a></li><li><a href="invoiceEditor.php"><i class="fa fa-file-text fa-fw"></i> New Invoice</a></li><li><a href="expenseEditor.php"><i class="fa fa-credit-card fa-fw"></i> Add Expense</a></li><?php endif;?>
-              <?php if(oecrm_can($conn,'gst','view')):?><li><a href="gstReport.php"><i class="fa fa-percent fa-fw"></i> GST Reports</a></li><?php endif;?>
-              <?php if(oecrm_can($conn,'bank_reconciliation','view')):?><li><a href="bankReconciliation.php"><i class="fa fa-balance-scale fa-fw"></i> Cash Flow & Reconciliation</a></li><?php endif;?>
-              <?php if(check_is_access_new('invocie')==1):?><li><a href="addaccount.php"><i class="fa fa-university fa-fw"></i> Bank Accounts</a></li><?php endif;?>
-              <?php if(check_is_access_new('lead')==1):?><li><a href="addInvoice.php"><i class="fa fa-file-text-o fa-fw"></i> Invoices</a></li><?php endif;?>
-              <?php if(check_is_access_new('deposit')==1):?><li><a href="addDeposit.php"><i class="fa fa-arrow-circle-down fa-fw"></i> Collections & Deposits</a></li><?php endif;?>
-              <?php if(check_is_access_new('expense')==1):?><li><a href="viewexpense.php"><i class="fa fa-credit-card fa-fw"></i> Expenses</a></li><?php endif;?>
-              <?php if(check_is_access_new('project_expense')==1):?><li><a href="projectExpense.php"><i class="fa fa-pie-chart fa-fw"></i> Project Expenses</a></li><?php endif;?>
-              <li><a href="manageCurrency.php"><i class="fa fa-exchange fa-fw"></i> Currencies</a></li><li><a href="manageProfessionalTax.php"><i class="fa fa-percent fa-fw"></i> Professional Tax</a></li><li><a href="addBankDetails.php"><i class="fa fa-bank fa-fw"></i> Bank Masters</a></li>
-            </ul></li>
+            admin_sidebar_parent('Assets & Resources', 'fa-cubes', [
+              ['href'=>'assets.php','label'=>'Asset Management','icon'=>'fa-laptop','show'=>oecrm_can($conn,'assets','view'),'pages'=>['assets.php','assetEditor.php']],
+              ['href'=>'resources.php','label'=>'Resource Planning','icon'=>'fa-users','show'=>oecrm_can($conn,'resources','view'),'pages'=>['resources.php','resourceAllocation.php']],
+              ['href'=>'accessManagement.php','label'=>'Access Management','icon'=>'fa-key','show'=>oecrm_can($conn,'access_management','view'),'pages'=>['accessManagement.php','accessAccount.php']],
+              ['href'=>'subscriptions.php','label'=>'Subscriptions & Vault','icon'=>'fa-refresh','show'=>oecrm_can($conn,'subscriptions','view'),'pages'=>['subscriptions.php']],
+              ['href'=>'viewDomainHosting.php','label'=>'Domain Register','icon'=>'fa-server','show'=>check_is_access_new('domain_hosting')==1,'pages'=>['viewDomainHosting.php','expiring_hostings.php']],
+            ], $adminCurrentPage);
 
-            <?php if(check_is_access_new('domain_hosting')==1||oecrm_can($conn,'subscriptions','view')):?><li><a href="#" class="<?php echo ($active_menu??'')==='digital_assets'?'active':'';?>"><i class="fa fa-cloud fa-fw"></i><span>Digital Assets</span><span class="fa arrow"></span></a><ul class="nav nav-second-level"><?php if(oecrm_can($conn,'subscriptions','view')):?><li><a href="subscriptions.php"><i class="fa fa-refresh fa-fw"></i> Subscriptions & Vault</a></li><?php endif;?><li><a href="viewDomainHosting.php"><i class="fa fa-server fa-fw"></i> Legacy Domain Register</a></li><li><a href="expiring_hostings.php"><i class="fa fa-hourglass-half fa-fw"></i> Renewals & Expiry</a></li></ul></li><?php endif;?>
+            admin_sidebar_parent('Notices & Policies', 'fa-bullhorn', [
+              ['href'=>'noticeCenter.php','label'=>'Notices','icon'=>'fa-bell-o','show'=>oecrm_can($conn,'notices','view'),'pages'=>['noticeCenter.php']],
+              ['href'=>'birthdayCenter.php','label'=>'Birthday Wishes','icon'=>'fa-birthday-cake','show'=>oecrm_can($conn,'notices','view')||oecrm_is_super_admin(),'pages'=>['birthdayCenter.php']],
+            ], $adminCurrentPage);
 
-            <?php if(oecrm_can($conn,'dashboards','view')):?><li><a href="#" class="<?php echo ($active_menu??'')==='analytics'?'active':'';?>"><i class="fa fa-bar-chart fa-fw"></i><span>Analytics</span><span class="fa arrow"></span></a><ul class="nav nav-second-level"><li><a href="erpAnalytics.php"><i class="fa fa-dashboard fa-fw"></i> Management Dashboard</a></li><li><a href="workforceReports.php"><i class="fa fa-line-chart fa-fw"></i> Workforce & Costing</a></li></ul></li><?php endif;?>
+            admin_sidebar_parent('Reports', 'fa-bar-chart', [
+              ['href'=>'erpAnalytics.php','label'=>'Management Dashboard','icon'=>'fa-dashboard','show'=>oecrm_can($conn,'dashboards','view'),'pages'=>['erpAnalytics.php']],
+              ['href'=>'workforceReports.php','label'=>'Workforce Reports','icon'=>'fa-line-chart','show'=>oecrm_can($conn,'dashboards','view'),'pages'=>['workforceReports.php']],
+            ], $adminCurrentPage);
 
-            <li class="erp-nav-label">System</li>
-            <li><a href="#" class="<?php echo in_array($active_menu??'',['foundation','activity_audit','role','setting'],true)?'active':'';?>"><i class="fa fa-cogs fa-fw"></i><span>Administration</span><span class="fa arrow"></span></a><ul class="nav nav-second-level">
-              <?php if(oecrm_can($conn,'companies','view')):?><li><a href="companies.php"><i class="fa fa-building fa-fw"></i> Companies</a></li><?php endif;?>
-              <?php if(oecrm_can($conn,'roles','view')||check_is_access_new('employee')==1):?><li><a href="all_user_roles.php"><i class="fa fa-user-secret fa-fw"></i> Roles</a></li><?php endif;?>
-              <?php if(oecrm_can($conn,'roles','manage_permissions')):?><li><a href="role_permissions.php"><i class="fa fa-key fa-fw"></i> Permissions</a></li><?php endif;?>
-              <?php if(oecrm_can($conn,'activity_audit','view')||oecrm_can($conn,'audit','view')):?><li><a href="audit_logs.php"><i class="fa fa-shield fa-fw"></i> Activity & Audit</a></li><?php endif;?>
-              <?php if(oecrm_can($conn,'backups','view')):?><li><a href="databaseMaintenance.php"><i class="fa fa-database fa-fw"></i> Database Backups</a></li><?php endif;?>
-              <?php if(check_is_access_new('settings')==1):?><li><a href="manageHoliday.php"><i class="fa fa-calendar fa-fw"></i> Holiday Calendar</a></li><li><a href="manageLeaveType.php"><i class="fa fa-calendar-plus-o fa-fw"></i> Leave Types</a></li><li><a href="addcountry.php"><i class="fa fa-flag fa-fw"></i> Countries</a></li><li><a href="manageEmployeeLoginLog.php"><i class="fa fa-sign-in fa-fw"></i> Legacy Login Log</a></li><?php endif;?>
-            </ul></li>
+            echo '<li class="erp-nav-label">System</li>';
+            admin_sidebar_parent('Settings', 'fa-cogs', [
+              ['href'=>'companies.php','label'=>'Companies','icon'=>'fa-building','show'=>oecrm_can($conn,'companies','view'),'pages'=>['companies.php']],
+              ['href'=>'all_user_roles.php','label'=>'Roles','icon'=>'fa-user-secret','show'=>oecrm_can($conn,'roles','view')||check_is_access_new('employee')==1,'pages'=>['all_user_roles.php','add_user_roles.php']],
+              ['href'=>'role_permissions.php','label'=>'Permissions','icon'=>'fa-key','show'=>oecrm_can($conn,'roles','manage_permissions'),'pages'=>['role_permissions.php']],
+              ['href'=>'audit_logs.php','label'=>'Activity Logs','icon'=>'fa-shield','show'=>oecrm_can($conn,'activity_audit','view')||oecrm_can($conn,'audit','view'),'pages'=>['audit_logs.php']],
+              ['href'=>'manageEmployeeLoginLog.php','label'=>'Employee Login Logs','icon'=>'fa-sign-in','show'=>check_is_access_new('settings')==1,'pages'=>['manageEmployeeLoginLog.php']],
+              ['href'=>'addcountry.php','label'=>'Countries / States / Cities','icon'=>'fa-flag','show'=>check_is_access_new('settings')==1,'pages'=>['addcountry.php']],
+              ['href'=>'databaseMaintenance.php','label'=>'Database Backups','icon'=>'fa-database','show'=>oecrm_can($conn,'backups','view'),'pages'=>['databaseMaintenance.php']],
+            ], $adminCurrentPage);
+            ?>
           </ul>        </div>
         <!-- /.sidebar-collapse -->
       </div>
@@ -210,6 +277,7 @@
         </div>
       </div>
     </header>
+
 
 
 

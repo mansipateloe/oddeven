@@ -25,6 +25,35 @@ function employee_nav_class($pages, $currentPage)
 {
    return in_array($currentPage, (array) $pages, true) ? ' class="active"' : '';
 }
+function employee_sidebar_is_active($pages, $currentPage)
+{
+   return in_array($currentPage, (array) $pages, true);
+}
+function employee_sidebar_link($href, $label, $icon, $currentPage, $pages = null)
+{
+   $matchPages = $pages ?: [$href];
+   $active = employee_sidebar_is_active($matchPages, $currentPage) ? ' class="active"' : '';
+   echo '<li><a href="' . htmlspecialchars($href, ENT_QUOTES, 'UTF-8') . '"' . $active . '><i class="fa ' . htmlspecialchars($icon, ENT_QUOTES, 'UTF-8') . ' fa-fw"></i><span>' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</span></a></li>';
+}
+function employee_sidebar_parent($label, $icon, $items, $currentPage)
+{
+   $isActive = false;
+   foreach ($items as $item) {
+      if (employee_sidebar_is_active($item['pages'] ?? [$item['href']], $currentPage)) {
+         $isActive = true;
+         break;
+      }
+   }
+   $class = 'oecrm-sidebar-parent' . ($isActive ? ' active open' : '');
+   $style = $isActive ? ' style="display:block"' : '';
+   echo '<li class="' . $class . '">';
+   echo '<a href="#" aria-expanded="' . ($isActive ? 'true' : 'false') . '"><i class="fa ' . htmlspecialchars($icon, ENT_QUOTES, 'UTF-8') . ' fa-fw"></i><span>' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</span><span class="fa arrow"></span></a>';
+   echo '<ul class="nav nav-second-level"' . $style . '>';
+   foreach ($items as $item) {
+      employee_sidebar_link($item['href'], $item['label'], $item['icon'], $currentPage, $item['pages'] ?? null);
+   }
+   echo '</ul></li>';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -73,21 +102,19 @@ function employee_nav_class($pages, $currentPage)
                   </div>
                </li>
                <li class="erp-nav-label">My Workspace</li>
-               <li><a href="home.php"<?php echo employee_nav_class('home.php', $currentEmployeePage); ?>><i class="fa fa-tachometer fa-fw"></i> Dashboard</a></li>
-               <li><a href="dashboard.php"<?php echo employee_nav_class('dashboard.php', $currentEmployeePage); ?>><i class="fa fa-calendar-check-o fa-fw" aria-hidden="true"></i>Attendance</a></li>
-               <li<?php echo in_array($currentEmployeePage, $projectPages, true) ? ' class="active open"' : ''; ?>>
-                  <a href="#"><i class="fa fa-briefcase fa-fw" aria-hidden="true"></i>Projects<span class="fa arrow"></span></a>
-                  <ul class="nav nav-second-level"<?php echo in_array($currentEmployeePage, $projectPages, true) ? ' style="display:block"' : ''; ?>>
-                     <li><a href="viewProject.php"<?php echo employee_nav_class('viewProject.php', $currentEmployeePage); ?>><i class="fa fa-folder-open fa-fw" aria-hidden="true"></i>View all Projects</a></li>
-                     <li><a href="viewTask.php"<?php echo employee_nav_class('viewTask.php', $currentEmployeePage); ?>><i class="fa fa-check-square-o fa-fw" aria-hidden="true"></i>View all Task</a></li>
-                     <li><a href="timesheets.php"<?php echo employee_nav_class('timesheets.php', $currentEmployeePage); ?>><i class="fa fa-clock-o fa-fw" aria-hidden="true"></i>Timesheets</a></li>
-                     
-                  </ul>
-               </li>
+               <?php employee_sidebar_link('home.php', 'Dashboard', 'fa-tachometer', $currentEmployeePage, ['home.php']); ?>
+               <?php employee_sidebar_link('dashboard.php', 'Attendance', 'fa-calendar-check-o', $currentEmployeePage, ['dashboard.php']); ?>
+               <?php
+                  employee_sidebar_parent('Projects', 'fa-briefcase', [
+                     ['href' => 'viewProject.php', 'label' => 'My Projects', 'icon' => 'fa-folder-open', 'pages' => ['viewProject.php', 'manageProject.php', 'editProject.php']],
+                     ['href' => 'viewTask.php', 'label' => 'My Tasks', 'icon' => 'fa-check-square-o', 'pages' => ['viewTask.php', 'addTask.php', 'editTask.php']],
+                     ['href' => 'timesheets.php', 'label' => 'Timesheets', 'icon' => 'fa-clock-o', 'pages' => ['timesheets.php']],
+                  ], $currentEmployeePage);
+               ?>
                <li class="erp-nav-label">Company & HR</li>
-               <li><a href="notices.php"<?php echo employee_nav_class('notices.php', $currentEmployeePage); ?>><i class="fa fa-bullhorn fa-fw" aria-hidden="true"></i>Notices</a></li>
-               <li><a href="holidays.php"<?php echo employee_nav_class('holidays.php', $currentEmployeePage); ?>><i class="fa fa-calendar fa-fw" aria-hidden="true"></i>Holidays</a></li>
-               <li><a href="leave_index.php"<?php echo employee_nav_class('leave_index.php', $currentEmployeePage); ?>><i class="fa fa-calendar-minus-o fa-fw" aria-hidden="true"></i>Leaves</a></li>
+               <?php employee_sidebar_link('notices.php', 'Notices', 'fa-bullhorn', $currentEmployeePage, ['notices.php', 'dashboardNotices.php']); ?>
+               <?php employee_sidebar_link('holidays.php', 'Holidays', 'fa-calendar', $currentEmployeePage, ['holidays.php']); ?>
+               <?php employee_sidebar_link('leave_index.php', 'Leaves', 'fa-calendar-minus-o', $currentEmployeePage, ['leave_index.php']); ?>
                </ul>
             </div>
          </div>
