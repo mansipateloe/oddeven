@@ -2,13 +2,17 @@
 $active_menu = 'projects';
 include 'header.php';
 require_once __DIR__ . '/../foundation.php';
+require_once __DIR__ . '/../projectDeadlineHelpers.php';
 
 $companyId = oecrm_current_company_id($conn);
+oecrm_project_deadline_ensure_schema($conn);
 $id = (int) ($_GET['id'] ?? 0);
 oecrm_require_permission($conn, 'projects', $id ? 'edit' : 'create');
 
 $project = null;
 $selectedTeam = [];
+$originalDeadline = null;
+$currentDeadline = null;
 if ($id) {
     $stmt = mysqli_prepare($conn, 'SELECT * FROM projectstbl WHERE id=? AND company_id=?');
     mysqli_stmt_bind_param($stmt, 'ii', $id, $companyId);
@@ -23,6 +27,8 @@ if ($id) {
     while ($teamRow = mysqli_fetch_assoc($teamResult)) {
         $selectedTeam[] = (int) $teamRow['employee_id'];
     }
+    $originalDeadline = oecrm_project_original_deadline($project);
+    $currentDeadline = oecrm_project_current_deadline($project);
 }
 
 $clients = mysqli_query($conn, 'SELECT id,display_name FROM clients WHERE company_id=' . (int) $companyId . ' AND status IN ("active","prospect") ORDER BY display_name');
@@ -39,7 +45,7 @@ unset($_SESSION['project_error']);
     <div class="panel panel-default">
         <div class="panel-heading">Project Setup</div>
         <div class="panel-body">
-            <style>.resource-form select.form-control{height:38px}.resource-form select[multiple].form-control{height:160px;padding:8px}.resource-form small{color:#667085}</style>
+            <style>.resource-form select.form-control{height:38px}.resource-form select[multiple].form-control{height:160px;padding:8px}.resource-form small{color:#667085}.deadline-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 16px}.deadline-summary div{border:1px solid #e4e7ec;border-radius:10px;padding:12px;background:#f8f9ff}.deadline-summary small{display:block;text-transform:uppercase;letter-spacing:.04em}.deadline-summary strong{display:block;color:#18213b;font-size:15px;margin-top:4px}</style>
             <form method="post" action="projectModernAction.php" class="resource-form">
                 <?php echo oecrm_csrf_field(); ?>
                 <input type="hidden" name="action" value="<?php echo $id ? 'update_project' : 'create_project'; ?>">
@@ -57,9 +63,18 @@ unset($_SESSION['project_error']);
                 <div class="form-group"><label>Status</label><select class="form-control" name="status"><?php foreach (['pending', 'inprogress', 'completed', 'cancel'] as $value): ?><option value="<?php echo $value; ?>" <?php echo ($project['status'] ?? 'pending') === $value ? 'selected' : ''; ?>><?php echo ucwords(str_replace('_', ' ', $value)); ?></option><?php endforeach; ?></select></div>
                 <div class="form-group"><label>Priority</label><select class="form-control" name="priority"><?php foreach (['low', 'medium', 'high', 'critical'] as $value): ?><option value="<?php echo $value; ?>" <?php echo ($project['priority'] ?? 'medium') === $value ? 'selected' : ''; ?>><?php echo ucfirst($value); ?></option><?php endforeach; ?></select></div>
                 <div class="form-group"><label>Start Date</label><input class="form-control" type="date" name="start_date" value="<?php echo oecrm_h($project['startdate'] ?? date('Y-m-d')); ?>" required></div>
-                <div class="form-group"><label>Deadline</label><input class="form-control" type="date" name="end_date" value="<?php echo oecrm_h(($project['enddate'] ?? '') === '0000-00-00' ? '' : ($project['enddate'] ?? '')); ?>"><small class="text-muted">Optional</small></div>
+                <?php if ($id): ?>
+                    <div class="deadline-summary">
+                        <div><small>Original Deadline</small><strong><?php echo oecrm_h(oecrm_project_deadline_format($originalDeadline)); ?></strong></div>
+                        <div><small>Current Deadline</small><strong><?php echo oecrm_h(oecrm_project_deadline_format($currentDeadline)); ?></strong></div>
+                        <div><small>Extensions</small><strong><?php echo (int) ($project['deadline_extended_count'] ?? 0); ?></strong></div>
+                    </div>
+                <?php endif; ?>
+                <div class="form-group"><label>Current Deadline</label><input class="form-control" type="date" name="end_date" value="<?php echo oecrm_h($currentDeadline ?: (($project['enddate'] ?? '') === '0000-00-00' ? '' : ($project['enddate'] ?? ''))); ?>"><small class="text-muted">Optional. If you change existing deadline, enter reason below.</small></div>
                 <div class="form-group"><label>Budget Amount</label><input class="form-control" type="number" min="0" step=".01" name="budget" value="<?php echo oecrm_h($project['amount'] ?? ''); ?>"></div>
+                <div class="form-group"><label>Extra Scope Value</label><input class="form-control" type="number" min="0" step=".01" name="extra_scope_value" value="<?php echo oecrm_h($project['extra_scope_value'] ?? '0'); ?>"><small class="text-muted">Additional approved value for extra work/tasks.</small></div>
                 <div class="form-group"><label>Budget Hours</label><input class="form-control" type="number" min="0" step=".25" name="budget_hours" value="<?php echo oecrm_h($project['budget_hours'] ?? ''); ?>"></div>
+                <?php if ($id): ?><div class="form-group resource-notes"><label>Deadline Change Reason</label><textarea class="form-control" name="deadline_reason" rows="2" placeholder="Required only when changing current deadline"></textarea></div><?php endif; ?>
                 <div class="form-group">
                     <label>Team Members</label>
                     <select class="form-control" name="team[]" multiple size="7" required>

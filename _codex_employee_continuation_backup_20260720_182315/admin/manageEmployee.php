@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/dbconnect.php';
 require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../foundation.php';
@@ -116,7 +116,6 @@ $employees = mysqli_stmt_get_result($stmt);
                             <td class="employee-actions">
                                 <a class="icon-action" href="employeeProfile.php?id=<?php echo (int) $employee['id']; ?>" title="Employee Profile" aria-label="Employee Profile"><i class="fa fa-user"></i></a>
                                 <a class="icon-action" href="editEmployee.php?edit=<?php echo (int) $employee['id']; ?>" title="Edit" aria-label="Edit Employee"><i class="fa fa-pencil"></i></a>
-                                <a class="icon-action" href="employeeContinuations.php?employee_id=<?php echo (int) $employee['id']; ?>#renewForm" title="Renew / Continue" aria-label="Renew Employee"><i class="fa fa-refresh"></i></a>
                                 <form method="post" action="deleteEmployee.php" style="display:inline;">
                                     <?php echo oecrm_csrf_field(); ?>
                                     <input type="hidden" name="delete" value="<?php echo (int) $employee['id']; ?>">
@@ -136,5 +135,3 @@ $employees = mysqli_stmt_get_result($stmt);
 mysqli_stmt_close($stmt);
 include 'footer.php';
 ?>
-
-

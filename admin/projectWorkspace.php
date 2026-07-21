@@ -2,11 +2,19 @@
 $active_menu = 'projects';
 include 'header.php';
 require_once __DIR__ . '/../foundation.php';
+require_once __DIR__ . '/../projectDeadlineHelpers.php';
 
 oecrm_require_permission($conn, 'projects', 'view');
 $companyId = oecrm_current_company_id($conn);
-$stats = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT COUNT(*) total,SUM(status="pending") pending,SUM(status="inprogress") active,SUM(status="completed") completed,SUM(enddate<CURDATE() AND status NOT IN ("completed","cancel")) overdue FROM projectstbl WHERE company_id=' . (int) $companyId));
-$projects = mysqli_query($conn, 'SELECT p.*,c.display_name client_name,(SELECT COUNT(*) FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=p.id) task_count,(SELECT COUNT(*) FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=p.id AND t.status IN ("closed","completed","2")) done_tasks,(SELECT COUNT(*) FROM project_team_members tm WHERE tm.project_id=p.id AND tm.left_at IS NULL) team_count FROM projectstbl p LEFT JOIN clients c ON c.id=p.client_id WHERE p.company_id=' . (int) $companyId . ' ORDER BY FIELD(p.status,"inprogress","pending","completed","cancel"),p.enddate');
+oecrm_project_deadline_ensure_schema($conn);
+$deadlineExpr = 'COALESCE(NULLIF(current_deadline,"0000-00-00"),NULLIF(enddate,"0000-00-00"))';
+$stats = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT COUNT(*) total,SUM(status="pending") pending,SUM(status="inprogress") active,SUM(status="completed") completed,SUM(' . $deadlineExpr . '<CURDATE() AND status NOT IN ("completed","cancel")) overdue FROM projectstbl WHERE company_id=' . (int) $companyId));
+$projects = mysqli_query($conn, 'SELECT p.*,c.display_name client_name,
+    (SELECT COUNT(*) FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=p.id AND t.company_id=p.company_id) task_count,
+    (SELECT COUNT(*) FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=p.id AND t.company_id=p.company_id AND t.status IN ("closed","completed","2")) done_tasks,
+    (SELECT COUNT(*) FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=p.id AND t.company_id=p.company_id AND NULLIF(t.expectedDate,"0000-00-00") > COALESCE(NULLIF(p.current_deadline,"0000-00-00"),NULLIF(p.enddate,"0000-00-00"))) risk_tasks,
+    (SELECT COUNT(*) FROM project_team_members tm WHERE tm.project_id=p.id AND tm.left_at IS NULL) team_count
+    FROM projectstbl p LEFT JOIN clients c ON c.id=p.client_id WHERE p.company_id=' . (int) $companyId . ' ORDER BY FIELD(p.status,"inprogress","pending","completed","cancel"),COALESCE(NULLIF(p.current_deadline,"0000-00-00"),NULLIF(p.enddate,"0000-00-00")),p.projectName');
 $flash = $_SESSION['project_flash'] ?? '';
 unset($_SESSION['project_flash']);
 ?>
@@ -37,7 +45,11 @@ unset($_SESSION['project_flash']);
                         <td><span class="priority-<?php echo oecrm_h($project['priority']); ?>"><?php echo ucfirst($project['priority']); ?></span></td>
                         <td><?php echo (int) $project['done_tasks']; ?> / <?php echo (int) $project['task_count']; ?></td>
                         <td><div class="project-progress"><span style="width:<?php echo $progress; ?>%"></span></div><small><?php echo $progress; ?>%</small></td>
-                        <td><?php echo !empty($project['enddate']) && $project['enddate'] !== '0000-00-00' ? date('d M Y', strtotime($project['enddate'])) : '-'; ?></td>
+                        <td>
+                            <?php echo oecrm_h(oecrm_project_deadline_format(oecrm_project_current_deadline($project))); ?>
+                            <?php if ((int) ($project['deadline_extended_count'] ?? 0) > 0): ?><br><small><?php echo (int) $project['deadline_extended_count']; ?> extension(s)</small><?php endif; ?>
+                            <?php if ((int) ($project['risk_tasks'] ?? 0) > 0): ?><br><small class="text-warning"><?php echo (int) $project['risk_tasks']; ?> task(s) beyond deadline</small><?php endif; ?>
+                        </td>
                         <td><span class="client-status <?php echo oecrm_h($project['status']); ?>"><?php echo ucfirst($project['status']); ?></span></td>
                         <td>
                             <a class="btn btn-xs btn-primary" title="View" href="projectBoard.php?id=<?php echo (int) $project['id']; ?>"><i class="fa fa-eye"></i></a>
