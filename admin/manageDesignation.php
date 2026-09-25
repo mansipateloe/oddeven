@@ -62,23 +62,6 @@ unset($_SESSION['designation_flash'], $_SESSION['designation_warning']);
     <div class="panel panel-default">
         <div class="panel-heading">Manage Designation</div>
         <div class="panel-body">
-<<<<<<< HEAD
-            <?php if (oecrm_designation_can_manage($conn, 'create')): ?>
-                <form method="post" action="manageDesignation.php" class="exit-init-form" novalidate>
-                    <?php echo oecrm_csrf_field(); ?>
-                    <div class="form-group">
-                        <label for="designation">Designation <span class="text-danger">*</span></label>
-                        <input id="designation" class="form-control" type="text" name="designation" placeholder="Enter designation" required maxlength="255">
-                    </div>
-                    <button class="btn btn-primary" type="submit" name="addDesignation" value="1">
-                        <i class="fa fa-plus"></i> Add Designation
-                    </button>
-                    <a class="btn btn-default" href="manageDesignation.php">Cancel</a>
-                </form>
-            <?php else: ?>
-                <div class="alert alert-warning">You do not have permission to add designations.</div>
-            <?php endif; ?>
-=======
             <style>
                 .designation-form .is-invalid {
                     border-color: #d9534f !important;
@@ -104,7 +87,6 @@ unset($_SESSION['designation_flash'], $_SESSION['designation_warning']);
                 </button>
                 <a class="btn btn-default" href="manageDesignation.php">Cancel</a>
             </form>
->>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
         </div>
     </div>
 

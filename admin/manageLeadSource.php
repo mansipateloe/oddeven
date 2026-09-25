@@ -43,11 +43,7 @@ unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
     <div class="row">
         <div class="col-lg-12">
             <div class="dataTablesbox">
-<<<<<<< HEAD
-                <form role="form" method="POST" action="manageLeadSource.php">
-=======
                 <form id="leadSourceForm" role="form" method="POST" action="" novalidate>
->>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
                     <?php echo oecrm_csrf_field(); ?>
                     <div class="col-lg-4">
                         <div class="form-group">

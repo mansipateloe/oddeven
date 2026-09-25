@@ -84,8 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addFollowupType'])) {
 $followupTypeFlash = $_SESSION['followup_type_flash'] ?? null;
 unset($_SESSION['followup_type_flash']);
 include 'header.php';
-<<<<<<< HEAD
-=======
 
 if (isset($_POST['addFollowupType'])) {
     oecrm_require_csrf();
@@ -130,7 +128,6 @@ if (isset($_POST['addFollowupType'])) {
 $followupTypeFlash = $_SESSION['followup_type_flash'] ?? '';
 $followupTypeFlashType = $_SESSION['followup_type_flash_type'] ?? 'info';
 unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
->>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
 ?>
 <div id="page-wrapper" class="compact-admin-page">
     <?php if ($followupTypeFlash): ?>
@@ -147,41 +144,24 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
                 </div>
             <?php endif; ?>
             <div class="dataTablesbox">
-<<<<<<< HEAD
-                <form role="form" method="POST" action="manageFollowupType.php" novalidate>
-                    <?php echo oecrm_csrf_field(); ?>
-                    <div class="col-lg-4">
-                        <div class="form-group">
-                            <label>Followup Type <span class="text-danger">*</span></label>
-                            <input class="form-control" value="" required maxlength="100" type="text" name="name">
-=======
                 <form id="followupTypeForm" role="form" method="POST" action="" novalidate>
                     <?php echo oecrm_csrf_field(); ?>
                     <div class="col-lg-4">
                         <div class="form-group">
                             <label>Followup Type</label>
                             <input id="followupTypeName" class="form-control" value="" type="text" name="name" placeholder="Enter follow-up type">
->>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
                         </div>
                     </div>
                     <div class="col-lg-2" style="margin-left: 20px;">
                         <br>
                         <div class="form-group" align="right">
-<<<<<<< HEAD
-                            <button class="btn btn-primary" type="submit" name="addFollowupType" value="1" style="margin-top: 7px;"><i class="fa fa-plus"></i> Add Followup Type</button>
-=======
                             <input class="btn btn-primary" type="submit" name="addFollowupType" value="Add Followup Type" style="margin-top: 7px; margin-left: 10px;">
->>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
                         </div>
                     </div>
                     <div class="col-lg-2" style="margin-left: 10px;">
                         <br>
                         <div class="form-group" align="left">
-<<<<<<< HEAD
-                            <a class="btn btn-default cancel_btn" href="followup.php" style="margin-top: 7px;">Cancel</a>
-=======
                             <a class="btn btn-danger cancel_btn" href="followup.php" style="margin-top: 7px; margin-left: 10px;">Cancel</a>
->>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
                         </div>
                     </div>
                 </form>
@@ -197,32 +177,6 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
                     <div class="panel-body">
                         <div class="table-responsive">
                             <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example" style="width: 100%;">
-<<<<<<< HEAD
-                                <thead>
-                                    <tr>
-                                        <th>No.</th>
-                                        <th>Title</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $result = mysqli_query($conn, 'SELECT id,name FROM followup_type_tbl ORDER BY name');
-                                    if ($result && mysqli_num_rows($result) > 0) {
-                                        while ($row = mysqli_fetch_assoc($result)) {
-                                            echo "<tr>";
-                                            echo "<td>" . (int) $row['id'] . "</td>";
-                                            echo "<td>" . oecrm_h($row['name']) . "</td>";
-                                            echo '<td class="center" align="center"><form method="post" action="deleteFollowupType.php" style="display:inline;">' . oecrm_csrf_field() . '<input type="hidden" name="deleteFollowupType" value="' . (int) $row['id'] . '"><button type="submit" class="btn btn-link oecrm-action-btn oecrm-action-danger" style="padding:0;border:0;" data-confirm="Are you sure you want to delete this Follow-up Type?" title="Delete"><i class="fa fa-trash-o"></i></button></form></td>';
-                                            echo "</tr>";
-                                        }
-                                    } else {
-                                        echo '<tr><td colspan="3">Nothing to display</td></tr>';
-                                    }
-                                    ?>
-                                </tbody>
-                            </table>
-=======
                                         <thead>
                                             <tr role="row">
                                                 <th tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Rendering engine: activate to sort column descending" style="width: 170px;">No.</th>
@@ -251,7 +205,6 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
                                             ?>
                                         </tbody>
                                     </table>
->>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
                         </div>
                     </div>
                 </div>
