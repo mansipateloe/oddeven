@@ -23,7 +23,7 @@
                             </div>
                             <div class="panel-body">
 
-                                <form role="form" method="POST" action="employeeSave.php">
+                                <form id="employeeForm" role="form" method="POST" action="employeeSave.php" novalidate>
 <?php echo oecrm_csrf_field(); ?><input type="hidden" name="mode" value="create">
                                     <div class="employee-form-section">
                                         <h4><i class="fa fa-building-o"></i> Organization & Employment</h4>
@@ -285,4 +285,97 @@
       if(company){company.addEventListener('change',filterDepartments);filterDepartments();}
     }());
     </script>
+    <script>
+    (function () {
+        var form = document.getElementById('employeeForm');
+        if (!form) return;
+
+        var requiredFields = [
+            'company_id',
+            'employeeCode',
+            'designation',
+            'name',
+            'employeeUname',
+            'employeeUpass',
+            'companyEmail',
+            'joiningDate'
+        ];
+
+        function getParentContainer(field) {
+            var parent = field.closest('.form-group');
+            if (parent) return parent;
+            var inputGroup = field.closest('.input-group');
+            if (inputGroup) return inputGroup;
+            return field.parentElement || field;
+        }
+
+        function markField(field, message) {
+            field.classList.add('is-invalid');
+            var parent = getParentContainer(field);
+            if (!parent) return;
+            var error = parent.querySelector('.field-error');
+            if (!error) {
+                error = document.createElement('div');
+                error.className = 'field-error';
+                parent.appendChild(error);
+            }
+            error.textContent = message;
+        }
+
+        function clearField(field) {
+            field.classList.remove('is-invalid');
+            var parent = getParentContainer(field);
+            if (!parent) return;
+            var error = parent.querySelector('.field-error');
+            if (error) error.remove();
+        }
+
+        requiredFields.forEach(function (name) {
+            var field = form.querySelector('[name="' + name + '"]');
+            if (!field) return;
+            field.addEventListener('input', function () {
+                if (field.value && field.value.trim() !== '') clearField(field);
+            });
+            field.addEventListener('change', function () {
+                if (field.value && field.value.trim() !== '') clearField(field);
+            });
+        });
+
+        form.addEventListener('submit', function (event) {
+            var valid = true;
+            requiredFields.forEach(function (name) {
+                var field = form.querySelector('[name="' + name + '"]');
+                if (!field) return;
+                if (!field.value || field.value.trim() === '') {
+                    valid = false;
+                    markField(field, 'This field is required.');
+                } else {
+                    clearField(field);
+                }
+            });
+
+            if (!valid) {
+                event.preventDefault();
+                var firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    })();
+    </script>
+    <style>
+        .employee-form-page .is-invalid {
+            border-color: #d9534f !important;
+            box-shadow: 0 0 0 0.2rem rgba(217, 83, 79, 0.15) !important;
+        }
+        .employee-form-page .field-error {
+            display: block;
+            color: #d9534f;
+            font-size: 12px;
+            margin-top: 6px;
+            line-height: 1.3;
+        }
+    </style>
 <?php include 'footer.php'; ?>

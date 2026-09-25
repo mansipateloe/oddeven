@@ -6,7 +6,7 @@ require_once __DIR__ . '/../foundation.php';
 oecrm_require_permission($conn, 'projects', 'view');
 $companyId = oecrm_current_company_id($conn);
 $stats = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT COUNT(*) total,SUM(status="pending") pending,SUM(status="inprogress") active,SUM(status="completed") completed,SUM(enddate<CURDATE() AND status NOT IN ("completed","cancel")) overdue FROM projectstbl WHERE company_id=' . (int) $companyId));
-$projects = mysqli_query($conn, 'SELECT p.*,c.display_name client_name,(SELECT COUNT(*) FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=p.id) task_count,(SELECT COUNT(*) FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=p.id AND t.status IN ("closed","completed","2")) done_tasks,(SELECT COUNT(*) FROM project_team_members tm WHERE tm.project_id=p.id AND tm.left_at IS NULL) team_count FROM projectstbl p LEFT JOIN clients c ON c.id=p.client_id WHERE p.company_id=' . (int) $companyId . ' ORDER BY FIELD(p.status,"inprogress","pending","completed","cancel"),p.enddate');
+$projects = mysqli_query($conn, 'SELECT p.*,c.display_name client_name,(SELECT COUNT(*) FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=p.id) task_count,(SELECT COUNT(*) FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=p.id AND t.status IN ("closed","completed","2")) done_tasks,(SELECT COUNT(*) FROM project_team_members tm WHERE tm.project_id=p.id AND tm.left_at IS NULL) team_count FROM projectstbl p LEFT JOIN clients c ON c.id=p.client_id WHERE p.company_id=' . (int) $companyId . ' ORDER BY FIELD(p.status,"inprogress","pending","completed","cancel"), p.id DESC');
 $flash = $_SESSION['project_flash'] ?? '';
 unset($_SESSION['project_flash']);
 ?>

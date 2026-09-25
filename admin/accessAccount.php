@@ -1,3 +1,158 @@
 <?php
-$active_menu='access_management';include 'header.php';require_once __DIR__.'/../foundation.php';$id=(int)($_GET['id']??0);oecrm_require_permission($conn,'access_management',$id?'edit':'create');$companyId=oecrm_current_company_id($conn);$a=['id'=>0,'service_type'=>'gmail','service_name'=>'','login_url'=>'','account_username'=>'','owner_email'=>'','status'=>'active','notes'=>''];if($id){$a=mysqli_fetch_assoc(mysqli_query($conn,'SELECT * FROM access_accounts WHERE id='.$id.' AND company_id='.$companyId));if(!$a)exit('Account not found.');}$employees=mysqli_query($conn,'SELECT id,employeeCode,name FROM employeestbl WHERE company_id='.$companyId.' AND status=0 ORDER BY name');$assignments=$id?mysqli_query($conn,'SELECT x.*,e.name,e.employeeCode FROM access_assignments x JOIN employeestbl e ON e.id=x.employee_id WHERE x.account_id='.$id.' ORDER BY x.status,x.assigned_on DESC'):null;$error=$_SESSION['access_error']??'';unset($_SESSION['access_error']);
-?><div id="page-wrapper" class="compact-admin-page resource-form-page"><div class="foundation-titlebar"><a href="accessManagement.php"><i class="fa fa-arrow-left"></i> Access Register</a><h2><?php echo $id?'Access Account':'New Access Account';?></h2></div><?php if($error):?><div class="alert alert-danger"><?php echo oecrm_h($error);?></div><?php endif;?><div class="asset-layout"><section><div class="panel panel-default"><div class="panel-heading">Account Details</div><div class="panel-body"><form method="post" action="accessAction.php" class="resource-form"><?php echo oecrm_csrf_field();?><input type="hidden" name="action" value="save"><input type="hidden" name="id" value="<?php echo $id;?>"><div class="form-group"><label>Service Type</label><select class="form-control" name="service_type"><?php foreach(['gmail','github','gitlab','aws','digitalocean','figma','chatgpt','claude','hosting','domain','vpn','other'] as $v):?><option value="<?php echo $v;?>" <?php echo $a['service_type']===$v?'selected':'';?>><?php echo ucfirst($v);?></option><?php endforeach;?></select></div><div class="form-group"><label>Service Name</label><input class="form-control" name="service_name" value="<?php echo oecrm_h($a['service_name']);?>" required></div><div class="form-group"><label>Login URL</label><input class="form-control" type="url" name="login_url" value="<?php echo oecrm_h($a['login_url']);?>"></div><div class="form-group"><label>Username</label><input class="form-control" name="account_username" value="<?php echo oecrm_h($a['account_username']);?>"></div><div class="form-group"><label>Owner / Recovery Email</label><input class="form-control" type="email" name="owner_email" value="<?php echo oecrm_h($a['owner_email']);?>"></div><div class="form-group"><label>Status</label><select class="form-control" name="status"><?php foreach(['active','suspended','closed'] as $v):?><option value="<?php echo $v;?>" <?php echo $a['status']===$v?'selected':'';?>><?php echo ucfirst($v);?></option><?php endforeach;?></select></div><div class="form-group resource-notes"><label>Notes</label><textarea class="form-control" name="notes"><?php echo oecrm_h($a['notes']);?></textarea></div><div class="resource-actions"><button class="btn btn-primary"><i class="fa fa-save"></i> Save Account</button></div></form></div></div></section><aside><?php if($id):?><div class="panel panel-default"><div class="panel-heading">Assign Employee Access</div><div class="panel-body"><form method="post" action="accessAction.php"><?php echo oecrm_csrf_field();?><input type="hidden" name="action" value="assign"><input type="hidden" name="id" value="<?php echo $id;?>"><select class="form-control" name="employee_id" required><option value="">Select employee</option><?php while($e=mysqli_fetch_assoc($employees)):?><option value="<?php echo $e['id'];?>"><?php echo oecrm_h($e['employeeCode'].' - '.$e['name']);?></option><?php endwhile;?></select><br><select class="form-control" name="access_level"><?php foreach(['viewer','member','admin','owner'] as $v):?><option value="<?php echo $v;?>"><?php echo ucfirst($v);?></option><?php endforeach;?></select><br><input class="form-control" type="date" name="expires_on" title="Expiry date"><br><button class="btn btn-success btn-block"><i class="fa fa-user-plus"></i> Assign Access</button></form></div></div><div class="panel panel-default"><div class="panel-heading">Assigned Employees</div><div class="panel-body project-side-list"><?php while($x=mysqli_fetch_assoc($assignments)):?><div><i class="fa fa-user"></i><span><strong><?php echo oecrm_h($x['name']);?></strong><small><?php echo ucfirst($x['access_level']).' | '.ucfirst($x['status']);?></small></span><?php if($x['status']==='active'):?><form method="post" action="accessAction.php"><?php echo oecrm_csrf_field();?><input type="hidden" name="action" value="revoke"><input type="hidden" name="id" value="<?php echo $id;?>"><input type="hidden" name="assignment_id" value="<?php echo $x['id'];?>"><button class="btn btn-danger btn-xs" title="Revoke"><i class="fa fa-times"></i></button></form><?php endif;?></div><?php endwhile;?></div></div><?php endif;?></aside></div></div><?php include 'footer.php';?>
+$active_menu = "access_management";
+include "header.php";
+require_once __DIR__ . "/../foundation.php";
+$id = (int) ($_GET["id"] ?? 0);
+oecrm_require_permission($conn, "access_management", $id ? "edit" : "create");
+$companyId = oecrm_current_company_id($conn);
+$a = [
+    "id" => 0,
+    "service_type" => "gmail",
+    "service_name" => "",
+    "login_url" => "",
+    "account_username" => "",
+    "owner_email" => "",
+    "status" => "active",
+    "notes" => "",
+];
+if ($id) {
+    $a = mysqli_fetch_assoc(
+        mysqli_query(
+            $conn,
+            "SELECT * FROM access_accounts WHERE id=" .
+                $id .
+                " AND company_id=" .
+                $companyId
+        )
+    );
+    if (!$a) {
+        exit("Account not found.");
+    }
+}
+$employees = mysqli_query(
+    $conn,
+    "SELECT id,employeeCode,name FROM employeestbl WHERE company_id=" .
+        $companyId .
+        " AND status=0 ORDER BY name"
+);
+$assignments = $id
+    ? mysqli_query(
+        $conn,
+        "SELECT x.*,e.name,e.employeeCode FROM access_assignments x JOIN employeestbl e ON e.id=x.employee_id WHERE x.account_id=" .
+            $id .
+            " ORDER BY x.status,x.assigned_on DESC"
+    )
+    : null;
+$error = $_SESSION["access_error"] ?? "";
+unset($_SESSION["access_error"]);
+?><div id="page-wrapper" class="compact-admin-page resource-form-page">
+  <div class="foundation-titlebar"><a href="accessManagement.php"><i class="fa fa-arrow-left"></i> Access Register</a>
+    <h2><?php echo $id
+    ? "Access Account"
+    : "New Access Account"; ?></h2>
+  </div><?php if (
+    $error
+): ?><div class="alert alert-danger"><?php echo oecrm_h(
+    $error
+); ?></div><?php endif; ?><div class="asset-layout">
+    <section>
+      <div class="panel panel-default">
+        <div class="panel-heading">Account Details</div>
+        <div class="panel-body">
+          <form method="post" action="accessAction.php" class="resource-form"><?php echo oecrm_csrf_field(); ?><input
+              type="hidden" name="action" value="save"><input type="hidden" name="id" value="<?php echo $id; ?>">
+            <div class="form-group"><label>Service Type</label><select class="form-control" name="service_type"><?php foreach (
+    [
+        "gmail",
+        "github",
+        "gitlab",
+        "aws",
+        "digitalocean",
+        "figma",
+        "chatgpt",
+        "claude",
+        "hosting",
+        "domain",
+        "vpn",
+        "other",
+    ]
+    as $v
+): ?><option value="<?php echo $v; ?>" <?php echo $a["service_type"] === $v
+    ? "selected"
+    : ""; ?>><?php echo ucfirst(
+    $v
+); ?></option><?php endforeach; ?></select></div>
+            <div class="form-group"><label>Service Name</label><input class="form-control" name="service_name" value="<?php echo oecrm_h(
+    $a["service_name"]
+); ?>" required></div>
+            <div class="form-group"><label>Login URL</label><input class="form-control" type="url" name="login_url"
+                value="<?php echo oecrm_h(
+    $a["login_url"]
+); ?>"></div>
+            <div class="form-group"><label>Username</label><input class="form-control" name="account_username" value="<?php echo oecrm_h(
+    $a["account_username"]
+); ?>"></div>
+            <div class="form-group"><label>Owner / Recovery Email</label><input class="form-control" type="email"
+                name="owner_email" value="<?php echo oecrm_h(
+    $a["owner_email"]
+); ?>"></div>
+            <div class="form-group"><label>Status</label><select class="form-control" name="status"><?php foreach (
+    ["active", "suspended", "closed"]
+    as $v
+): ?><option value="<?php echo $v; ?>" <?php echo $a["status"] === $v
+    ? "selected"
+    : ""; ?>><?php echo ucfirst(
+    $v
+); ?></option><?php endforeach; ?></select></div>
+            <div class="form-group resource-notes"><label>Notes</label><textarea class="form-control" name="notes"><?php echo oecrm_h(
+    $a["notes"]
+); ?></textarea></div>
+            <div class="resource-actions"><button class="btn btn-primary"><i class="fa fa-save"></i> Save
+                Account</button></div>
+          </form>
+        </div>
+      </div>
+    </section>
+    <aside><?php if (
+    $id
+): ?><div class="panel panel-default">
+        <div class="panel-heading">Assign Employee Access</div>
+        <div class="panel-body">
+          <form method="post" action="accessAction.php"><?php echo oecrm_csrf_field(); ?><input type="hidden"
+              name="action" value="assign"><input type="hidden" name="id" value="<?php echo $id; ?>"><select
+              class="form-control" name="employee_id" required>
+              <option value="">Select employee</option><?php while (
+    $e = mysqli_fetch_assoc($employees)
+): ?><option value="<?php echo $e["id"]; ?>"><?php echo oecrm_h(
+    $e["employeeCode"] . " - " . $e["name"]
+); ?></option><?php endwhile; ?>
+            </select><br><select class="form-control" name="access_level"><?php foreach (
+    ["viewer", "member", "admin", "owner"]
+    as $v
+): ?><option value="<?php echo $v; ?>"><?php echo ucfirst(
+    $v
+); ?></option><?php endforeach; ?></select><br><input class="form-control" type="date" name="expires_on"
+              title="Expiry date"><br><button class="btn btn-success btn-block"><i class="fa fa-user-plus"></i> Assign
+              Access</button></form>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">Assigned Employees</div>
+        <div class="panel-body project-side-list"><?php while (
+    $x = mysqli_fetch_assoc($assignments)
+): ?><div><i class="fa fa-user"></i><span><strong><?php echo oecrm_h(
+    $x["name"]
+); ?></strong><small><?php echo ucfirst($x["access_level"]) .
+    " | " .
+    ucfirst($x["status"]); ?></small></span><?php if (
+    $x["status"] === "active"
+): ?><form method="post" action="accessAction.php"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action"
+                value="revoke"><input type="hidden" name="id" value="<?php echo $id; ?>"><input type="hidden"
+                name="assignment_id" value="<?php echo $x[
+    "id"
+]; ?>"><button class="btn btn-danger btn-xs" title="Revoke"><i class="fa fa-times"></i></button></form><?php endif; ?>
+          </div><?php endwhile; ?></div>
+      </div><?php endif; ?>
+    </aside>
+  </div>
+</div><?php include "footer.php"; ?>
