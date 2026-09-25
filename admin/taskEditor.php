@@ -94,16 +94,27 @@ unset($_SESSION['task_error']);
                     width:100% !important;
                     box-sizing:border-box;
                 }
+                .resource-form .is-invalid {
+                    border-color: #d9534f !important;
+                    box-shadow: 0 0 0 0.2rem rgba(217, 83, 79, 0.15) !important;
+                }
+                .resource-form .field-error {
+                    display: block;
+                    color: #d9534f;
+                    font-size: 12px;
+                    margin-top: 6px;
+                    line-height: 1.3;
+                }
             </style>
-            <form method="post" action="taskAction.php" class="resource-form" enctype="multipart/form-data">
+            <form id="taskForm" method="post" action="taskAction.php" class="resource-form" enctype="multipart/form-data" novalidate>
                 <?php echo oecrm_csrf_field(); ?>
                 <input type="hidden" name="action" value="<?php echo $id ? 'update_task' : 'create_task'; ?>">
                 <input type="hidden" name="id" value="<?php echo $id; ?>">
                 <input type="hidden" name="project_id" value="<?php echo (int) $projectId; ?>">
-                <div class="form-group"><label>Task Title</label><input class="form-control" name="task_title" required value="<?php echo oecrm_h($task['taskTitle'] ?? ''); ?>"></div>
+                <div class="form-group"><label>Task Title</label><input class="form-control" name="task_title" value="<?php echo oecrm_h($task['taskTitle'] ?? ''); ?>"></div>
                 <div class="form-group">
                     <label>Assign To</label>
-                    <select class="form-control" name="developer_id" required>
+                    <select class="form-control" name="developer_id">
                         <option value="">Select member</option>
                         <?php while ($employee = mysqli_fetch_assoc($team)): ?>
                             <option value="<?php echo (int) $employee['id']; ?>" <?php echo $selectedAssignee === (int) $employee['id'] ? 'selected' : ''; ?>><?php echo oecrm_h($employee['employeeCode'] . ' - ' . $employee['name']); ?></option>
@@ -135,4 +146,66 @@ unset($_SESSION['task_error']);
         </div>
     </div>
 </div>
+<script>
+(function () {
+    var form = document.getElementById('taskForm');
+    if (!form) return;
+
+    var requiredFields = [
+        form.querySelector('input[name="task_title"]'),
+        form.querySelector('select[name="developer_id"]')
+    ].filter(Boolean);
+
+    function markField(field, message) {
+        field.classList.add('is-invalid');
+        var group = field.closest('.form-group');
+        if (!group) return;
+        var error = group.querySelector('.field-error');
+        if (!error) {
+            error = document.createElement('div');
+            error.className = 'field-error';
+            group.appendChild(error);
+        }
+        error.textContent = message;
+    }
+
+    function clearField(field) {
+        field.classList.remove('is-invalid');
+        var group = field.closest('.form-group');
+        if (!group) return;
+        var error = group.querySelector('.field-error');
+        if (error) error.remove();
+    }
+
+    requiredFields.forEach(function (field) {
+        field.addEventListener('input', function () {
+            if (field.value && field.value.trim() !== '') clearField(field);
+        });
+        field.addEventListener('change', function () {
+            if (field.value && field.value.trim() !== '') clearField(field);
+        });
+    });
+
+    form.addEventListener('submit', function (event) {
+        var valid = true;
+        requiredFields.forEach(function (field) {
+            if (!field.value || field.value.trim() === '') {
+                valid = false;
+                markField(field, 'This field is required.');
+            } else {
+                clearField(field);
+            }
+        });
+
+        if (!valid) {
+            event.preventDefault();
+            var firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) {
+                firstInvalid.focus();
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    });
+})();
+</script>
 <?php include 'footer.php'; ?>

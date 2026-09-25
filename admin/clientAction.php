@@ -80,6 +80,28 @@ function oecrm_client_contact_exists(mysqli $conn, int $companyId, string $field
     return $exists;
 }
 
+function oecrm_bind_param_values(mysqli_stmt $stmt, array $values): void
+{
+    $types = '';
+    $refs = [];
+
+    foreach ($values as $value) {
+        if (is_int($value) || is_bool($value)) {
+            $types .= 'i';
+        } elseif (is_float($value)) {
+            $types .= 'd';
+        } else {
+            $types .= 's';
+        }
+    }
+
+    foreach ($values as $key => $value) {
+        $refs[] = &$values[$key];
+    }
+
+    call_user_func_array([$stmt, 'bind_param'], array_merge([$types], $refs));
+}
+
 try {
     if ($action === 'archive_client') {
         $clientId = (int) ($_POST['client_id'] ?? 0);
@@ -136,6 +158,7 @@ try {
 
         $currency = strtoupper(substr(trim($_POST['currency_code'] ?? 'INR'), 0, 3));
         $terms = max(0, (int) ($_POST['payment_terms_days'] ?? 0));
+        $phoneValue = $phone !== '' ? $phone : '';
 
         if ($email === '' && $phone === '') {
             throw new RuntimeException('Please enter at least one contact method: email or phone.');
@@ -180,9 +203,7 @@ try {
                  SET client_code=?, legal_name=?, display_name=?, client_type=?, status=?, industry=?, website=?, email=?, phone=?, billing_address=?, city=?, state=?, country=?, tax_id=?, currency_code=?, payment_terms_days=?, notes=?
                  WHERE id=? AND company_id=?'
             );
-            mysqli_stmt_bind_param(
-                $stmt,
-                'sssssssssssssssisii',
+            oecrm_bind_param_values($stmt, [
                 $code,
                 $legal,
                 $display,
@@ -191,7 +212,7 @@ try {
                 $industry,
                 $website,
                 $email,
-                $phone !== '' ? $phone : '',
+                $phoneValue,
                 $billing_address,
                 $city,
                 $state,
@@ -201,8 +222,8 @@ try {
                 $terms,
                 $notes,
                 $id,
-                $companyId
-            );
+                $companyId,
+            ]);
         } else {
             $old = null;
             $code = oecrm_next_client_code($conn, $companyId);
@@ -211,9 +232,7 @@ try {
                 'INSERT INTO clients(company_id, client_code, legal_name, display_name, client_type, status, industry, website, email, phone, billing_address, city, state, country, tax_id, currency_code, payment_terms_days, notes, created_by)
                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
             );
-            mysqli_stmt_bind_param(
-                $stmt,
-                'issssssssssssssisis',
+            oecrm_bind_param_values($stmt, [
                 $companyId,
                 $code,
                 $legal,
@@ -223,7 +242,7 @@ try {
                 $industry,
                 $website,
                 $email,
-                $phone !== '' ? $phone : '',
+                $phoneValue,
                 $billing_address,
                 $city,
                 $state,
@@ -232,8 +251,8 @@ try {
                 $currency,
                 $terms,
                 $notes,
-                $actor
-            );
+                $actor,
+            ]);
         }
 
         mysqli_stmt_execute($stmt);

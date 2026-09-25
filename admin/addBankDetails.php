@@ -1,20 +1,20 @@
-<?php 
-$active_menu= 'setting';
-$active_submenu='add_bank_details';
-include 'header.php'; 
+<?php
+$active_menu = "setting";
+$active_submenu = "add_bank_details";
 
-if(isset($_GET['edit']))
-{
-    $id = $_GET['edit'];
+
+include "header.php";
+
+if (isset($_GET["edit"])) {
+    $id = $_GET["edit"];
     $update = true;
     $getAccountQry = "select * from bank_details where bank_id = $id";
     $getAccountResult = mysqli_query($conn, $getAccountQry);
     $getAccountRes = mysqli_fetch_assoc($getAccountResult);
     //echo '<pre>'; print_r($getAccountRes);die((__FILE__).'-->'.(__FUNCTION__).'--Line('. (__LINE__).')');
-    $bank_name = $getAccountRes['bank_name'];
-    $id = $getAccountRes['bank_id'];
+    $bank_name = $getAccountRes["bank_name"];
+    $id = $getAccountRes["bank_id"];
 }
-
 ?>
 
 
@@ -37,7 +37,11 @@ if(isset($_GET['edit']))
 
                             <div class="form-group">
 
-                                <input type="text" class="form-control" name="bank_name" value="<?php if(isset($_GET['edit'])){ echo $bank_name; } ?>" required maxlength="20">
+                                <input type="text" class="form-control" name="bank_name" value="<?php if (
+                                    isset($_GET["edit"])
+                                ) {
+                                    echo $bank_name;
+                                } ?>" required maxlength="20">
 
                             </div>
 
@@ -51,13 +55,13 @@ if(isset($_GET['edit']))
                             <div class="form-group">
 
                                 
-                                <?php if($update == false): ?>
+                                <?php if ($update == false): ?>
                                     <input type="submit" class="btn btn-primary viewreport" name="addBankDetails" value="Add">
                                     <input class="btn btn-danger cancel_btn" type="reset" value="Cancel">
                                 <?php else: ?>
                                     <input type="submit" class="btn btn-primary viewreport" name="updateBankDetails" value="Update">
                                     <!-- <input class="btn btn-danger cancel_btn" type="reset" value="Cancel"> -->
-                                <?php endif ?>  
+                                <?php endif; ?>  
 
 
                             </div>
@@ -137,26 +141,37 @@ if(isset($_GET['edit']))
                                     <tbody>
 
                                         <?php
+                                        $qryNotice =
+                                            "SELECT * FROM bank_details";
 
-                                        $qryNotice = "SELECT * FROM bank_details";
-
-                                        $currencyResult = mysqli_query($conn, $qryNotice);
+                                        $currencyResult = mysqli_query(
+                                            $conn,
+                                            $qryNotice
+                                        );
 
                                         if ($currencyResult->num_rows > 0) {
-
-                                            while ($rowNotice = $currencyResult->fetch_assoc()) {
-
+                                            while (
+                                                $rowNotice = $currencyResult->fetch_assoc()
+                                            ) {
                                                 echo "<tr class='gradeA even' role='row'>";
 
-                                                echo "<td>" . $rowNotice['bank_name'] . "</td>";
+                                                echo "<td>" .
+                                                    $rowNotice["bank_name"] .
+                                                    "</td>";
 
-
-                                                echo '<td class="center" align="center"><a href="addBankDetails.php?edit=' . $rowNotice["bank_id"] . '" style="display: inline-block;width: 28px;"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;<a href="addBankDetails.php?bank_delete=' . $rowNotice["bank_id"] . '" onclick="return confirm(\'Are you sure you want to delete?\');" style="display: inline-block;width: 28px;"><i class="fa fa-trash-o"></i></a></td>';
+                                                echo '<td class="center" align="center"><a href="addBankDetails.php?edit=' .
+                                                    $rowNotice["bank_id"] .
+                                                    '" style="display: inline-block;width: 28px;"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;
+                                                    
+                                                    <a href="addBankDetails.php?bank_delete=' .
+                                                    $rowNotice["bank_id"] .
+                                                    '" onclick="return confirm(\'Are you sure you want to delete?\');" style="display: inline-block;width: 28px;"><i class="fa fa-trash-o"></i></a>
+                                                    
+                                                    </td>';
 
                                                 echo "</tr>";
                                             }
                                         }
-
                                         ?>
 
                                     </tbody>
@@ -201,4 +216,4 @@ if(isset($_GET['edit']))
 
 <script src="../dist/js/sb-admin-2.js"></script>
 
-<?php include 'footer.php'; ?>
+<?php include "footer.php"; ?>
