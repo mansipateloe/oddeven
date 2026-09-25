@@ -203,14 +203,7 @@ try {
                  SET client_code=?, legal_name=?, display_name=?, client_type=?, status=?, industry=?, website=?, email=?, phone=?, billing_address=?, city=?, state=?, country=?, tax_id=?, currency_code=?, payment_terms_days=?, notes=?
                  WHERE id=? AND company_id=?'
             );
-<<<<<<< HEAD
-            $phoneValue = $phone !== '' ? $phone : '';
-            mysqli_stmt_bind_param(
-                $stmt,
-                'sssssssssssssssisii',
-=======
             oecrm_bind_param_values($stmt, [
->>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
                 $code,
                 $legal,
                 $display,
@@ -239,14 +232,7 @@ try {
                 'INSERT INTO clients(company_id, client_code, legal_name, display_name, client_type, status, industry, website, email, phone, billing_address, city, state, country, tax_id, currency_code, payment_terms_days, notes, created_by)
                  VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
             );
-<<<<<<< HEAD
-            $phoneValue = $phone !== '' ? $phone : '';
-            mysqli_stmt_bind_param(
-                $stmt,
-                'issssssssssssssisis',
-=======
             oecrm_bind_param_values($stmt, [
->>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
                 $companyId,
                 $code,
                 $legal,
