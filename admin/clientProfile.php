@@ -57,9 +57,11 @@ unset($_SESSION['client_flash'], $_SESSION['client_error']);
                     <style>
                         .client-form select.form-control{height:38px;background:#fff}
                         .client-form .required-field:after{content:" *";color:#d9534f;font-weight:700}
+                        .client-form .is-invalid{border-color:#d9534f !important;box-shadow:0 0 0 0.2rem rgba(217,83,79,0.15) !important}
+                        .client-form .field-error{display:block;color:#d9534f;font-size:12px;margin-top:6px;line-height:1.3}
                         .client-profile-page .panel-heading i{margin-right:8px;color:#2f74e8}
                     </style>
-                    <form method="post" action="clientAction.php" class="client-form" id="clientProfileForm">
+                    <form method="post" action="clientAction.php" class="client-form" id="clientProfileForm" novalidate>
                         <?php echo oecrm_csrf_field(); ?>
                         <input type="hidden" name="action" value="save_client">
                         <input type="hidden" name="id" value="<?php echo $id; ?>">
@@ -227,7 +229,63 @@ document.addEventListener('DOMContentLoaded', function () {
 (function(){
     var form = document.getElementById('clientProfileForm');
     if (!form) return;
+
+    function renderFieldError(field, message) {
+        field.classList.add('is-invalid');
+        var parent = field.closest('.form-group');
+        if (!parent) return;
+        var errorNode = parent.querySelector('.field-error');
+        if (!errorNode) {
+            errorNode = document.createElement('div');
+            errorNode.className = 'field-error';
+            parent.appendChild(errorNode);
+        }
+        errorNode.textContent = message;
+    }
+
+    function clearFieldError(field) {
+        field.classList.remove('is-invalid');
+        var parent = field.closest('.form-group');
+        if (!parent) return;
+        var errorNode = parent.querySelector('.field-error');
+        if (errorNode) errorNode.remove();
+    }
+
+    form.querySelectorAll('input, select, textarea').forEach(function (field) {
+        if (!field.hasAttribute('required')) return;
+        field.addEventListener('input', function () {
+            if (field.value && field.value.trim() !== '') {
+                clearFieldError(field);
+            }
+        });
+        field.addEventListener('change', function () {
+            if (field.value && field.value.trim() !== '') {
+                clearFieldError(field);
+            }
+        });
+    });
+
     form.addEventListener('submit', function (event) {
+        var valid = true;
+        form.querySelectorAll('input[required], select[required], textarea[required]').forEach(function (field) {
+            if (!field.value || field.value.trim() === '') {
+                valid = false;
+                renderFieldError(field, 'Please fill in this field.');
+            } else {
+                clearFieldError(field);
+            }
+        });
+
+        if (!valid) {
+            event.preventDefault();
+            var firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) {
+                firstInvalid.focus();
+                firstInvalid.scrollIntoView({behavior: 'smooth', block: 'center'});
+            }
+            return;
+        }
+
         event.preventDefault();
         var body = new FormData(form);
         body.append('response', 'json');

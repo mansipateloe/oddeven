@@ -1,3 +1,75 @@
 <?php
-$active_menu='projects';include 'header.php';require_once __DIR__.'/../foundation.php';oecrm_require_permission($conn,'project_tasks','view');$companyId=oecrm_current_company_id($conn);$projectId=(int)($_GET['project_id']??0);$projects=mysqli_query($conn,'SELECT id,projectName FROM projectstbl WHERE company_id='.$companyId.' ORDER BY projectName');$where=$projectId?' AND CAST(t.projectId AS UNSIGNED)='.$projectId:'';$tasks=mysqli_query($conn,'SELECT t.*,GROUP_CONCAT(DISTINCT e.name ORDER BY ta.is_primary DESC,e.name SEPARATOR ", ") employee_name FROM tasktbl t LEFT JOIN task_assignees ta ON ta.task_id=t.id LEFT JOIN employeestbl e ON e.id=ta.employee_id WHERE t.company_id='.$companyId.$where.' GROUP BY t.id ORDER BY t.expectedDate');$sprintOptions=[];if($projectId){$sq=mysqli_query($conn,'SELECT id,name FROM project_sprints WHERE project_id='.$projectId.' AND status IN ("planned","active") ORDER BY start_date');while($sp=mysqli_fetch_assoc($sq))$sprintOptions[]=$sp;}$cols=['backlog'=>[],'todo'=>[],'in_progress'=>[],'review'=>[],'done'=>[]];while($t=mysqli_fetch_assoc($tasks))$cols[$t['board_status']][]=$t;
-?><div id="page-wrapper" class="compact-admin-page"><div class="foundation-titlebar"><a href="projectWorkspace.php"><i class="fa fa-arrow-left"></i> Projects</a><h2>Project Kanban</h2><a href="sprints.php<?php echo $projectId?'?project_id='.$projectId:'';?>" class="btn btn-default btn-sm">Manage Sprints</a></div><form method="get" class="finance-month-filter"><select class="form-control" name="project_id" onchange="this.form.submit()"><option value="">All projects</option><?php while($p=mysqli_fetch_assoc($projects)):?><option value="<?php echo $p['id'];?>" <?php echo $projectId==$p['id']?'selected':'';?>><?php echo oecrm_h($p['projectName']);?></option><?php endwhile;?></select></form><div class="kanban-board"><?php foreach($cols as $key=>$items):?><section><h4><?php echo ucwords(str_replace('_',' ',$key));?> <span><?php echo count($items);?></span></h4><?php foreach($items as $t):?><div class="kanban-task"><strong><?php echo oecrm_h($t['taskTitle']);?></strong><small><?php echo oecrm_h($t['employee_name']?:'Unassigned');?></small><?php if($projectId&&$sprintOptions):?><form method="post" action="sprintAction.php"><?php echo oecrm_csrf_field();?><input type="hidden" name="action" value="assign_task"><input type="hidden" name="task_id" value="<?php echo $t['id'];?>"><input type="hidden" name="project_id" value="<?php echo $projectId;?>"><select name="sprint_id" onchange="this.form.submit()"><option value="0">No sprint</option><?php foreach($sprintOptions as $sp):?><option value="<?php echo $sp['id'];?>" <?php echo $t['sprint_id']==$sp['id']?'selected':'';?>><?php echo oecrm_h($sp['name']);?></option><?php endforeach;?></select></form><?php endif;?><form method="post" action="kanbanAction.php"><?php echo oecrm_csrf_field();?><input type="hidden" name="id" value="<?php echo $t['id'];?>"><input type="hidden" name="project_id" value="<?php echo $projectId;?>"><select name="board_status" onchange="this.form.submit()"><?php foreach(array_keys($cols) as $v):?><option value="<?php echo $v;?>" <?php echo $t['board_status']===$v?'selected':'';?>><?php echo ucwords(str_replace('_',' ',$v));?></option><?php endforeach;?></select></form></div><?php endforeach;?></section><?php endforeach;?></div></div><?php include 'footer.php';?>
+$active_menu = 'projects';
+include 'header.php';
+require_once __DIR__ . '/../foundation.php';
+oecrm_require_permission($conn, 'project_tasks', 'view');
+$companyId = oecrm_current_company_id($conn);
+$projectId = (int) ($_GET['project_id'] ?? 0);
+$projects = mysqli_query($conn, 'SELECT id,projectName FROM projectstbl WHERE company_id=' . $companyId . ' ORDER BY projectName');
+$where = $projectId ? ' AND CAST(t.projectId AS UNSIGNED)=' . $projectId : '';
+$tasks = mysqli_query($conn, 'SELECT t.*,GROUP_CONCAT(DISTINCT e.name ORDER BY ta.is_primary DESC,e.name SEPARATOR ", ") employee_name FROM tasktbl t LEFT JOIN task_assignees ta ON ta.task_id=t.id LEFT JOIN employeestbl e ON e.id=ta.employee_id WHERE t.company_id=' . $companyId . $where . ' GROUP BY t.id ORDER BY t.expectedDate');
+$sprintOptions = [];
+if ($projectId) {
+    $sq = mysqli_query($conn, 'SELECT id,name FROM project_sprints WHERE project_id=' . $projectId . ' AND status IN ("planned","active") ORDER BY start_date');
+    while ($sp = mysqli_fetch_assoc($sq)) {
+        $sprintOptions[] = $sp;
+    }
+}
+$cols = ['backlog' => [], 'todo' => [], 'in_progress' => [], 'review' => [], 'done' => []];
+while ($t = mysqli_fetch_assoc($tasks)) {
+    $cols[$t['board_status']][] = $t;
+}
+?>
+<div id="page-wrapper" class="compact-admin-page">
+    <div class="foundation-titlebar">
+        <a href="projectWorkspace.php"><i class="fa fa-arrow-left"></i> Projects</a>
+        <h2>Project Kanban</h2>
+        <a href="sprints.php<?php echo $projectId ? '?project_id=' . $projectId : ''; ?>" class="btn btn-default btn-sm">Manage Sprints</a>
+    </div>
+    <form method="get" class="finance-month-filter">
+        <select class="form-control" name="project_id" onchange="this.form.submit()">
+            <option value="">All projects</option>
+            <?php while ($p = mysqli_fetch_assoc($projects)): ?>
+                <option value="<?php echo $p['id']; ?>" <?php echo $projectId == $p['id'] ? 'selected' : ''; ?>><?php echo oecrm_h($p['projectName']); ?></option>
+            <?php endwhile; ?>
+        </select>
+    </form>
+    <div class="kanban-board">
+        <?php foreach ($cols as $key => $items): ?>
+            <section>
+                <h4><?php echo ucwords(str_replace('_', ' ', $key)); ?> <span><?php echo count($items); ?></span></h4>
+                <?php foreach ($items as $t): ?>
+                    <div class="kanban-task">
+                        <strong><?php echo oecrm_h($t['taskTitle']); ?></strong>
+                        <small><?php echo oecrm_h($t['employee_name'] ?: 'Unassigned'); ?></small>
+                        <?php if ($projectId && $sprintOptions): ?>
+                            <form method="post" action="sprintAction.php">
+                                <?php echo oecrm_csrf_field(); ?>
+                                <input type="hidden" name="action" value="assign_task">
+                                <input type="hidden" name="task_id" value="<?php echo $t['id']; ?>">
+                                <input type="hidden" name="project_id" value="<?php echo $projectId; ?>">
+                                <select name="sprint_id" onchange="this.form.submit()">
+                                    <option value="0">No sprint</option>
+                                    <?php foreach ($sprintOptions as $sp): ?>
+                                        <option value="<?php echo $sp['id']; ?>" <?php echo $t['sprint_id'] == $sp['id'] ? 'selected' : ''; ?>><?php echo oecrm_h($sp['name']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </form>
+                        <?php endif; ?>
+                        <form method="post" action="kanbanAction.php">
+                            <?php echo oecrm_csrf_field(); ?>
+                            <input type="hidden" name="id" value="<?php echo $t['id']; ?>">
+                            <input type="hidden" name="project_id" value="<?php echo $projectId; ?>">
+                            <select name="board_status" onchange="this.form.submit()">
+                                <?php foreach (array_keys($cols) as $v): ?>
+                                    <option value="<?php echo $v; ?>" <?php echo $t['board_status'] === $v ? 'selected' : ''; ?>><?php echo ucwords(str_replace('_', ' ', $v)); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </form>
+                    </div>
+                <?php endforeach; ?>
+            </section>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php include 'footer.php'; ?>

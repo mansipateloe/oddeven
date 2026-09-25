@@ -1,5 +1,17 @@
 <?php
 require_once __DIR__.'/attendance.php';
+
+// $start = $_POST['start_date'] ?? '';
+// $end   = $_POST['end_date'] ?? '';
+
+// if ($start === '' || $end === '') {
+//     throw new RuntimeException('Start date and end date are required.');
+// }
+
+// if ($end < $start) {
+//     throw new RuntimeException('End date cannot be before start date.');
+// }
+
 function oecrm_leave_policy($conn,$companyId,$leaveTypeId){$stmt=mysqli_prepare($conn,'SELECT p.*,s.comp_off_expiry_days,s.minimum_comp_off_minutes,s.sandwich_enabled company_sandwich FROM leave_policies p JOIN leave_settings s ON s.company_id=p.company_id WHERE p.company_id=? AND p.leave_type_id=? AND p.status=1');mysqli_stmt_bind_param($stmt,'ii',$companyId,$leaveTypeId);mysqli_stmt_execute($stmt);$r=mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));mysqli_stmt_close($stmt);return $r;}
 function oecrm_leave_calculate($conn,$employeeId,$leaveTypeId,$start,$end,$halfDay=false){$employee=mysqli_fetch_assoc(mysqli_query($conn,'SELECT company_id FROM employeestbl WHERE id='.(int)$employeeId));if(!$employee)throw new RuntimeException('Employee not found.');$policy=oecrm_leave_policy($conn,$employee['company_id'],$leaveTypeId);if(!$policy)throw new RuntimeException('Leave policy not configured.');$from=new DateTime($start);$to=new DateTime($end);if($to<$from)throw new RuntimeException('End date must be after start date.');$calendar=0;$working=0;$offInside=0;$cursor=clone $from;while($cursor<=$to){$date=$cursor->format('Y-m-d');$shift=oecrm_employee_shift($conn,$employeeId,$date);$off=$shift?oecrm_shift_is_weekly_off($conn,$shift['id'],$date):false;$holiday=oecrm_is_holiday($conn,$date,(int)$employee['company_id']);$calendar++;if($off||$holiday)$offInside++;else $working++;$cursor->modify('+1 day');}$sandwich=(!empty($policy['sandwich_enabled'])&&!empty($policy['company_sandwich'])&&$working>0)?$offInside:0;$days=$halfDay?0.5:$working+$sandwich;return ['requested_days'=>$halfDay?0.5:$working,'sandwich_days'=>$halfDay?0:$sandwich,'payable_days'=>$days,'policy'=>$policy];}
 function oecrm_leave_balance($conn,$employeeId,$leaveTypeId,$year){$stmt=mysqli_prepare($conn,'SELECT *,(opening_balance+credited+adjusted-used-pending) available FROM employee_leave_balances WHERE employee_id=? AND leave_type_id=? AND balance_year=?');mysqli_stmt_bind_param($stmt,'iii',$employeeId,$leaveTypeId,$year);mysqli_stmt_execute($stmt);$r=mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));mysqli_stmt_close($stmt);return $r;}

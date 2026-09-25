@@ -1,4 +1,5 @@
 <?php
+<<<<<<< HEAD
 ob_start();
 $active_menu = 'finance';
 $active_submenu = 'add_bank_details';
@@ -173,6 +174,24 @@ $flash = $_SESSION['bank_details_flash'] ?? null;
 unset($_SESSION['bank_details_flash']);
 include 'header.php';
 $bankRows = mysqli_query($conn, 'SELECT bank_id, bank_name FROM bank_details ORDER BY bank_name');
+=======
+$active_menu = "setting";
+$active_submenu = "add_bank_details";
+
+
+include "header.php";
+
+if (isset($_GET["edit"])) {
+    $id = $_GET["edit"];
+    $update = true;
+    $getAccountQry = "select * from bank_details where bank_id = $id";
+    $getAccountResult = mysqli_query($conn, $getAccountQry);
+    $getAccountRes = mysqli_fetch_assoc($getAccountResult);
+    //echo '<pre>'; print_r($getAccountRes);die((__FILE__).'-->'.(__FUNCTION__).'--Line('. (__LINE__).')');
+    $bank_name = $getAccountRes["bank_name"];
+    $id = $getAccountRes["bank_id"];
+}
+>>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
 ?>
 <div id="page-wrapper" class="compact-admin-page">
     <?php if (!empty($flash['message'])): ?>
@@ -194,18 +213,42 @@ $bankRows = mysqli_query($conn, 'SELECT bank_id, bank_name FROM bank_details ORD
                         <div class="col-lg-3">
                             <label>Name <span class="text-danger">*</span></label>
                             <div class="form-group">
+<<<<<<< HEAD
                                 <input type="text" class="form-control" name="bank_name" value="<?php echo oecrm_h($bank['bank_name']); ?>" required maxlength="255">
+=======
+
+                                <input type="text" class="form-control" name="bank_name" value="<?php if (
+                                    isset($_GET["edit"])
+                                ) {
+                                    echo $bank_name;
+                                } ?>" required maxlength="20">
+
+>>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
                             </div>
                         </div>
                         <div class="col-lg-3" align="right">
                             <label>&nbsp;</label>
                             <div class="form-group">
+<<<<<<< HEAD
                                 <button type="submit" class="btn btn-primary viewreport"><i class="fa fa-save"></i> <?php echo $editId > 0 ? 'Update' : 'Add'; ?></button>
                                 <?php if ($editId > 0): ?>
                                     <a class="btn btn-default cancel_btn" href="addBankDetails.php">Cancel</a>
                                 <?php else: ?>
                                     <input class="btn btn-danger cancel_btn" type="reset" value="Cancel">
                                 <?php endif; ?>
+=======
+
+                                
+                                <?php if ($update == false): ?>
+                                    <input type="submit" class="btn btn-primary viewreport" name="addBankDetails" value="Add">
+                                    <input class="btn btn-danger cancel_btn" type="reset" value="Cancel">
+                                <?php else: ?>
+                                    <input type="submit" class="btn btn-primary viewreport" name="updateBankDetails" value="Update">
+                                    <!-- <input class="btn btn-danger cancel_btn" type="reset" value="Cancel"> -->
+                                <?php endif; ?>  
+
+
+>>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
                             </div>
                         </div>
                     </div>
@@ -253,8 +296,131 @@ $bankRows = mysqli_query($conn, 'SELECT bank_id, bank_name FROM bank_details ORD
                         </tbody>
                     </table>
                 </div>
+<<<<<<< HEAD
+=======
+
+                <!-- /.panel-heading -->
+
+                <div class="panel-body">
+
+                    <div id="dataTables-example_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+
+                        <div class="row">
+
+                            <div class="col-sm-6">
+
+                                <div class="dataTables_length" id="dataTables-example_length">
+
+                                </div>
+
+                            </div>
+
+                            <div class="col-sm-6">
+
+                                <div id="dataTables-example_filter" class="dataTables_filter">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+
+                            <div class="col-sm-12">
+
+                                <table width="100%" class="table table-striped table-bordered table-hover dataTable no-footer dtr-inline" id="dataTables-example" role="grid" aria-describedby="dataTables-example_info" style="width: 100%;">
+
+                                    <thead>
+
+                                        <tr role="row">
+
+                                            <th tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" aria-sort="ascending" aria-label="Rendering engine: activate to sort column descending" style="width: 60%;">Name</th>
+
+                                        
+                                        
+                                            <th tabindex="0" aria-controls="dataTables-example" rowspan="1" colspan="1" aria-label="Browser: activate to sort column ascending" style="width: 10%; text-align:center;">Action</th>
+
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody>
+
+                                        <?php
+                                        $qryNotice =
+                                            "SELECT * FROM bank_details";
+
+                                        $currencyResult = mysqli_query(
+                                            $conn,
+                                            $qryNotice
+                                        );
+
+                                        if ($currencyResult->num_rows > 0) {
+                                            while (
+                                                $rowNotice = $currencyResult->fetch_assoc()
+                                            ) {
+                                                echo "<tr class='gradeA even' role='row'>";
+
+                                                echo "<td>" .
+                                                    $rowNotice["bank_name"] .
+                                                    "</td>";
+
+                                                echo '<td class="center" align="center"><a href="addBankDetails.php?edit=' .
+                                                    $rowNotice["bank_id"] .
+                                                    '" style="display: inline-block;width: 28px;"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;
+                                                    
+                                                    <a href="addBankDetails.php?bank_delete=' .
+                                                    $rowNotice["bank_id"] .
+                                                    '" onclick="return confirm(\'Are you sure you want to delete?\');" style="display: inline-block;width: 28px;"><i class="fa fa-trash-o"></i></a>
+                                                    
+                                                    </td>';
+
+                                                echo "</tr>";
+                                            }
+                                        }
+                                        ?>
+
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- /.panel-body -->
+
+>>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
             </div>
         </div>
     </div>
 </div>
+<<<<<<< HEAD
 <?php include 'footer.php'; ?>
+=======
+
+</div>
+
+
+
+<script src="../vendor/jquery/jquery.min.js"></script>
+
+<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+
+<script src="../vendor/metisMenu/metisMenu.min.js"></script>
+
+<script src="../vendor/raphael/raphael.min.js"></script>
+
+<script src="../vendor/morrisjs/morris.min.js"></script>
+
+<script src="../data/morris-data.js"></script>
+
+<script src="../dist/js/sb-admin-2.js"></script>
+
+<?php include "footer.php"; ?>
+>>>>>>> 4149906d51df3b8c49a887d1195ad99bf370ef70
