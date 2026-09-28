@@ -174,6 +174,10 @@ function oecrm_attendance_event(
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
 }
+// public  oecrm_data($conn, $sessionId, DateTime $until){
+//     $stmtdata = mysqi_prepare($conn, "SELECT event_type,event_time FROM attendance_events WHERE session_id=? AND event_type IN ('lunch_in','lunch_out','break_in','break_out') ORDER BY event_time,id");
+    
+// }
 
 function oecrm_attendance_break_minutes($conn, $sessionId, DateTime $until)
 {
