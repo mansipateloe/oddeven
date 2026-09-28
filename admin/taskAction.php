@@ -2,6 +2,7 @@
 require_once __DIR__ . '/dbconnect.php';
 require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../foundation.php';
+require_once __DIR__ . '/../projectDeadlineHelpers.php';
 
 oecrm_require_admin_login();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -12,6 +13,7 @@ oecrm_require_csrf();
 oecrm_require_permission($conn, 'projects', 'edit');
 
 $companyId = oecrm_current_company_id($conn);
+oecrm_project_deadline_ensure_schema($conn);
 $action = $_POST['action'] ?? '';
 
 function oecrm_sync_task_assignee($conn, $taskId, $projectId, $employeeId, $actorId)
@@ -72,6 +74,37 @@ function oecrm_store_task_attachment($conn, $taskId, $actorId)
     mysqli_stmt_close($legacyStmt);
 }
 
+$transactionStarted = false;
+function oecrm_apply_task_deadline_policy($conn, $companyId, array $project, $taskId, $expectedDate, $deadlineAction, $newProjectDeadline, $deadlineReason, $extraScopeValue, $actorId)
+{
+    $currentDeadline = oecrm_project_current_deadline($project);
+    $isBeyondDeadline = oecrm_project_task_beyond_deadline($expectedDate, $currentDeadline);
+    if ($deadlineAction === 'extend') {
+        $newProjectDeadline = oecrm_project_clean_date($newProjectDeadline) ?: $expectedDate;
+        if ($isBeyondDeadline && strtotime($newProjectDeadline) < strtotime($expectedDate)) {
+            throw new RuntimeException('New project deadline must be on or after the task expected date.');
+        }
+        if ($currentDeadline !== null && strtotime($newProjectDeadline) <= strtotime($currentDeadline)) {
+            throw new RuntimeException('New project deadline must be later than current project deadline.');
+        }
+        oecrm_project_deadline_extend(
+            $conn,
+            (int) $companyId,
+            (int) $project['id'],
+            (int) $taskId,
+            $currentDeadline,
+            $newProjectDeadline,
+            $deadlineReason,
+            (float) $extraScopeValue,
+            (int) $actorId,
+            'extra_task'
+        );
+        return ' Project deadline extended to ' . oecrm_project_deadline_format($newProjectDeadline) . '.';
+    }
+
+    return $isBeyondDeadline ? ' Task due date is beyond project deadline; deadline kept same.' : '';
+}
+
 try {
     $id = (int) ($_POST['id'] ?? 0);
     $projectId = (int) ($_POST['project_id'] ?? 0);
@@ -81,17 +114,24 @@ try {
     $priority = $_POST['priority'] ?? 'medium';
     $allowedStatuses = ['open','in_progress','completed','in_review','to_be_tested','on_hold','cancelled','staging_server','production','closed'];
     $status = in_array($_POST['status'] ?? '', $allowedStatuses, true) ? $_POST['status'] : 'open';
-    $assignDate = $_POST['assign_date'] ?: date('Y-m-d');
-    $expectedDate = $_POST['expected_date'] ?: $assignDate;
+    $assignDate = oecrm_project_clean_date($_POST['assign_date'] ?? '') ?: date('Y-m-d');
+    $expectedDate = oecrm_project_clean_date($_POST['expected_date'] ?? '') ?: $assignDate;
     $estimatedHours = (float) ($_POST['estimated_hours'] ?? 0);
+    $deadlineAction = ($_POST['deadline_action'] ?? 'keep') === 'extend' ? 'extend' : 'keep';
+    $newProjectDeadline = oecrm_project_clean_date($_POST['new_project_deadline'] ?? '');
+    $deadlineReason = trim((string) ($_POST['deadline_reason'] ?? ''));
+    $extraScopeValue = max(0, (float) ($_POST['extra_scope_value'] ?? 0));
+    $actorId = (int) $_SESSION['adminId'];
 
-    $project = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT id FROM projectstbl WHERE id=' . (int) $projectId . ' AND company_id=' . (int) $companyId));
+    $project = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM projectstbl WHERE id=' . (int) $projectId . ' AND company_id=' . (int) $companyId));
     $assignee = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT e.id FROM project_team_members tm JOIN employeestbl e ON e.id=tm.employee_id WHERE tm.project_id=' . (int) $projectId . ' AND tm.employee_id=' . (int) $developerId . ' AND tm.left_at IS NULL AND e.status=0 LIMIT 1'));
     if (!$project || !$assignee || $title === '') {
         throw new RuntimeException('Project, assignee and task title are required.');
     }
 
     if ($action === 'create_task') {
+        mysqli_begin_transaction($conn);
+        $transactionStarted = true;
         $legacyAssignee = '';
         $boardStatus = ['open'=>'todo','in_progress'=>'in_progress','completed'=>'review','in_review'=>'review','to_be_tested'=>'review','on_hold'=>'backlog','cancelled'=>'backlog','staging_server'=>'review','production'=>'review','closed'=>'done'][$status] ?? 'todo';
         $stmt = mysqli_prepare($conn, 'INSERT INTO tasktbl(company_id,projectId,developerId,assignDate,expectedDate,taskTitle,task_details,priority,estimated_hours,status,board_status,files,filePath,end_time,totalHour) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
@@ -101,16 +141,21 @@ try {
         mysqli_stmt_close($stmt);
         $qaCount = oecrm_sync_task_assignee($conn, $id, $projectId, $developerId, (int) $_SESSION['adminId']);
         oecrm_store_task_attachment($conn, $id, (int) $_SESSION['adminId']);
+        $deadlineMessage = oecrm_apply_task_deadline_policy($conn, $companyId, $project, $id, $expectedDate, $deadlineAction, $newProjectDeadline, $deadlineReason, $extraScopeValue, $actorId);
         if ($status === 'completed' && $qaCount > 0) {
             mysqli_query($conn, "UPDATE tasktbl SET status='in_review',board_status='review' WHERE id=" . (int) $id);
         }
         oecrm_audit($conn, 'tasks', 'create', 'task', $id, 'Task created', null, ['project_id' => $projectId, 'task_title' => $title]);
-        $_SESSION['project_flash'] = 'Task created successfully.';
+        mysqli_commit($conn);
+        $transactionStarted = false;
+        $_SESSION['project_flash'] = 'Task created successfully.' . $deadlineMessage;
         header('Location: projectBoard.php?id=' . $projectId);
         exit;
     }
 
     if ($action === 'update_task') {
+        mysqli_begin_transaction($conn);
+        $transactionStarted = true;
         $old = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM tasktbl WHERE id=' . (int) $id . ' AND company_id=' . (int) $companyId));
         if (!$old) {
             throw new RuntimeException('Task not found.');
@@ -122,17 +167,23 @@ try {
         mysqli_stmt_close($stmt);
         $qaCount = oecrm_sync_task_assignee($conn, $id, $projectId, $developerId, (int) $_SESSION['adminId']);
         oecrm_store_task_attachment($conn, $id, (int) $_SESSION['adminId']);
+        $deadlineMessage = oecrm_apply_task_deadline_policy($conn, $companyId, $project, $id, $expectedDate, $deadlineAction, $newProjectDeadline, $deadlineReason, $extraScopeValue, $actorId);
         if ($status === 'completed' && $qaCount > 0) {
             mysqli_query($conn, "UPDATE tasktbl SET status='in_review',board_status='review' WHERE id=" . (int) $id);
         }
         oecrm_audit($conn, 'tasks', 'update', 'task', $id, 'Task updated', $old, ['project_id' => $projectId, 'task_title' => $title]);
-        $_SESSION['project_flash'] = 'Task updated successfully.';
+        mysqli_commit($conn);
+        $transactionStarted = false;
+        $_SESSION['project_flash'] = 'Task updated successfully.' . $deadlineMessage;
         header('Location: projectBoard.php?id=' . $projectId);
         exit;
     }
 
     throw new RuntimeException('Invalid action.');
 } catch (Throwable $exception) {
+    if ($transactionStarted) {
+        mysqli_rollback($conn);
+    }
     $_SESSION['task_error'] = $exception->getMessage();
     $redirectProject = (int) ($_POST['project_id'] ?? 0);
     $redirectTask = (int) ($_POST['id'] ?? 0);

@@ -3132,3 +3132,26 @@ body #page-wrapper{margin:0!important;padding:10px 15px 28px!important}body foot
 .oecrm-password-field .oecrm-password-toggle{flex:0 0 42px!important;position:relative!important;right:auto!important;top:auto!important;bottom:auto!important;width:42px!important;margin:0!important;border:0!important;border-left:1px solid #c8e4fb!important;border-radius:0!important;background:#eaf4ff!important;height:auto!important;display:flex!important;align-items:center!important;justify-content:center!important;color:#1d8fe5!important;z-index:3}
 .oecrm-password-field .oecrm-password-toggle:hover{background:#dff0ff!important}
 .oecrm-password-field .oecrm-password-toggle i{color:#1d8fe5!important;font-size:14px!important}
+
+/* OECRM clean module sidebar */
+.admin-portal #side-menu.erp-sidebar{padding-bottom:18px!important}
+.admin-portal #side-menu>li>a{position:relative!important}
+.admin-portal #side-menu>li>a>span:first-of-type{flex:1 1 auto!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.admin-portal #side-menu>li>a .arrow{margin-left:auto!important;color:#a7afc0!important;transition:transform .18s ease!important}
+.admin-portal #side-menu>li.open>a .arrow{transform:rotate(90deg)!important;color:#ff7a00!important}
+.admin-portal #side-menu>li.oecrm-sidebar-parent>.nav-second-level{display:none}
+.admin-portal #side-menu>li.oecrm-sidebar-parent.open>.nav-second-level{display:block}
+.admin-portal #side-menu .nav-second-level{background:#fff!important;margin:2px 6px 8px 18px!important;padding:4px 0 6px 10px!important;border-left:1px dashed #dfe4ee!important}
+.admin-portal #side-menu .nav-second-level>li>a{font-size:13px!important;min-height:34px!important;margin:1px 0!important;padding:8px 10px!important;border-radius:8px!important}
+.admin-portal #side-menu .nav-second-level>li>a i{font-size:13px!important;width:16px!important}
+.admin-portal #side-menu li.oecrm-sidebar-parent.active>a,
+.admin-portal #side-menu li.oecrm-sidebar-parent.open>a{background:#fff2e6!important;color:#ff7a00!important}
+.admin-portal #side-menu .nav-second-level>li>a.active{background:#ff7a00!important;color:#fff!important;box-shadow:0 5px 12px rgba(255,122,0,.18)!important}
+.admin-portal .erp-company-context{margin:8px 6px 12px!important;padding:10px!important;border:1px solid #edf0f5!important;border-radius:12px!important;background:#fafbff!important}
+.admin-portal .erp-company-context label{display:block!important;margin:0 0 6px!important;color:#667085!important;font-size:11px!important;text-transform:uppercase!important;letter-spacing:.06em!important}
+.admin-portal .erp-company-context select{width:100%!important;height:36px!important;border:1px solid #dfe4ee!important;border-radius:8px!important;background:#fff!important;color:#202124!important;font-weight:700!important}
+.admin-portal .sidebar-user-menu{margin:0 6px 8px!important;border:1px solid #edf0f5!important;border-radius:12px!important;background:#fff!important;overflow:hidden!important}
+.admin-portal .sidebar-user-toggle{min-height:48px!important;padding:8px 10px!important}
+.admin-portal .sidebar-user-toggle span:first-child{display:flex!important;align-items:center!important;gap:8px!important;font-weight:800!important;color:#202124!important}
+.admin-portal .sidebar-user-toggle img{width:30px!important;height:30px!important}
+.admin-portal .sidebar-user-menu>.nav-second-level{margin:0!important;padding:0 8px 8px!important;border-left:0!important}

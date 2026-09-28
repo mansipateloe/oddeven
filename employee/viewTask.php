@@ -1,9 +1,11 @@
 <?php
 include 'header.php';
 require_once __DIR__ . '/../foundation.php';
+require_once __DIR__ . '/../projectDeadlineHelpers.php';
 
+oecrm_project_deadline_ensure_schema($conn);
 $employeeId = (int) $_SESSION['employeeId'];
-$stmt = mysqli_prepare($conn, 'SELECT DISTINCT t.*,ta.is_primary,e.designation,p.projectName,
+$stmt = mysqli_prepare($conn, 'SELECT DISTINCT t.*,ta.is_primary,e.designation,p.projectName,p.original_deadline,p.current_deadline,p.deadline_extended_count,p.enddate,
     c.display_name client_name,
     (SELECT GROUP_CONCAT(e1.name ORDER BY ta1.is_primary DESC,e1.name SEPARATOR ", ") FROM task_assignees ta1 JOIN employeestbl e1 ON e1.id=ta1.employee_id WHERE ta1.task_id=t.id AND ta1.is_primary=1) task_owners,
     (SELECT GROUP_CONCAT(e2.name ORDER BY e2.name SEPARATOR ", ") FROM task_assignees ta2 JOIN employeestbl e2 ON e2.id=ta2.employee_id WHERE ta2.task_id=t.id AND ta2.is_primary=0) qa_members,
@@ -25,6 +27,7 @@ unset($_SESSION['task_flash'], $_SESSION['task_error']);
 <div id="page-wrapper" class="compact-admin-page">
     <?php if($flash):?><div class="alert alert-success"><?php echo oecrm_h($flash);?></div><?php endif;?>
     <?php if($error):?><div class="alert alert-danger"><?php echo oecrm_h($error);?></div><?php endif;?>
+    <style>.deadline-risk{display:inline-block;margin-top:4px;border-radius:999px;padding:2px 7px;background:#fff4e5;color:#b54708;font-size:11px;font-weight:700}</style>
     <div class="panel panel-default employee-task-table-panel">
         <div class="panel-heading">My Assigned Tasks</div>
         <div class="panel-body table-responsive employee-task-table-wrap">
@@ -32,12 +35,16 @@ unset($_SESSION['task_flash'], $_SESSION['task_error']);
                 <thead><tr><th>Project</th><th>Task</th><th>Priority</th><th>Due</th><th>Estimated</th><th>Status</th><th>Update</th><th>View</th></tr></thead>
                 <tbody>
                 <?php if(mysqli_num_rows($tasks)===0): ?><tr><td colspan="8">No tasks assigned.</td></tr><?php endif; ?>
-                <?php while($task=mysqli_fetch_assoc($tasks)): ?>
+                <?php while($task=mysqli_fetch_assoc($tasks)):
+                    $projectDeadline = oecrm_project_current_deadline($task);
+                    $originalDeadline = oecrm_project_original_deadline($task);
+                    $isDeadlineRisk = oecrm_project_task_beyond_deadline($task['expectedDate'] ?? null, $projectDeadline);
+                ?>
                     <tr>
                         <td><?php echo oecrm_h($task['projectName']); ?></td>
                         <td><strong><?php echo oecrm_h($task['taskTitle'] ?: $task['task_details']); ?></strong><br><small><?php echo oecrm_h($task['task_details']); ?></small></td>
                         <td><?php echo oecrm_h(ucfirst($task['priority'])); ?></td>
-                        <td><?php echo oecrm_h($task['expectedDate']); ?></td>
+                        <td><?php echo oecrm_h($task['expectedDate']); ?><?php if($isDeadlineRisk):?><br><span class="deadline-risk">Beyond project deadline</span><?php endif;?></td>
                         <td><?php echo number_format((float)$task['estimated_hours'],2); ?> hrs</td>
                         <td><span class="lead-status"><?php echo oecrm_h(ucwords(str_replace('_',' ',$task['status']))); ?></span></td>
                         <td>
@@ -63,7 +70,7 @@ unset($_SESSION['task_flash'], $_SESSION['task_error']);
                             </form>
                             <?php endif;?>
                         </td>
-                        <td><button type="button" class="icon-action js-task-detail" title="View" data-title="<?php echo oecrm_h($task['taskTitle'] ?: $task['task_details']); ?>" data-project="<?php echo oecrm_h($task['projectName']); ?>" data-client="<?php echo oecrm_h($task['client_name'] ?: '-'); ?>" data-owner="<?php echo oecrm_h($task['task_owners'] ?: '-'); ?>" data-qa="<?php echo oecrm_h($task['qa_members'] ?: 'No QA assigned.'); ?>" data-start="<?php echo oecrm_h($task['assignDate']); ?>" data-due="<?php echo oecrm_h($task['expectedDate']); ?>" data-priority="<?php echo oecrm_h(ucfirst($task['priority'])); ?>" data-estimated="<?php echo number_format((float)$task['estimated_hours'],2); ?> hrs" data-status="<?php echo oecrm_h(ucwords(str_replace('_',' ',$task['status']))); ?>" data-description="<?php echo oecrm_h($task['task_details'] ?: 'No description added.'); ?>" data-attachments="<?php echo oecrm_h($task['attachment_list'] ?: ''); ?>"><i class="fa fa-eye"></i></button></td>
+                        <td><button type="button" class="icon-action js-task-detail" title="View" data-title="<?php echo oecrm_h($task['taskTitle'] ?: $task['task_details']); ?>" data-project="<?php echo oecrm_h($task['projectName']); ?>" data-client="<?php echo oecrm_h($task['client_name'] ?: '-'); ?>" data-owner="<?php echo oecrm_h($task['task_owners'] ?: '-'); ?>" data-qa="<?php echo oecrm_h($task['qa_members'] ?: 'No QA assigned.'); ?>" data-start="<?php echo oecrm_h($task['assignDate']); ?>" data-due="<?php echo oecrm_h($task['expectedDate']); ?>" data-project-deadline="<?php echo oecrm_h(oecrm_project_deadline_format($projectDeadline)); ?>" data-original-deadline="<?php echo oecrm_h(oecrm_project_deadline_format($originalDeadline)); ?>" data-extensions="<?php echo (int)($task['deadline_extended_count'] ?? 0); ?>" data-priority="<?php echo oecrm_h(ucfirst($task['priority'])); ?>" data-estimated="<?php echo number_format((float)$task['estimated_hours'],2); ?> hrs" data-status="<?php echo oecrm_h(ucwords(str_replace('_',' ',$task['status']))); ?>" data-description="<?php echo oecrm_h($task['task_details'] ?: 'No description added.'); ?>" data-attachments="<?php echo oecrm_h($task['attachment_list'] ?: ''); ?>"><i class="fa fa-eye"></i></button></td>
                     </tr>
                 <?php endwhile; mysqli_stmt_close($stmt); ?>
                 </tbody>
@@ -71,7 +78,7 @@ unset($_SESSION['task_flash'], $_SESSION['task_error']);
         </div>
     </div>
 </div>
-<div class="modal fade" id="taskDetailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button class="close" data-dismiss="modal">&times;</button><h4 id="taskDetailTitle">Task Details</h4></div><div class="modal-body"><div class="detail-grid"><div><small>Project</small><strong id="taskDetailProject"></strong></div><div><small>Client</small><strong id="taskDetailClient"></strong></div><div><small>Assigned To</small><strong id="taskDetailOwner"></strong></div><div><small>QA</small><strong id="taskDetailQa"></strong></div><div><small>Start Date</small><strong id="taskDetailStart"></strong></div><div><small>Due Date</small><strong id="taskDetailDue"></strong></div><div><small>Priority</small><strong id="taskDetailPriority"></strong></div><div><small>Estimated</small><strong id="taskDetailEstimated"></strong></div><div><small>Status</small><strong id="taskDetailStatus"></strong></div></div><hr><h5>Description</h5><p id="taskDetailDescription"></p><h5>Attachments</h5><div id="taskDetailAttachments" class="task-attachment-list"></div></div></div></div></div>
+<div class="modal fade" id="taskDetailModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><button class="close" data-dismiss="modal">&times;</button><h4 id="taskDetailTitle">Task Details</h4></div><div class="modal-body"><div class="detail-grid"><div><small>Project</small><strong id="taskDetailProject"></strong></div><div><small>Client</small><strong id="taskDetailClient"></strong></div><div><small>Assigned To</small><strong id="taskDetailOwner"></strong></div><div><small>QA</small><strong id="taskDetailQa"></strong></div><div><small>Start Date</small><strong id="taskDetailStart"></strong></div><div><small>Task Due Date</small><strong id="taskDetailDue"></strong></div><div><small>Project Original Deadline</small><strong id="taskDetailOriginalDeadline"></strong></div><div><small>Project Current Deadline</small><strong id="taskDetailProjectDeadline"></strong></div><div><small>Project Extensions</small><strong id="taskDetailExtensions"></strong></div><div><small>Priority</small><strong id="taskDetailPriority"></strong></div><div><small>Estimated</small><strong id="taskDetailEstimated"></strong></div><div><small>Status</small><strong id="taskDetailStatus"></strong></div></div><hr><h5>Description</h5><p id="taskDetailDescription"></p><h5>Attachments</h5><div id="taskDetailAttachments" class="task-attachment-list"></div></div></div></div></div>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
   document.querySelectorAll('.js-task-detail').forEach(function(btn){
@@ -83,6 +90,9 @@ document.addEventListener('DOMContentLoaded',function(){
       document.getElementById('taskDetailQa').textContent=btn.dataset.qa||'-';
       document.getElementById('taskDetailStart').textContent=btn.dataset.start||'-';
       document.getElementById('taskDetailDue').textContent=btn.dataset.due||'-';
+      document.getElementById('taskDetailOriginalDeadline').textContent=btn.dataset.originalDeadline||'-';
+      document.getElementById('taskDetailProjectDeadline').textContent=btn.dataset.projectDeadline||'-';
+      document.getElementById('taskDetailExtensions').textContent=(btn.dataset.extensions||'0')+' extension(s)';
       document.getElementById('taskDetailPriority').textContent=btn.dataset.priority||'-';
       document.getElementById('taskDetailEstimated').textContent=btn.dataset.estimated||'-';
       document.getElementById('taskDetailStatus').textContent=btn.dataset.status||'-';
