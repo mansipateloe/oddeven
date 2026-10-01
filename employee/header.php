@@ -14,6 +14,7 @@ $employeePageTitles = [
    'viewTask.php' => 'My Tasks',
    'timesheets.php' => 'Timesheets',
    'notices.php' => 'Notices',
+   'shareUpdate.php' => 'Share Update',
    'holidays.php' => 'Holidays',
    'leave_index.php' => 'Leaves',
    'userinfo.php' => 'My Profile',
@@ -113,6 +114,7 @@ function employee_sidebar_parent($label, $icon, $items, $currentPage)
                ?>
                <li class="erp-nav-label">Company & HR</li>
                <?php employee_sidebar_link('notices.php', 'Notices', 'fa-bullhorn', $currentEmployeePage, ['notices.php', 'dashboardNotices.php']); ?>
+               <?php employee_sidebar_link('shareUpdate.php', 'Share Update', 'fa-paper-plane', $currentEmployeePage, ['shareUpdate.php']); ?>
                <?php employee_sidebar_link('holidays.php', 'Holidays', 'fa-calendar', $currentEmployeePage, ['holidays.php']); ?>
                <?php employee_sidebar_link('leave_index.php', 'Leaves', 'fa-calendar-minus-o', $currentEmployeePage, ['leave_index.php']); ?>
                </ul>

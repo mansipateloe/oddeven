@@ -1548,6 +1548,33 @@ label,
 .employee-portal .employee-progress-ring:before{content:"";position:absolute;inset:12px;border-radius:50%;background:#fff}
 .employee-portal .employee-progress-ring span{position:relative;z-index:1;font-weight:800!important;font-size:22px!important;color:#202124!important}
 .employee-portal .employee-notice-row{border:1px solid #edf0f5!important;border-radius:12px!important;background:#fff!important;margin-bottom:10px!important;padding:12px!important;box-shadow:0 3px 12px rgba(32,33,36,.04)!important}
+.employee-portal .employee-share-feed{margin-bottom:22px!important}
+.employee-portal .employee-share-feed>.panel-heading{min-height:58px!important}
+.employee-portal .employee-share-feed>.panel-body{padding-top:8px!important}
+.employee-portal .employee-share-post{max-width:860px;margin:0 auto;padding:22px 4px;border-bottom:1px solid #edf0f5}
+.employee-portal .employee-share-post:last-child{padding-bottom:4px;border-bottom:0}
+.employee-portal .employee-share-post-author{display:flex;align-items:center;gap:11px;min-width:0}
+.employee-portal .employee-share-avatar{display:flex;align-items:center;justify-content:center;flex:0 0 42px;width:42px;height:42px;border-radius:50%;background:#fff2e6;color:#ef7600;font-size:17px}
+.employee-portal .employee-share-author-info{display:flex;flex-direction:column;gap:3px;min-width:0}
+.employee-portal .employee-share-post-author strong{color:#202124;font-size:14px;font-weight:800}
+.employee-portal .employee-share-post-author small,.employee-portal .employee-share-comments small{color:#8a94a6;font-size:12px}
+.employee-portal .employee-share-post h4{margin:17px 0 8px;color:#202124;font-size:18px;font-weight:750;line-height:1.35;overflow-wrap:anywhere}
+.employee-portal .employee-share-post-content{color:#344054;font-size:14px;line-height:1.75;overflow-wrap:anywhere;white-space:normal}
+.employee-portal .employee-share-post-actions{display:flex;align-items:center;gap:12px;margin-top:16px;padding:9px 0;border-top:1px solid #f0f2f5;border-bottom:1px solid #f0f2f5;color:#67748e;font-size:13px}
+.employee-portal .employee-share-post-actions form{margin:0}
+.employee-portal .employee-share-post-actions .btn{min-height:36px;padding:7px 11px;border:0;border-radius:7px;background:transparent!important;color:#475467!important;box-shadow:none!important;font-weight:700}
+.employee-portal .employee-share-post-actions .btn:hover{color:var(--oe-primary)!important;background:#fff4e8!important}
+.employee-portal .employee-share-post-actions .btn i{margin-right:4px}
+.employee-portal .employee-share-post-actions>span{padding:0 8px;color:#667085}
+.employee-portal .employee-share-comments{display:grid;gap:7px;padding:11px 0 0}
+.employee-portal .employee-share-comment{padding:9px 12px;border-radius:8px;background:#f7f8fa;color:#344054;overflow-wrap:anywhere}
+.employee-portal .employee-share-comment strong{display:block;margin-bottom:3px;color:#202124;font-size:13px}
+.employee-portal .employee-share-comment span{font-size:13px;line-height:1.55}
+.employee-portal .employee-share-comment small{display:block;margin-top:5px}
+.employee-portal .employee-share-comment-form{display:flex;gap:8px;margin-top:11px}
+.employee-portal .employee-share-comment-form .form-control{flex:1;min-width:0}
+.employee-portal .employee-share-comment-form .btn{flex:0 0 40px;width:40px;height:38px;padding:0;border-radius:8px!important}
+@media(max-width:767px){.employee-portal .employee-share-feed>.panel-body{padding:12px!important}.employee-portal .employee-share-post{padding:18px 0}.employee-portal .employee-share-post h4{font-size:16px}.employee-portal .employee-share-post-actions{justify-content:space-between}.employee-portal .employee-share-comment-form{align-items:center}}
 @media(max-width:1199px){.employee-portal .employee-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:767px){.employee-portal .employee-welcome-card{display:block!important}.employee-portal .employee-welcome-actions{margin-top:14px;flex-wrap:wrap}.employee-portal .employee-stat-grid{grid-template-columns:1fr!important}.employee-portal .employee-progress-summary{display:block!important}.employee-portal .employee-progress-ring{margin-bottom:18px!important}}
 

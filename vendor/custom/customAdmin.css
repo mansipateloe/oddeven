@@ -3003,6 +3003,24 @@ body #page-wrapper{margin:0!important;padding:10px 15px 28px!important}body foot
 .admin-portal .table td:last-child a[style],
 .admin-portal .table td:last-child i[style]{width:auto!important;font-size:13px!important;color:inherit!important}
 
+/* Employee-share approval actions need readable text buttons, not table icon squares. */
+.admin-portal .employee-share-admin-actions{display:flex;flex-direction:column;align-items:stretch;gap:10px;min-width:112px;white-space:normal}
+.admin-portal .employee-share-clickable-row{cursor:pointer}
+.admin-portal .employee-share-clickable-row:hover>td{background:#f3f5ff!important}
+.admin-portal .employee-share-clickable-row:focus-visible{outline:2px solid #696cff;outline-offset:-2px}
+.admin-portal .employee-share-approval-table{table-layout:auto}
+.admin-portal .employee-share-approval-table .employee-share-submitted-column{width:100px;min-width:100px;white-space:nowrap}
+.admin-portal .employee-share-approval-table .employee-share-action-column{width:176px;min-width:176px;vertical-align:top}
+.admin-portal .employee-share-admin-actions form{display:block!important;width:100%;margin:0!important}
+.admin-portal .table td:last-child .employee-share-admin-actions form>.btn.btn-xs{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-width:112px!important;height:32px!important;min-height:32px!important;margin:0!important;padding:0 10px!important;border:1px solid transparent!important;border-radius:6px!important;font-size:12px!important;font-weight:700!important;line-height:1!important;white-space:nowrap!important}
+.admin-portal .table td:last-child .employee-share-admin-actions .btn-success{background:#eaf7ef!important;border-color:#ccebd7!important;color:#207447!important}
+.admin-portal .table td:last-child .employee-share-admin-actions .btn-danger:not(.employee-share-delete-button){background:#fff0f1!important;border-color:#f5cdd1!important;color:#c93642!important}
+.admin-portal .table td:last-child .employee-share-admin-actions .employee-share-delete-button{background:#fff!important;border-color:#e4aeb3!important;color:#b42332!important}
+.admin-portal .table td:last-child .employee-share-admin-actions .btn-success:hover{background:#dff2e6!important}
+.admin-portal .table td:last-child .employee-share-admin-actions .btn-danger:not(.employee-share-delete-button):hover{background:#ffe2e4!important}
+.admin-portal .table td:last-child .employee-share-admin-actions .employee-share-delete-button:hover{background:#fff5f5!important;border-color:#d98991!important}
+.admin-portal .employee-share-admin-actions .text-success,.admin-portal .employee-share-admin-actions .text-danger{padding:2px 3px;font-size:12px}
+
 /* Separated admin shell: sidebar, topbar and content */
 .admin-portal{background:#f4f5fb!important}
 .admin-portal .sidebar{position:fixed!important;top:16px!important;bottom:16px!important;left:16px!important;width:246px!important;border:0!important;border-radius:12px!important;background:#fff!important;box-shadow:0 8px 28px rgba(47,51,73,.10)!important;overflow:hidden!important}

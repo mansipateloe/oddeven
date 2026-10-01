@@ -8,6 +8,9 @@ $employeeCompany = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT company_id FRO
 oecrm_auto_send_birthday_wishes($conn, (int) ($employeeCompany['company_id'] ?? 0));
 $today = date('Y-m-d');
 $nextWeek = date('Y-m-d', strtotime('+7 days'));
+$shareFeedFlash = $_SESSION['employee_share_feed_flash'] ?? '';
+$shareFeedError = $_SESSION['employee_share_feed_error'] ?? '';
+unset($_SESSION['employee_share_feed_flash'], $_SESSION['employee_share_feed_error']);
 
 $projectStats = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT
     COUNT(DISTINCT p.id) total,
@@ -29,6 +32,54 @@ $notices = mysqli_query($conn, 'SELECT DISTINCT n.id,n.title,n.priority,n.publis
     WHERE n.status="published" AND n.publish_at<=NOW() AND (n.expires_at IS NULL OR n.expires_at>=NOW())
     AND (n.audience_type="all" OR nt.employee_id=' . $employeeId . ' OR (nt.department_id IS NOT NULL AND nt.department_id=e.department_id))
     ORDER BY FIELD(n.priority,"urgent","high","normal","low"),n.publish_at DESC LIMIT 5');
+$sharePostsResult = mysqli_query(
+    $conn,
+    "SELECT n.id,n.title,n.body_html,n.publish_at,e.name employee_name,e.designation,
+        (SELECT COUNT(*) FROM employee_share_likes l WHERE l.notice_id=n.id) likes_count,
+        (SELECT COUNT(*) FROM employee_share_comments c WHERE c.notice_id=n.id) comments_count,
+        EXISTS(SELECT 1 FROM employee_share_likes mine WHERE mine.notice_id=n.id AND mine.employee_id=$employeeId) liked_by_me
+     FROM notices n
+     JOIN employeestbl e ON e.id=n.created_by
+     WHERE n.company_id=" . (int) ($employeeCompany['company_id'] ?? 0) . "
+       AND n.notice_type='employee_share' AND n.status='published' AND n.publish_at<=NOW()
+       AND (n.expires_at IS NULL OR n.expires_at>=NOW())
+     ORDER BY COALESCE(n.published_at,n.publish_at) DESC,n.id DESC
+     LIMIT 10"
+);
+$sharePosts = [];
+if ($sharePostsResult) {
+    while ($sharePost = mysqli_fetch_assoc($sharePostsResult)) {
+        $sharePosts[] = $sharePost;
+    }
+}
+
+$commentsByPost = [];
+$sharePostIds = array_map(static function ($post) {
+    return (int) $post['id'];
+}, $sharePosts);
+if ($sharePostIds) {
+    $sharePostIdList = implode(',', $sharePostIds);
+    $feedComments = mysqli_query(
+        $conn,
+        "SELECT c.notice_id,c.comment_text,c.created_at,e.name employee_name
+         FROM employee_share_comments c
+         JOIN employeestbl e ON e.id=c.employee_id
+         WHERE c.notice_id IN ($sharePostIdList)
+         ORDER BY c.id DESC"
+    );
+    if ($feedComments) {
+        while ($comment = mysqli_fetch_assoc($feedComments)) {
+            $postId = (int) $comment['notice_id'];
+            if (count($commentsByPost[$postId] ?? []) < 5) {
+                $commentsByPost[$postId][] = $comment;
+            }
+        }
+    }
+    foreach ($commentsByPost as &$postComments) {
+        $postComments = array_reverse($postComments);
+    }
+    unset($postComments);
+}
 $upcomingHolidays = mysqli_query($conn, 'SELECT holidayDate,holidayTitle FROM holidaytbl WHERE company_id=' . (int) ($employeeCompany['company_id'] ?? 0) . ' AND holidayDate BETWEEN "' . mysqli_real_escape_string($conn, $today) . '" AND "' . mysqli_real_escape_string($conn, $nextWeek) . '" ORDER BY holidayDate');
 
 $totalProjects = max(1, (int) ($projectStats['total'] ?? 0));
@@ -44,6 +95,7 @@ $completion = round(((int) ($projectStats['completed'] ?? 0) / $totalProjects) *
         <div class="employee-welcome-actions">
             <a class="btn btn-default" href="viewTask.php"><i class="fa fa-check-square-o"></i> My Tasks</a>
             <a class="btn btn-primary" href="dashboard.php"><i class="fa fa-clock-o"></i> Attendance</a>
+            <a class="btn btn-success" href="shareUpdate.php"><i class="fa fa-paper-plane"></i> Share Update</a>
         </div>
     </div>
     <?php include 'dashboardNotices.php'; ?>
@@ -53,6 +105,56 @@ $completion = round(((int) ($projectStats['completed'] ?? 0) / $totalProjects) *
         <a href="leave_index.php" class="employee-stat-card stat-orange"><i class="fa fa-calendar-minus-o"></i><span><small>Pending Leaves</small><strong><?php echo (int) ($leaveStats['pending'] ?? 0); ?></strong><em><?php echo (int) ($leaveStats['total'] ?? 0); ?> total requests</em></span></a>
         <a href="dashboard.php" class="employee-stat-card stat-green"><i class="fa fa-clock-o"></i><span><small>Today Attendance</small><strong class="attendance-state"><?php echo oecrm_h(ucwords(str_replace('_', ' ', $attendance['attendance_status'] ?? 'Not marked'))); ?></strong><em><?php echo oecrm_h($today); ?></em></span></a>
     </div>
+    <section class="panel panel-default employee-share-feed" id="employee-share-feed">
+        <div class="panel-heading"><span><i class="fa fa-comments-o"></i> Team Updates</span><a href="shareUpdate.php">Share an update</a></div>
+        <div class="panel-body">
+            <?php if ($shareFeedFlash): ?><div class="alert alert-success"><?php echo oecrm_h($shareFeedFlash); ?></div><?php endif; ?>
+            <?php if ($shareFeedError): ?><div class="alert alert-danger"><?php echo oecrm_h($shareFeedError); ?></div><?php endif; ?>
+            <?php if (!$sharePosts): ?>
+                <div class="employee-empty-state"><i class="fa fa-comments-o"></i><p>No approved team updates yet.</p></div>
+            <?php endif; ?>
+            <?php foreach ($sharePosts as $sharePost): ?>
+                <?php $postId = (int) $sharePost['id']; ?>
+                <article class="employee-share-post">
+                    <div class="employee-share-post-author">
+                        <span class="employee-share-avatar"><i class="fa fa-user"></i></span>
+                        <span class="employee-share-author-info">
+                            <strong><?php echo oecrm_h($sharePost['employee_name']); ?></strong>
+                            <small><span><?php echo oecrm_h($sharePost['designation'] ?: 'Employee'); ?></span><span aria-hidden="true"> · </span><time datetime="<?php echo oecrm_h(date('c', strtotime($sharePost['publish_at']))); ?>"><?php echo oecrm_h(date('d M Y, g:i a', strtotime($sharePost['publish_at']))); ?></time></small>
+                        </span>
+                    </div>
+                    <h4><?php echo oecrm_h($sharePost['title']); ?></h4>
+                    <div class="employee-share-post-content"><?php echo nl2br(oecrm_h(strip_tags($sharePost['body_html']))); ?></div>
+                    <div class="employee-share-post-actions">
+                        <form method="post" action="shareUpdateEngagementAction.php">
+                            <?php echo oecrm_csrf_field(); ?>
+                            <input type="hidden" name="notice_id" value="<?php echo $postId; ?>">
+                            <button type="submit" name="action" value="<?php echo $sharePost['liked_by_me'] ? 'unlike' : 'like'; ?>" class="btn btn-default btn-sm"><i class="fa fa-thumbs-up"></i> <?php echo $sharePost['liked_by_me'] ? 'Liked' : 'Like'; ?> · <?php echo (int) $sharePost['likes_count']; ?></button>
+                        </form>
+                        <span><i class="fa fa-comment-o"></i> <?php echo (int) $sharePost['comments_count']; ?> comments</span>
+                    </div>
+                    <?php if (!empty($commentsByPost[$postId])): ?>
+                        <div class="employee-share-comments">
+                            <?php foreach ($commentsByPost[$postId] as $comment): ?>
+                                <div class="employee-share-comment">
+                                    <strong><?php echo oecrm_h($comment['employee_name']); ?></strong>
+                                    <span><?php echo nl2br(oecrm_h($comment['comment_text'])); ?></span>
+                                    <small><?php echo oecrm_h(date('d M Y, g:i a', strtotime($comment['created_at']))); ?></small>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                    <form method="post" action="shareUpdateEngagementAction.php" class="employee-share-comment-form">
+                        <?php echo oecrm_csrf_field(); ?>
+                        <input type="hidden" name="notice_id" value="<?php echo $postId; ?>">
+                        <input type="hidden" name="action" value="comment">
+                        <input type="text" name="comment" class="form-control" maxlength="500" placeholder="Write a comment..." required>
+                        <button type="submit" class="btn btn-primary btn-sm" aria-label="Post comment"><i class="fa fa-paper-plane"></i></button>
+                    </form>
+                </article>
+            <?php endforeach; ?>
+        </div>
+    </section>
     <div class="row employee-dashboard-grid">
         <div class="col-lg-7">
             <div class="panel panel-default">

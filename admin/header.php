@@ -76,7 +76,8 @@
     'manageLeave.php'=>'Leave Management','payrollManagement.php'=>'Payroll','salary.php'=>'Salary Reports',
     'assets.php'=>'Assets','resources.php'=>'Resources','finance.php'=>'Finance',
     'noticeCenter.php'=>'Notices','birthdayCenter.php'=>'Birthdays','workforceReports.php'=>'Workforce Reports',
-    'employeeSummary.php'=>'Employee Summary','upcomingCelebrations.php'=>'Upcoming Celebrations','role_permissions.php'=>'Role Permissions','audit_logs.php'=>'Audit Logs',
+    'employeeSummary.php'=>'Employee Summary','upcomingCelebrations.php'=>'Upcoming Celebrations','hiringOnboarding.php'=>'Hiring & Onboarding',
+    'employeeShareApprovals.php'=>'Employee Share Approvals','role_permissions.php'=>'Role Permissions','audit_logs.php'=>'Audit Logs',
   ];
   $adminPageTitle = $adminPageTitles[$adminCurrentPage] ?? ucwords(str_replace(['.php','_'],['',' '],$adminCurrentPage));
   $birthdayCompanyId = oecrm_current_company_id($conn);
@@ -235,6 +236,8 @@
               ['href'=>'workforceReports.php','label'=>'Workforce Reports','icon'=>'fa-line-chart','show'=>oecrm_can($conn,'dashboards','view'),'pages'=>['workforceReports.php']],
               ['href'=>'employeeSummary.php','label'=>'Employee Summary','icon'=>'fa-users','show'=>oecrm_can($conn,'employees','view')||oecrm_can($conn,'dashboards','view'),'pages'=>['employeeSummary.php']],
               ['href'=>'upcomingCelebrations.php','label'=>'Upcoming Celebrations','icon'=>'fa-gift','show'=>oecrm_can($conn,'dashboards','view'),'pages'=>['upcomingCelebrations.php']],
+              ['href'=>'hiringOnboarding.php','label'=>'Hiring & Onboarding','icon'=>'fa-user-plus','show'=>oecrm_can($conn,'dashboards','view')||oecrm_can($conn,'employees','view'),'pages'=>['hiringOnboarding.php']],
+              ['href'=>'employeeShareApprovals.php','label'=>'Employee Share Approvals','icon'=>'fa-check-circle','show'=>oecrm_can($conn,'notices','view')||oecrm_can($conn,'dashboards','view'),'pages'=>['employeeShareApprovals.php']],
             ], $adminCurrentPage);
 
             echo '<li class="erp-nav-label">System</li>';
