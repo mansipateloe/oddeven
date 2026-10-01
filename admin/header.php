@@ -76,7 +76,7 @@
     'manageLeave.php'=>'Leave Management','payrollManagement.php'=>'Payroll','salary.php'=>'Salary Reports',
     'assets.php'=>'Assets','resources.php'=>'Resources','finance.php'=>'Finance',
     'noticeCenter.php'=>'Notices','birthdayCenter.php'=>'Birthdays','workforceReports.php'=>'Workforce Reports',
-    'role_permissions.php'=>'Role Permissions','audit_logs.php'=>'Audit Logs',
+    'employeeSummary.php'=>'Employee Summary','upcomingCelebrations.php'=>'Upcoming Celebrations','role_permissions.php'=>'Role Permissions','audit_logs.php'=>'Audit Logs',
   ];
   $adminPageTitle = $adminPageTitles[$adminCurrentPage] ?? ucwords(str_replace(['.php','_'],['',' '],$adminCurrentPage));
   $birthdayCompanyId = oecrm_current_company_id($conn);
@@ -233,6 +233,8 @@
             admin_sidebar_parent('Reports', 'fa-bar-chart', [
               ['href'=>'erpAnalytics.php','label'=>'Management Dashboard','icon'=>'fa-dashboard','show'=>oecrm_can($conn,'dashboards','view'),'pages'=>['erpAnalytics.php']],
               ['href'=>'workforceReports.php','label'=>'Workforce Reports','icon'=>'fa-line-chart','show'=>oecrm_can($conn,'dashboards','view'),'pages'=>['workforceReports.php']],
+              ['href'=>'employeeSummary.php','label'=>'Employee Summary','icon'=>'fa-users','show'=>oecrm_can($conn,'employees','view')||oecrm_can($conn,'dashboards','view'),'pages'=>['employeeSummary.php']],
+              ['href'=>'upcomingCelebrations.php','label'=>'Upcoming Celebrations','icon'=>'fa-gift','show'=>oecrm_can($conn,'dashboards','view'),'pages'=>['upcomingCelebrations.php']],
             ], $adminCurrentPage);
 
             echo '<li class="erp-nav-label">System</li>';
