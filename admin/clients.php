@@ -1,33 +1,34 @@
 <?php
-$active_menu = 'clients';
-include 'header.php';
-require_once __DIR__ . '/../foundation.php';
+$active_menu = "clients";
+include "header.php";
+require_once __DIR__ . "/../foundation.php";
 
-oecrm_require_permission($conn, 'clients', 'view');
+oecrm_require_permission($conn, "clients", "view");
 
 $companyId = oecrm_current_company_id($conn);
-$status = trim($_GET['status'] ?? '');
-$q = trim($_GET['q'] ?? '');
-$where = 'c.company_id=?';
-$types = 'i';
+$status = trim($_GET["status"] ?? "");
+$q = trim($_GET["q"] ?? "");
+$where = "c.company_id=?";
+$types = "i";
 $params = [$companyId];
 
 if (
     in_array(
         $status,
-        ['prospect', 'active', 'inactive', 'on_hold', 'closed'],
+        ["prospect", "active", "inactive", "on_hold", "closed"],
         true
     )
 ) {
-    $where .= ' AND c.status=?';
-    $types .= 's';
+    $where .= " AND c.status=?";
+    $types .= "s";
     $params[] = $status;
 }
 
-if ($q !== '') {
-    $where .= ' AND (c.display_name LIKE ? OR c.client_code LIKE ? OR c.email LIKE ?)';
-    $like = '%' . $q . '%';
-    $types .= 'sss';
+if ($q !== "") {
+    $where .=
+        " AND (c.display_name LIKE ? OR c.client_code LIKE ? OR c.email LIKE ?)";
+    $like = "%" . $q . "%";
+    $types .= "sss";
     array_push($params, $like, $like, $like);
 }
 
@@ -49,8 +50,8 @@ $stats = mysqli_fetch_assoc(
     )
 );
 
-$flash = $_SESSION['client_flash'] ?? '';
-unset($_SESSION['client_flash']);
+$flash = $_SESSION["client_flash"] ?? "";
+unset($_SESSION["client_flash"]);
 ?>
 <div id="page-wrapper" class="compact-admin-page client-page">
   <?php if ($flash): ?>
@@ -62,28 +63,28 @@ unset($_SESSION['client_flash']);
       <i class="fa fa-address-book"></i>
       <span>
         <small>Total Clients</small>
-        <strong><?php echo (int) $stats['total']; ?></strong>
+        <strong><?php echo (int) $stats["total"]; ?></strong>
       </span>
     </div>
     <div>
       <i class="fa fa-check-circle"></i>
       <span>
         <small>Active</small>
-        <strong><?php echo (int) $stats['active']; ?></strong>
+        <strong><?php echo (int) $stats["active"]; ?></strong>
       </span>
     </div>
     <div>
       <i class="fa fa-user-plus"></i>
       <span>
         <small>Prospects</small>
-        <strong><?php echo (int) $stats['prospects']; ?></strong>
+        <strong><?php echo (int) $stats["prospects"]; ?></strong>
       </span>
     </div>
     <div>
       <i class="fa fa-pause-circle"></i>
       <span>
         <small>On Hold</small>
-        <strong><?php echo (int) $stats['on_hold']; ?></strong>
+        <strong><?php echo (int) $stats["on_hold"]; ?></strong>
       </span>
     </div>
   </div>
@@ -106,9 +107,14 @@ unset($_SESSION['client_flash']);
         >
         <select class="form-control" name="status">
           <option value="">All statuses</option>
-          <?php foreach (['active', 'prospect', 'on_hold', 'inactive', 'closed'] as $v): ?>
-            <option value="<?php echo $v; ?>" <?php echo $status === $v ? 'selected' : ''; ?>>
-              <?php echo ucwords(str_replace('_', ' ', $v)); ?>
+          <?php foreach (
+              ["active", "prospect", "on_hold", "inactive", "closed"]
+              as $v
+          ): ?>
+            <option value="<?php echo $v; ?>" <?php echo $status === $v
+    ? "selected"
+    : ""; ?>>
+              <?php echo ucwords(str_replace("_", " ", $v)); ?>
             </option>
           <?php endforeach; ?>
         </select>
@@ -140,34 +146,40 @@ unset($_SESSION['client_flash']);
             <?php while ($c = mysqli_fetch_assoc($clients)): ?>
               <tr>
                 <td>
-                  <strong><?php echo oecrm_h($c['display_name']); ?></strong>
-                  <small><?php echo oecrm_h($c['client_code'] . ' | ' . ($c['industry'] ?: ucfirst($c['client_type']))); ?></small>
+                  <strong><?php echo oecrm_h($c["display_name"]); ?></strong>
+                  <small><?php echo oecrm_h(
+                      $c["client_code"] .
+                          " | " .
+                          ($c["industry"] ?: ucfirst($c["client_type"]))
+                  ); ?></small>
                 </td>
                 <td>
-                  <?php echo oecrm_h($c['email'] ?: '-'); ?>
-                  <small><?php echo oecrm_h($c['phone']); ?></small>
+                  <?php echo oecrm_h($c["email"] ?: "-"); ?>
+                  <small><?php echo oecrm_h($c["phone"]); ?></small>
                 </td>
                 <td>
-                  <span class="client-status <?php echo $c['status']; ?>">
-                    <?php echo ucwords(str_replace('_', ' ', $c['status'])); ?>
+                  <span class="client-status <?php echo $c["status"]; ?>">
+                    <?php echo ucwords(str_replace("_", " ", $c["status"])); ?>
                   </span>
                 </td>
-                <td><?php echo (int) $c['project_count']; ?></td>
-                <td><?php echo (int) $c['contract_count']; ?></td>
+                <td><?php echo (int) $c["project_count"]; ?></td>
+                <td><?php echo (int) $c["contract_count"]; ?></td>
                 <td>
-                  <?php echo $c['last_contact'] ? date('d M Y', strtotime($c['last_contact'])) : 'Never'; ?>
+                  <?php echo $c["last_contact"]
+                      ? date("d M Y", strtotime($c["last_contact"]))
+                      : "Never"; ?>
                 </td>
                 <td>
                   <a
                     class="icon-action"
-                    href="clientProfile.php?id=<?php echo (int) $c['id']; ?>"
+                    href="clientProfile.php?id=<?php echo (int) $c["id"]; ?>"
                     title="Open Client"
                   >
                     <i class="fa fa-eye"></i>
                   </a>
                   <?php if (
-                      !in_array($c['status'], ['inactive', 'closed'], true) &&
-                      oecrm_can($conn, 'clients', 'delete')
+                      !in_array($c["status"], ["inactive", "closed"], true) &&
+                      oecrm_can($conn, "clients", "delete")
                   ): ?>
                     <form
                       method="post"
@@ -177,7 +189,9 @@ unset($_SESSION['client_flash']);
                     >
                       <?php echo oecrm_csrf_field(); ?>
                       <input type="hidden" name="action" value="archive_client">
-                      <input type="hidden" name="client_id" value="<?php echo (int) $c['id']; ?>">
+                      <input type="hidden" name="client_id" value="<?php echo (int) $c[
+                          "id"
+                      ]; ?>">
                       <button class="icon-action danger" title="Archive">
                         <i class="fa fa-archive"></i>
                       </button>
@@ -192,4 +206,4 @@ unset($_SESSION['client_flash']);
     </div>
   </div>
 </div>
-<?php include 'footer.php'; ?>
+<?php include "footer.php"; ?>
