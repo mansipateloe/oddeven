@@ -1,7 +1,7 @@
 <?php
 
-include 'header.php';
-$empId = $_SESSION['employeeId'];
+include "header.php";
+$empId = $_SESSION["employeeId"];
 ?>
 <div id="page-wrapper">
     <h2>Activity Log</h2>
@@ -19,19 +19,20 @@ $empId = $_SESSION['employeeId'];
                 </thead>
                 <tbody>
                     <?php
-                    $leaveQuery = mysqli_query($conn, "SELECT * from activity_log where emp_id=$empId ORDER BY created_at DESC");
+                    $leaveQuery = mysqli_query(
+                        $conn,
+                        "SELECT * from activity_log where emp_id=$empId ORDER BY created_at DESC"
+                    );
                     $count = 1;
-                    while ($leaveRow = mysqli_fetch_assoc($leaveQuery)) {
-                    ?>
+                    while ($leaveRow = mysqli_fetch_assoc($leaveQuery)) { ?>
                         <tr>
                             <td><?= $count++ ?></td>
-                            <td><?= $leaveRow['created_at'] ?></td>
-                            <td><?= $leaveRow['message'] ?></td>
+                            <td><?= $leaveRow["created_at"] ?></td>
+                            <td><?= $leaveRow["message"] ?></td>
 
 
                         </tr>
-                    <?php
-                    }
+                    <?php }
                     ?>
                 </tbody>
             </table>
@@ -40,10 +41,7 @@ $empId = $_SESSION['employeeId'];
 
 </div>
 
-<?php
-
-include 'footer.php';
-?>
+<?php include "footer.php"; ?>
 <script src="../vendor/jquery/jquery.min.js"></script>
 <script src="../vendor/datatables/js/jquery.dataTables.min.js"></script>
 <script src="../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
@@ -51,11 +49,6 @@ include 'footer.php';
 <script>
     $(document).ready(function() {
         $('#leaveTable').DataTable({
-            /*responsive: true,*/
-            // order: [[4, 'desc']],
-            // columnDefs: [
-            // { "orderable": false, "targets": 5 }
-            // ]
         });
     });
 </script>
