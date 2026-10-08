@@ -40,14 +40,14 @@ $history = mysqli_query(
     <div class="panel-body">
       <form method="post" action="shiftAction.php" class="shift-assignment-form"><?php echo oecrm_csrf_field(); ?><input
           type="hidden" name="action" value="assign">
-        <div class="form-group"><label>Employee</label><select class="form-control" name="employee_id" required>
+        <div class="form-group"><label>Employee</label><select  name="employee_id" required>
             <option value="">Select active employee</option><?php while (
     $employee = mysqli_fetch_assoc($employees)
 ): ?><option value="<?php echo (int) $employee["id"]; ?>"><?php echo oecrm_h(
     $employee["employeeCode"] . " - " . $employee["name"]
 ); ?></option><?php endwhile; ?>
           </select></div>
-        <div class="form-group"><label>Shift</label><select class="form-control" name="shift_id" required>
+        <div class="form-group"><label>Shift</label><select class="" name="shift_id" required>
             <option value="">Select shift</option><?php while (
     $shift = mysqli_fetch_assoc($shifts)
 ): ?><option value="<?php echo (int) $shift["id"]; ?>"><?php echo oecrm_h(
