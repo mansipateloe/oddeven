@@ -42,15 +42,19 @@ $history = mysqli_query(
           type="hidden" name="action" value="assign">
         <div class="form-group"><label>Employee</label><select  name="employee_id" required>
             <option value="">Select active employee</option><?php while (
-    $employee = mysqli_fetch_assoc($employees)
-): ?><option value="<?php echo (int) $employee["id"]; ?>"><?php echo oecrm_h(
+                $employee = mysqli_fetch_assoc($employees)
+            ): ?><option value="<?php echo (int) $employee[
+    "id"
+]; ?>"><?php echo oecrm_h(
     $employee["employeeCode"] . " - " . $employee["name"]
 ); ?></option><?php endwhile; ?>
           </select></div>
         <div class="form-group"><label>Shift</label><select class="" name="shift_id" required>
             <option value="">Select shift</option><?php while (
-    $shift = mysqli_fetch_assoc($shifts)
-): ?><option value="<?php echo (int) $shift["id"]; ?>"><?php echo oecrm_h(
+                $shift = mysqli_fetch_assoc($shifts)
+            ): ?><option value="<?php echo (int) $shift[
+    "id"
+]; ?>"><?php echo oecrm_h(
     $shift["name"] .
         " (" .
         substr($shift["start_time"], 0, 5) .
@@ -61,8 +65,8 @@ $history = mysqli_query(
           </select></div>
         <div class="form-group"><label>Effective From</label><input type="date" class="form-control"
             name="effective_from" required value="<?php echo date(
-    "Y-m-d"
-); ?>"></div>
+                "Y-m-d"
+            ); ?>"></div>
         <div class="form-group"><label>Reason</label><input class="form-control" name="reason"></div><button
           class="btn btn-primary"><i class="fa fa-random"></i> Assign Shift</button>
       </form>
@@ -80,27 +84,21 @@ $history = mysqli_query(
             <th>Effective From</th>
           </tr>
         </thead>
-        <tbody><?php while (
-    $row = mysqli_fetch_assoc($list)
-): ?><tr>
+        <tbody><?php while ($row = mysqli_fetch_assoc($list)): ?><tr>
             <td><strong><?php echo oecrm_h(
-    $row["name"]
-); ?></strong><small><?php echo oecrm_h(
+                $row["name"]
+            ); ?></strong><small><?php echo oecrm_h(
     $row["employeeCode"]
 ); ?></small></td>
-            <td><?php echo oecrm_h(
-    $row["shift_name"] ?: "Unassigned"
-); ?></td>
+            <td><?php echo oecrm_h($row["shift_name"] ?: "Unassigned"); ?></td>
             <td><?php echo $row["shift_name"]
-    ? oecrm_h(
-        substr($row["start_time"], 0, 5) .
-            " - " .
-            substr($row["end_time"], 0, 5)
-    )
-    : "-"; ?></td>
-            <td><?php echo oecrm_h(
-    $row["effective_from"] ?: "-"
-); ?></td>
+                ? oecrm_h(
+                    substr($row["start_time"], 0, 5) .
+                        " - " .
+                        substr($row["end_time"], 0, 5)
+                )
+                : "-"; ?></td>
+            <td><?php echo oecrm_h($row["effective_from"] ?: "-"); ?></td>
           </tr><?php endwhile; ?></tbody>
       </table>
     </div>
@@ -118,24 +116,12 @@ $history = mysqli_query(
             <th>Reason</th>
           </tr>
         </thead>
-        <tbody><?php while (
-    $row = mysqli_fetch_assoc($history)
-): ?><tr>
-            <td><?php echo oecrm_h(
-    $row["effective_from"]
-); ?></td>
-            <td><?php echo oecrm_h(
-    $row["employee_name"]
-); ?></td>
-            <td><?php echo oecrm_h(
-    $row["old_shift"] ?: "None"
-); ?></td>
-            <td><?php echo oecrm_h(
-    $row["new_shift"]
-); ?></td>
-            <td><?php echo oecrm_h(
-    $row["reason"]
-); ?></td>
+        <tbody><?php while ($row = mysqli_fetch_assoc($history)): ?><tr>
+            <td><?php echo oecrm_h($row["effective_from"]); ?></td>
+            <td><?php echo oecrm_h($row["employee_name"]); ?></td>
+            <td><?php echo oecrm_h($row["old_shift"] ?: "None"); ?></td>
+            <td><?php echo oecrm_h($row["new_shift"]); ?></td>
+            <td><?php echo oecrm_h($row["reason"]); ?></td>
           </tr><?php endwhile; ?></tbody>
       </table>
     </div>

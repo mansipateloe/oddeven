@@ -36,11 +36,14 @@ $history = mysqli_query(
     $message
 ): ?><div class="alert alert-success"><?php echo oecrm_h(
     $message
-); ?></div><?php endif; ?><div class="panel panel-default"><div class="panel-heading">Assign Employee Shift</div><div class="panel-body"><form method="post" action="shiftAction.php" class="shift-assignment-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="assign"><div class="form-group"><label>Employee</label><select class="form-control" name="employee_id" required><option value="">Select employee</option><?php while (
+); ?></div><?php endif; ?><div class="panel panel-default"><div class="panel-heading">Assign Employee Shift</div>
+<div class="panel-body"><form method="post" action="shiftAction.php" class="shift-assignment-form"><?php echo oecrm_csrf_field(); ?>
+<input type="hidden" name="action" value="assign"><div class="form-group"><label>Employee</label>
+<select class="" name="employee_id" required><option value="">Select employee</option><?php while (
     $e = mysqli_fetch_assoc($employees)
 ): ?><option value="<?php echo (int) $e["id"]; ?>"><?php echo oecrm_h(
     $e["employeeCode"] . " - " . $e["name"]
-); ?></option><?php endwhile; ?></select></div><div class="form-group"><label>Shift</label><select class="form-control" name="shift_id" required><option value="">Select shift</option><?php while (
+); ?></option><?php endwhile; ?></select></div><div class="form-group"><label>Shift</label><select class="" name="shift_id" required><option value="">Select shift</option><?php while (
     $s = mysqli_fetch_assoc($shifts)
 ): ?><option value="<?php echo (int) $s["id"]; ?>"><?php echo oecrm_h(
     $s["name"] .
