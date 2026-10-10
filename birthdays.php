@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/notices.php';
 
 function oecrm_employee_birthdays($conn, $companyId, $days = 30)

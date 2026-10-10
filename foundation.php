@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/security.php';
+require_once __DIR__ . '/foundation.php';
+require_once __DIR__ . '/notices.php';
 
 function oecrm_current_company_id($conn)
 {
