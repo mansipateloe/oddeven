@@ -8,6 +8,7 @@ $birthdays = oecrm_employee_birthdays($conn, $companyId, 30);
 $flash = $_SESSION['birthday_flash'] ?? '';
 $error = $_SESSION['birthday_error'] ?? '';
 unset($_SESSION['birthday_flash'], $_SESSION['birthday_error']);
+
 ?>
 <div id="page-wrapper" class="compact-admin-page birthday-center-page">
     <?php if ($flash): ?><div class="alert alert-success"><?php echo oecrm_h($flash); ?></div><?php endif; ?>

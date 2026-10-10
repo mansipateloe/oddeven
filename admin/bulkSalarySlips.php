@@ -7,6 +7,7 @@ oecrm_require_admin_login();
 oecrm_require_permission($conn, "payroll", "export");
 $companyId = oecrm_current_company_id($conn);
 $runId = oecrm_int_param($_GET, "run_id");
+
 $stmt = mysqli_prepare(
     $conn,
     'SELECT * FROM payroll_runs WHERE id=? AND company_id=? AND status IN ("approved","locked")'
