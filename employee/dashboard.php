@@ -167,7 +167,7 @@ include 'header.php';
     </div>
 </div>
 <?php if($requiresReason): ?>
-<div class="modal fade" id="lateReasonModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><form method="post"><div class="modal-header"><h4>Late Sign-in Reason</h4></div><div class="modal-body"><?php echo oecrm_csrf_field(); ?><textarea class="form-control" name="reason" minlength="10" required></textarea></div><div class="modal-footer"><button class="btn btn-primary" name="latesignIn">Continue Sign In</button></div></form></div></div></div>
+<div class="modal fade" id="lateReasonModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><form method="post"><div class="modal-header"><h4>Add Late Sign-in Reason</h4></div><div class="modal-body"><?php echo oecrm_csrf_field(); ?><textarea class="form-control" name="reason" minlength="10" required></textarea></div><div class="modal-footer"><button class="btn btn-primary" name="latesignIn">Continue Sign In</button></div></form></div></div></div>
 <script>document.addEventListener('DOMContentLoaded',function(){jQuery('#lateReasonModal').modal({backdrop:'static',keyboard:false});});</script>
 <?php endif; ?>
 <?php include 'footer.php'; ?>
