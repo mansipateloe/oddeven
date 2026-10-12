@@ -160,10 +160,10 @@
             admin_sidebar_link('dashboard.php', 'Dashboard', 'fa-tachometer', $adminCurrentPage, ['dashboard.php']);
 
             echo '<li class="erp-nav-label">Business</li>';
-            admin_sidebar_parent('CRM & Sales', 'fa-handshake-o', [
+            admin_sidebar_parent('CRM & Sales', 'fa-briefcase', [
               ['href'=>'clients.php','label'=>'Clients','icon'=>'fa-building-o','show'=>oecrm_can($conn,'clients','view'),'pages'=>['clients.php','clientProfile.php']],
               ['href'=>'add_lead.php','label'=>'Add Lead','icon'=>'fa-user-plus','show'=>check_is_access_new('add_lead')==1,'pages'=>['add_lead.php']],
-              ['href'=>'leads.php','label'=>'Lead Pipeline','icon'=>'fa-address-book-o','show'=>check_is_access_new('view_lead')==1,'pages'=>['leads.php','action_update_lead.php']],
+              ['href'=>'leads.php','label'=>'Lead Pipeline','icon'=>'fa-filter','show'=>check_is_access_new('view_lead')==1,'pages'=>['leads.php','action_update_lead.php']],
               ['href'=>'followup.php','label'=>'Follow-ups','icon'=>'fa-calendar-check-o','show'=>check_is_access_new('view_lead')==1,'pages'=>['followup.php','action_update_followup.php']],
               ['href'=>'manageLeadSource.php','label'=>'Lead Sources','icon'=>'fa-code-fork','show'=>check_is_access_new('view_lead')==1,'pages'=>['manageLeadSource.php']],
               ['href'=>'manageFollowupType.php','label'=>'Follow-up Types','icon'=>'fa-tags','show'=>check_is_access_new('view_lead')==1,'pages'=>['manageFollowupType.php']],
@@ -179,11 +179,11 @@
 
             echo '<li class="erp-nav-label">People & HR</li>';
             admin_sidebar_parent('Employees', 'fa-users', [
-              ['href'=>'manageEmployee.php','label'=>'Employee Directory','icon'=>'fa-address-card-o','show'=>check_is_access_new('employee')==1||oecrm_can($conn,'employees','view'),'pages'=>['manageEmployee.php','employeeProfile.php','editEmployee.php']],
+              ['href'=>'manageEmployee.php','label'=>'Employee Directory','icon'=>'fa-users','show'=>check_is_access_new('employee')==1||oecrm_can($conn,'employees','view'),'pages'=>['manageEmployee.php','employeeProfile.php','editEmployee.php']],
               ['href'=>'addEmployee.php','label'=>'Add Employee','icon'=>'fa-user-plus','show'=>check_is_access_new('employee')==1||oecrm_can($conn,'employees','create'),'pages'=>['addEmployee.php']],
               ['href'=>'employeeContinuations.php','label'=>'Job Renewal / Continuation','icon'=>'fa-refresh','show'=>check_is_access_new('employee')==1||oecrm_can($conn,'employees','view'),'pages'=>['employeeContinuations.php']],
               ['href'=>'departments.php','label'=>'Departments','icon'=>'fa-sitemap','show'=>oecrm_can($conn,'departments','view')||check_is_access_new('employee')==1,'pages'=>['departments.php']],
-              ['href'=>'manageDesignation.php','label'=>'Designations','icon'=>'fa-id-badge','show'=>check_is_access_new('employee')==1||oecrm_can($conn,'designations','view'),'pages'=>['manageDesignation.php']],
+              ['href'=>'manageDesignation.php','label'=>'Designations','icon'=>'fa-tags','show'=>check_is_access_new('employee')==1||oecrm_can($conn,'designations','view'),'pages'=>['manageDesignation.php']],
               ['href'=>'employeeExits.php','label'=>'Employee Exit & F&F','icon'=>'fa-sign-out','show'=>oecrm_can($conn,'employee_exit','view'),'pages'=>['employeeExits.php']],
             ], $adminCurrentPage);
 
@@ -199,7 +199,7 @@
 
             admin_sidebar_parent('HR Documents', 'fa-file-text-o', [
               ['href'=>'hrLetterTemplates.php','label'=>'Letter Templates','icon'=>'fa-files-o','show'=>oecrm_can($conn,'hr_letter_templates','view'),'pages'=>['hrLetterTemplates.php']],
-              ['href'=>'hrLetters.php','label'=>'Employee Letters','icon'=>'fa-envelope-open-o','show'=>oecrm_can($conn,'hr_letters','view'),'pages'=>['hrLetters.php']],
+              ['href'=>'hrLetters.php','label'=>'Employee Letters','icon'=>'fa-envelope-o','show'=>oecrm_can($conn,'hr_letters','view'),'pages'=>['hrLetters.php']],
             ], $adminCurrentPage);
 
             echo '<li class="erp-nav-label">Finance & Resources</li>';
@@ -282,7 +282,6 @@
         </div>
       </div>
     </header>
-
 
 
 

@@ -55,7 +55,6 @@ if (isset($_GET["edit"])) {
                                     <input class="btn btn-danger cancel_btn" type="reset" value="Cancel">
                                 <?php else: ?>
                                     <input type="submit" class="btn btn-primary viewreport" name="updateBankDetails" value="Update">
-                                    <!-- <input class="btn btn-danger cancel_btn" type="reset" value="Cancel"> -->
                                 <?php endif; ?>  
 
 
