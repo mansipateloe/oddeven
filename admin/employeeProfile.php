@@ -176,7 +176,7 @@ while (
     $employee["mobile1"]
 ); ?></span></p><p><i class="fa fa-calendar"></i><span>Joined <?php echo oecrm_h(
     $employee["joiningDate"] ?: "Not set"
-); ?></span></p><p><i class="fa fa-money"></i><span>?<?php echo number_format(
+); ?></span></p><p><i class="fa fa-money"></i><span>&#8377;<?php echo number_format(
     (float) $employee["salary"],
     2
 ); ?></span></p></div></div></aside></div></div>
