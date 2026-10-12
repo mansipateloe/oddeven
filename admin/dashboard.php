@@ -32,7 +32,7 @@
                     </div>
                 <?php endif; ?>
                 <div class="topboxes analytics-summary">
-                    <div class="row analytics-summary-row">
+                    <div class="">
                         <div class="col-lg-3 col-md-4 col-sm-6">
                             <a href="viewProject.php" class="analytics-card analytics-card-primary">
                                 <span class="analytics-icon"><i class="fa fa-folder-open-o"></i></span>
