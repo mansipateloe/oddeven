@@ -9,8 +9,53 @@ oecrm_require_permission($conn, 'departments', 'view');
 $companyId = oecrm_current_company_id($conn);
 $message = '';
 $error = '';
+$canDeleteDepartments = oecrm_can($conn, 'departments', 'delete');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'deactivate') {
+    oecrm_require_csrf();
+
+    oecrm_require_permission($conn, 'departments', 'delete');
+
+    $id = (int) ($_POST['id'] ?? 0);
+    $stmt = mysqli_prepare(
+        $conn,
+        'SELECT id, name, status FROM departments WHERE id=? AND company_id=? LIMIT 1'
+    );
+    mysqli_stmt_bind_param($stmt, 'ii', $id, $companyId);
+    mysqli_stmt_execute($stmt);
+    $department = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    mysqli_stmt_close($stmt);
+
+    if (!$department) {
+        $error = 'Department not found in the active company.';
+    } elseif (!(int) $department['status']) {
+        $error = 'This department is already inactive.';
+    } else {
+        $stmt = mysqli_prepare(
+            $conn,
+            'UPDATE departments SET status=0 WHERE id=? AND company_id=? AND status=1'
+        );
+        mysqli_stmt_bind_param($stmt, 'ii', $id, $companyId);
+        if (mysqli_stmt_execute($stmt) && mysqli_stmt_affected_rows($stmt) === 1) {
+            oecrm_audit(
+                $conn,
+                'departments',
+                'delete',
+                'department',
+                $id,
+                'Department deactivated',
+                $department,
+                ['status' => 0]
+            );
+            $message = 'Department deactivated. Employee records and history were preserved.';
+        } else {
+            $error = 'Department could not be deactivated.';
+        }
+        mysqli_stmt_close($stmt);
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') !== 'deactivate') {
     oecrm_require_csrf();
 
     $id = (int) ($_POST['id'] ?? 0);
@@ -185,6 +230,16 @@ $list = mysqli_query(
                                     <a class="icon-action" href="departments.php?edit=<?php echo (int) $r['id']; ?>">
                                         <i class="fa fa-pencil"></i>
                                     </a>
+                                    <?php if ($canDeleteDepartments && (int) $r['company_id'] === $companyId && (int) $r['status'] === 1): ?>
+                                        <form method="post" style="display:inline" data-confirm="Deactivate this department? Employee records and history will be preserved.">
+                                            <?php echo oecrm_csrf_field(); ?>
+                                            <input type="hidden" name="action" value="deactivate">
+                                            <input type="hidden" name="id" value="<?php echo (int) $r['id']; ?>">
+                                            <button type="submit" class="icon-action danger" title="Deactivate department" aria-label="Deactivate department">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endwhile; ?>
