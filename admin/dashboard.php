@@ -96,8 +96,55 @@
                                 <span class="analytics-pill">Requests</span>
                             </a>
                         </div>
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <a href="birthdayCenter.php" class="analytics-card analytics-card-info">
+                                <span class="analytics-icon"><i class="fa fa-birthday-cake"></i></span>
+                                <span class="analytics-value"><?php echo count($dashboardBirthdays); ?></span>
+                                <span class="analytics-label">Upcoming Birthdays</span>
+                                <span class="analytics-pill">Next 30 Days</span>
+                            </a>
+                        </div>
                     </div>
                 </div>        <?php
+            $dashboardDatabaseConnected = mysqli_ping($conn);
+        ?>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-default finance-balance-card">
+                    <div class="panel-heading finance-balance-heading">
+                        <div>
+                            <span><i class="fa fa-info-circle"></i> System Information</span>
+                            <small>Current application environment</small>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="finance-summary-grid">
+                            <div class="finance-summary-tile <?php echo $dashboardDatabaseConnected ? 'tile-success' : 'tile-danger'; ?>">
+                                <span class="finance-tile-icon"><i class="fa fa-database"></i></span>
+                                <span class="finance-tile-label">Database Connection</span>
+                                <strong><?php echo $dashboardDatabaseConnected ? 'Connected' : 'Unavailable'; ?></strong>
+                            </div>
+                            <div class="finance-summary-tile tile-primary">
+                                <span class="finance-tile-icon"><i class="fa fa-code"></i></span>
+                                <span class="finance-tile-label">PHP Version</span>
+                                <strong><?php echo oecrm_h(PHP_VERSION); ?></strong>
+                            </div>
+                            <div class="finance-summary-tile tile-info">
+                                <span class="finance-tile-icon"><i class="fa fa-clock-o"></i></span>
+                                <span class="finance-tile-label">Server Time</span>
+                                <strong><?php echo oecrm_h(date('d M Y, h:i:s A')); ?></strong>
+                            </div>
+                            <div class="finance-summary-tile tile-primary">
+                                <span class="finance-tile-icon"><i class="fa fa-globe"></i></span>
+                                <span class="finance-tile-label">Server Timezone</span>
+                                <strong><?php echo oecrm_h(date_default_timezone_get()); ?></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php
             $balancePeriod = $_GET['balance_period'] ?? 'month';
             $allowedBalancePeriods = ['month', 'quarter', 'six_month', 'year', 'all'];
             if (!in_array($balancePeriod, $allowedBalancePeriods, true)) {
@@ -473,8 +520,6 @@ function getApprovalStatusColor($status)
 }
 ?>
 <?php include 'footer.php'; ?>
-
-
 
 
 
