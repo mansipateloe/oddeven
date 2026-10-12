@@ -3,6 +3,7 @@ $active_menu = "attendance";
 include "header.php";
 require_once __DIR__ . "/../foundation.php";
 oecrm_require_permission($conn, "shift_assignments", "view");
+//oecrm_require_permission($conn, "shift_assignments", "view","newdata");
 $companyId = oecrm_current_company_id($conn);
 $message = $_SESSION["shift_flash"] ?? "";
 unset($_SESSION["shift_flash"]);

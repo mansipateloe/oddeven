@@ -12,6 +12,7 @@ function oecrm_lead_redirect_with_error(int $id, string $message): void
     $_SESSION['lead_flash'] = $message;
     header('Location:lead_edit.php?edit=' . max(0, $id));
     exit;
+    //print( $_SESSION['lead_flash'])
 }
 
 if (!isset($_POST['leadDate'])) {

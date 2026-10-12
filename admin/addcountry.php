@@ -10,6 +10,7 @@ if(isset($_GET['edit']))
     $getAccountQry = "select * from country where country_id = $id";
     $getAccountResult = mysqli_query($conn, $getAccountQry);
     $getAccountRes = mysqli_fetch_assoc($getAccountResult);
+    
     //echo '<pre>'; print_r($getAccountRes);die((__FILE__).'-->'.(__FUNCTION__).'--Line('. (__LINE__).')');
     $country_symbols = $getAccountRes['country_symbols'];
     $country_code = $getAccountRes['country_code'];
