@@ -121,9 +121,9 @@ if ($action === "save") {
         header("Location: shifts.php");
         exit();
     } catch (Throwable $e) {
-        mysqli_rollback($conn);
+        
+        exit($e->getMessage());mysqli_rollback($conn);
         http_response_code(400);
-        exit($e->getMessage());
     }
 }
 if ($action === "assign") {
@@ -134,6 +134,7 @@ if ($action === "assign") {
     $reason = trim($_POST["reason"] ?? "");
     if (!$effective) {
         http_response_code(400);
+        // exit("http_response_code(500);")
         exit("Effective date is required.");
     }
     $actor = (int) $_SESSION["adminId"];

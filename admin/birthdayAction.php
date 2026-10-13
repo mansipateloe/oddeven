@@ -1,8 +1,9 @@
 <?php
 require_once __DIR__ . '/dbconnect.php';
 require_once __DIR__ . '/../security.php';
-require_once __DIR__ . '/../foundation.php';
 require_once __DIR__ . '/../birthdays.php';
+require_once __DIR__ . '/../foundation.php';
+//require_once __DIR__ . '/../birthdays.php';
 
 oecrm_require_admin_login();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
