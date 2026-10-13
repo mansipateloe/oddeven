@@ -6,9 +6,10 @@ oecrm_require_admin_login();
 
 oecrm_require_permission($conn, 'employees', 'create');
   if(isset($_POST['employeeUname'])){
-    $name = mysqli_real_escape_string($conn,$_POST['employeeUname']);
-    $stmt=mysqli_prepare($conn,'SELECT id FROM employeestbl WHERE employeeUname=? LIMIT 1');
-    mysqli_stmt_bind_param($stmt,'s',$name);
+    $name = trim((string) $_POST['employeeUname']);
+    $companyId = (int) ($_POST['company_id'] ?? 0);
+    $stmt=mysqli_prepare($conn,'SELECT id FROM employeestbl WHERE company_id=? AND employeeUname=? LIMIT 1');
+    mysqli_stmt_bind_param($stmt,'is',$companyId,$name);
     mysqli_stmt_execute($stmt);
     $query=mysqli_stmt_get_result($stmt);
     if(mysqli_num_rows($query)>0){

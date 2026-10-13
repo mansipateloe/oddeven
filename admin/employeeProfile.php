@@ -24,6 +24,12 @@ $contracts = mysqli_query(
         (int) $employeeId .
         " ORDER BY id DESC"
 );
+$continuations = mysqli_query(
+    $conn,
+    "SELECT * FROM employee_continuation_history WHERE employee_id=" .
+        (int) $employeeId .
+        " ORDER BY term_no DESC,id DESC"
+);
 $increments = mysqli_query(
     $conn,
     "SELECT * FROM employee_increments WHERE employee_id=" .
@@ -36,6 +42,13 @@ $documents = mysqli_query(
         (int) $employeeId .
         " ORDER BY id DESC"
 );
+$displayDetail = function ($value) {
+    $value = trim((string) ($value ?? ""));
+    if ($value === "" || $value === "0000-00-00") {
+        return '<span class="empty-cell">Not set</span>';
+    }
+    return nl2br(oecrm_h($value));
+};
 ?>
 <div id="page-wrapper" class="compact-admin-page employee-profile-page">
 <?php if ($message): ?><div class="alert alert-success"><?php echo oecrm_h(
@@ -61,6 +74,39 @@ $documents = mysqli_query(
     ucwords(str_replace("_", " ", $employee["employment_status"] ?? "active"))
 ); ?></span></div></div><div class="employee-hero-actions"><a class="btn btn-default" href="editEmployee.php?edit=<?php echo $employeeId; ?>"><i class="fa fa-pencil"></i> Edit Basic Details</a><a class="btn btn-default" href="manageEmployee.php"><i class="fa fa-arrow-left"></i> Employees</a></div></div>
 <div class="employee-profile-layout"><main>
+<div class="panel panel-default"><div class="panel-heading">Employee Information</div><div class="panel-body"><div class="table-responsive"><table class="table profile-table employee-detail-table"><tbody>
+<tr><th>Employee Name</th><td><?php echo $displayDetail($employee["name"]); ?></td></tr>
+<tr><th>Employee Code</th><td><?php echo $displayDetail($employee["employeeCode"]); ?></td></tr>
+<tr><th>Designation</th><td><?php echo $displayDetail($employee["designation"]); ?></td></tr>
+<tr><th>Company</th><td><?php echo $displayDetail($employee["company_name"]); ?></td></tr>
+<tr><th>Department</th><td><?php echo $displayDetail($employee["department_name"]); ?></td></tr>
+<tr><th>Username</th><td><?php echo $displayDetail($employee["employeeUname"]); ?></td></tr>
+<tr><th>Birth Date</th><td><?php echo $displayDetail($employee["birthdate"]); ?></td></tr>
+<tr><th>Joining Date</th><td><?php echo $displayDetail($employee["joiningDate"]); ?></td></tr>
+<tr><th>Company Email</th><td><?php echo $displayDetail($employee["companyEmail"]); ?></td></tr>
+<tr><th>Personal Email</th><td><?php echo $displayDetail($employee["personalEmail"]); ?></td></tr>
+<tr><th>Mobile 1</th><td><?php echo $displayDetail($employee["mobile1"]); ?></td></tr>
+<tr><th>Mobile 2</th><td><?php echo $displayDetail($employee["mobile2"]); ?></td></tr>
+<tr><th>Skype Username</th><td><?php echo $displayDetail($employee["skypeUname"]); ?></td></tr>
+<tr><th>Employment Type</th><td><?php echo $displayDetail(ucwords($employee["employment_type"] ?? "permanent")); ?></td></tr>
+<tr><th>Employment Status</th><td><?php echo $displayDetail(ucwords(str_replace("_", " ", $employee["employment_status"] ?? "active"))); ?></td></tr>
+<tr><th>Confirmation Date</th><td><?php echo $displayDetail($employee["confirmation_date"]); ?></td></tr>
+<tr><th>Notice Period Days</th><td><?php echo $displayDetail($employee["notice_period_days"]); ?></td></tr>
+<tr><th>Exit Date</th><td><?php echo $displayDetail($employee["exit_date"]); ?></td></tr>
+<tr><th>Exit Reason</th><td><?php echo $displayDetail($employee["exit_reason"]); ?></td></tr>
+<tr><th>Salary</th><td>&#8377;<?php echo $displayDetail(number_format((float) $employee["salary"], 2)); ?></td></tr>
+<tr><th>Bank Name</th><td><?php echo $displayDetail($employee["bankName"]); ?></td></tr>
+<tr><th>IFSC Code</th><td><?php echo $displayDetail($employee["bankIFSCno"]); ?></td></tr>
+<tr><th>Account Holder Name</th><td><?php echo $displayDetail($employee["bankAcHolderName"]); ?></td></tr>
+<tr><th>Bank Account Number</th><td><?php echo $displayDetail($employee["bankAcNo"]); ?></td></tr>
+<tr><th>Blood Group</th><td><?php echo $displayDetail($employee["blood_group"]); ?></td></tr>
+<tr><th>Marital Status</th><td><?php echo $displayDetail(ucwords($employee["marital_status"] ?? "")); ?></td></tr>
+<tr><th>Emergency Contact Name</th><td><?php echo $displayDetail($employee["emergency_contact_name"]); ?></td></tr>
+<tr><th>Emergency Contact Phone</th><td><?php echo $displayDetail($employee["emergency_contact_phone"]); ?></td></tr>
+<tr><th>Address</th><td><?php echo $displayDetail($employee["address"]); ?></td></tr>
+<tr><th>Current Address</th><td><?php echo $displayDetail($employee["current_address"]); ?></td></tr>
+<tr><th>Permanent Address</th><td><?php echo $displayDetail($employee["permanent_address"]); ?></td></tr>
+</tbody></table></div></div></div>
 <div class="panel panel-default"><div class="panel-heading">Employment Details</div><div class="panel-body"><form method="post" action="employeeProfileAction.php" class="employee-detail-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="profile"><input type="hidden" name="employee_id" value="<?php echo $employeeId; ?>">
 <div class="employee-form-grid"><div class="form-group"><label>Employment Type</label><select class="form-control" name="employment_type"><?php foreach (
     ["permanent", "probation", "contract", "intern", "consultant"]
@@ -120,6 +166,12 @@ while ($r = mysqli_fetch_assoc($contracts)): ?><tr><td><?php echo oecrm_h(
 ); ?></td><td><span class="status-pill active"><?php echo oecrm_h(
     ucwords($r["status"])
 ); ?></span></td></tr><?php endwhile;
+?></tbody></table></div></div></div>
+<div class="panel panel-default"><div class="panel-heading">Contract Renewal History</div><div class="panel-body"><div class="table-responsive"><table class="table profile-table"><thead><tr><th>Term</th><th>Previous Period</th><th>Renewed Period</th><th>Renewal Date</th><th>Status</th><th>Remarks</th></tr></thead><tbody><?php
+if (
+    mysqli_num_rows($continuations) === 0
+): ?><tr><td colspan="6" class="empty-cell">No renewal history recorded.</td></tr><?php endif;
+while ($r = mysqli_fetch_assoc($continuations)): ?><tr><td><?php echo (int) $r["term_no"]; ?></td><td><?php echo oecrm_h(($r["previous_from"] ?: "-") . " to " . ($r["previous_to"] ?: "-")); ?></td><td><?php echo oecrm_h($r["renewed_from"] . " to " . $r["renewed_to"]); ?></td><td><?php echo oecrm_h($r["renewal_date"]); ?></td><td><?php echo oecrm_h(ucwords(str_replace("_", " ", $r["status"]))); ?></td><td><?php echo oecrm_h($r["remarks"] ?: "-"); ?></td></tr><?php endwhile;
 ?></tbody></table></div></div></div>
 <div class="panel panel-default"><div class="panel-heading">Increment History</div><div class="panel-body"><form method="post" action="employeeProfileAction.php" class="inline-record-form increment-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="increment"><input type="hidden" name="employee_id" value="<?php echo $employeeId; ?>"><input type="date" class="form-control" name="effective_date" required><input type="number" step="0.01" class="form-control" name="revised_salary" placeholder="Revised salary" required><input class="form-control" name="reason" placeholder="Reason"><button class="btn btn-primary"><i class="fa fa-plus"></i> Add</button></form><div class="table-responsive"><table class="table profile-table"><thead><tr><th>Effective Date</th><th>Previous</th><th>Revised</th><th>Increase</th><th>Reason</th></tr></thead><tbody><?php
 if (

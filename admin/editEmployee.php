@@ -14,7 +14,9 @@ $rowView = null;
 if ($id > 0) {
     $stmt = mysqli_prepare(
         $conn,
-        "SELECT e.*, p.employment_type, p.employment_status, p.confirmation_date, p.notice_period_days, p.exit_date, p.exit_reason
+        "SELECT e.*, p.employment_type, p.employment_status, p.confirmation_date, p.notice_period_days, p.exit_date, p.exit_reason,
+                p.emergency_contact_name, p.emergency_contact_phone, p.blood_group, p.marital_status,
+                p.current_address, p.permanent_address
          FROM employeestbl e
          LEFT JOIN employee_profiles p ON p.employee_id = e.id
          WHERE e.id = ?
@@ -593,6 +595,49 @@ $currentEmploymentStatus = (string)($rowView['employment_status'] ?? (((int)($ro
                         <div class="form-group span-3">
                             <label>Address</label>
                             <textarea rows="5" name="address" class="form-control" placeholder="Employee address"><?php echo $value('address'); ?></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="employee-edit-section">
+                    <div class="employee-section-heading">
+                        <i class="fa fa-heart-o"></i>
+                        <div>
+                            <h3>Personal & Emergency Details</h3>
+                            <p>Additional personal information and emergency contacts.</p>
+                        </div>
+                    </div>
+                    <div class="employee-form-grid">
+                        <div class="form-group">
+                            <label>Blood Group</label>
+                            <input type="text" class="form-control" name="blood_group" value="<?php echo $value('blood_group'); ?>" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Marital Status</label>
+                            <select class="form-control" name="marital_status">
+                                <option value="">Select</option>
+                                <?php foreach (['single', 'married', 'divorced', 'widowed'] as $status): ?>
+                                    <option value="<?php echo $status; ?>" <?php echo ($rowView['marital_status'] ?? '') === $status ? 'selected' : ''; ?>>
+                                        <?php echo ucwords($status); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Emergency Contact Name</label>
+                            <input type="text" class="form-control" name="emergency_contact_name" value="<?php echo $value('emergency_contact_name'); ?>" maxlength="150">
+                        </div>
+                        <div class="form-group">
+                            <label>Emergency Contact Phone</label>
+                            <input type="text" class="form-control" name="emergency_contact_phone" value="<?php echo $value('emergency_contact_phone'); ?>" maxlength="40">
+                        </div>
+                        <div class="form-group span-3">
+                            <label>Current Address</label>
+                            <textarea rows="3" name="current_address" class="form-control"><?php echo $value('current_address'); ?></textarea>
+                        </div>
+                        <div class="form-group span-3">
+                            <label>Permanent Address</label>
+                            <textarea rows="3" name="permanent_address" class="form-control"><?php echo $value('permanent_address'); ?></textarea>
                         </div>
                     </div>
                 </div>

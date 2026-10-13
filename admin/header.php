@@ -4,7 +4,7 @@
 <?php oecrm_require_admin_login(); ?>
 <?php include 'validation.php'; ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 
 <head>
   <meta charset="utf-8">
@@ -22,6 +22,7 @@
   <link href="../vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet">
   <link href="../vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="../vendor/custom/customAdmin.css?v=20260627-1">
+  <script defer src="../js/oecrm-date-format.js?v=20261013-1"></script>
   <!-- <style>
         .nav-second-level {
             display: none; /* Hide all submenus by default */
@@ -264,7 +265,7 @@
       </div>
       <div class="admin-topbar-actions">
         <span class="admin-company-pill" title="Active company"><i class="fa fa-building-o"></i><?php echo oecrm_h($adminCompanyName);?></span>
-        <span class="admin-topbar-date"><i class="fa fa-calendar-o"></i><?php echo date('D, d M Y');?></span>
+        <span class="admin-topbar-date"><i class="fa fa-calendar-o"></i><?php echo date('d/m/Y');?></span>
         <a class="admin-topbar-icon birthday-topbar-link" href="birthdayCenter.php" title="<?php echo $birthdayTodayCount; ?> birthday<?php echo $birthdayTodayCount===1?'':'s'; ?> today"><i class="fa fa-birthday-cake"></i><?php if($birthdayTodayCount):?><span class="topbar-notification-badge"><?php echo $birthdayTodayCount;?></span><?php endif;?></a>
         <a class="admin-topbar-icon" href="noticeCenter.php" title="Notices"><i class="fa fa-bell-o"></i></a>
         <div class="admin-profile-menu">
@@ -282,8 +283,6 @@
         </div>
       </div>
     </header>
-
-
 
 
 

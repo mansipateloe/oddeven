@@ -115,11 +115,11 @@ $employees = mysqli_stmt_get_result($stmt);
                                 $employee["designation"]
                             ); ?></td>
                             <td>
-                                <?php echo oecrm_h($employee["mobile1"]); ?>
+                                <span class="employee-contact-number"><?php echo oecrm_h($employee["mobile1"]); ?></span>
                                 <?php if ($employee["mobile2"]): ?>
-                                    <br><small><?php echo oecrm_h(
+                                    <br><span class="employee-contact-number"><?php echo oecrm_h(
                                         $employee["mobile2"]
-                                    ); ?></small>
+                                    ); ?></span>
                                 <?php endif; ?>
                             </td>
                           
@@ -185,5 +185,4 @@ $employees = mysqli_stmt_get_result($stmt);
 mysqli_stmt_close($stmt);
 include "footer.php";
 ?>
-
 

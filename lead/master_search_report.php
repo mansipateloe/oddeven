@@ -8,8 +8,21 @@
                    </div>
                </div>
                <?php
-							$search_from = date('Y-m-d',strtotime(@$_REQUEST['search_from']));
-							$search_to = date('Y-m-d',strtotime(@$_REQUEST['search_to']));
+							$parseReportDate = function ($value) {
+								$value = (string) $value;
+								foreach (['!d/m/Y', '!d-m-Y', '!Y-m-d'] as $format) {
+									$date = DateTime::createFromFormat($format, $value);
+									$errors = DateTime::getLastErrors();
+									if ($date && ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0))) {
+										return $date;
+									}
+								}
+								return null;
+							};
+							$fromDate = $parseReportDate($_REQUEST['search_from'] ?? '');
+							$toDate = $parseReportDate($_REQUEST['search_to'] ?? '');
+							$search_from = $fromDate ? $fromDate->format('Y-m-d') : date('Y-m-d', strtotime('-6 months'));
+							$search_to = $toDate ? $toDate->format('Y-m-d') : date('Y-m-d');
 
 
 							$page_query = "";

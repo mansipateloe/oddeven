@@ -57,7 +57,7 @@ function employee_sidebar_parent($label, $icon, $items, $currentPage)
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
    <head>
       <meta charset="utf-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -75,6 +75,7 @@ function employee_sidebar_parent($label, $icon, $items, $currentPage)
       <link href="../vendor/custom/custom.css?v=20260627-1" rel="stylesheet">
       <link href="../vendor/custom/fontawesome.all.css" rel="stylesheet">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+      <script defer src="../js/oecrm-date-format.js?v=20261013-1"></script>
    </head>
    <body class="employee-portal" data-current-page="<?php echo htmlspecialchars($currentEmployeePage, ENT_QUOTES, 'UTF-8'); ?>">
       <div id="wrapper">
@@ -130,7 +131,7 @@ function employee_sidebar_parent($label, $icon, $items, $currentPage)
             </div>
          </div>
          <div class="employee-topbar-actions">
-            <span class="employee-today"><i class="fa fa-calendar-o"></i><?php echo date('D, d M Y'); ?></span>
+            <span class="employee-today"><i class="fa fa-calendar-o"></i><?php echo date('d/m/Y'); ?></span>
             <a class="employee-icon-link" href="notices.php" title="Notices"><i class="fa fa-bell-o"></i></a>
             <div class="employee-profile-menu">
                <button type="button" class="employee-profile-link" aria-haspopup="true" aria-expanded="false" data-profile-toggle="employee">
@@ -147,8 +148,6 @@ function employee_sidebar_parent($label, $icon, $items, $currentPage)
             </div>
          </div>
       </header>
-
-
 
 
 

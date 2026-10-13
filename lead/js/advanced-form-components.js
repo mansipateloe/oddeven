@@ -11,7 +11,7 @@
             autoclose: true
         });
 		$('.default-date-picker1').datepicker({
-            format: 'dd-mm-yyyy',
+            format: 'dd/mm/yyyy',
             autoclose: true
         });
         $('.dpYears').datepicker({

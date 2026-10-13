@@ -80,7 +80,7 @@ if (isset($_POST['submit'])) {
     }
 }
 ?><!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 
 <head>
 
@@ -96,6 +96,7 @@ if (isset($_POST['submit'])) {
     <link href="../vendor/metisMenu/metisMenu.min.css" rel="stylesheet">
     <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
     <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <script defer src="../js/oecrm-date-format.js?v=20261013-1"></script>
 
     <!--[if lt IE 9]>
         <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -168,5 +169,4 @@ if (isset($_POST['submit'])) {
         window.history.replaceState( null, null, window.location.href );
     }
 </script>
-
 

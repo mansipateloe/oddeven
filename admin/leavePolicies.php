@@ -39,14 +39,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
         $expiry = max(1, (int) $_POST["comp_off_expiry_days"]);
         $minutes = max(1, (int) $_POST["minimum_comp_off_minutes"]);
+        $paidLeavePerYear = max(0, (float) ($_POST["paid_leave_per_year"] ?? 10));
         $sandwich = isset($_POST["company_sandwich"]) ? 1 : 0;
         $stmt = mysqli_prepare(
             $conn,
-            "UPDATE leave_settings SET comp_off_expiry_days=?,minimum_comp_off_minutes=?,sandwich_enabled=? WHERE company_id=?"
+            "UPDATE leave_settings SET paid_leave_per_year=?,comp_off_expiry_days=?,minimum_comp_off_minutes=?,sandwich_enabled=? WHERE company_id=?"
         );
         mysqli_stmt_bind_param(
             $stmt,
-            "iiii",
+            "diiii",
+            $paidLeavePerYear,
             $expiry,
             $minutes,
             $sandwich,
@@ -74,7 +76,9 @@ $policies = mysqli_query(
     $flash
 ): ?><div class="alert alert-success"><?php echo oecrm_h(
     $flash
-); ?></div><?php endif; ?><div class="foundation-grid"><div class="panel panel-default"><div class="panel-heading">Global Leave Settings</div><div class="panel-body"><form method="post"><?php echo oecrm_csrf_field(); ?><div class="form-group"><label>Comp-Off Expiry Days</label><input type="number" class="form-control" name="comp_off_expiry_days" value="<?php echo (int) $settings[
+); ?></div><?php endif; ?><div class="foundation-grid"><div class="panel panel-default"><div class="panel-heading">Global Leave Settings</div><div class="panel-body"><form method="post"><?php echo oecrm_csrf_field(); ?><div class="form-group"><label>Total Paid Leave per Contract Year (shared across paid leave types; prorated for partial contracts)</label><input type="number" min="0" step="0.5" class="form-control" name="paid_leave_per_year" value="<?php echo oecrm_h(
+    $settings["paid_leave_per_year"]
+); ?>"></div><div class="form-group"><label>Comp-Off Expiry Days</label><input type="number" class="form-control" name="comp_off_expiry_days" value="<?php echo (int) $settings[
     "comp_off_expiry_days"
 ]; ?>"></div><div class="form-group"><label>Minimum Minutes for Comp-Off</label><input type="number" class="form-control" name="minimum_comp_off_minutes" value="<?php echo (int) $settings[
     "minimum_comp_off_minutes"

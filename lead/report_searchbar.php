@@ -6,16 +6,16 @@
                 <label for="#" class="control-label">Select Date</label>
                 <?php 
 				
-				$fromDate = date("d-m-Y", strtotime("-6 months"));
-				$currentdate = date('d-m-Y');
+				$fromDate = date("d/m/Y", strtotime("-6 months"));
+				$currentdate = date('d/m/Y');
 			
 				?>
                 
               
-                <div class="input-group input-large"  data-date-format="mm-dd-yyyy">
-                <input type="text" class="form-control form-control-inline input-medium default-date-picker1" data-date-format="dd-mm-yyyy" name="search_from" id="search_from" autocomplete="off" value="<?php if(isset($_REQUEST['search_from']) && $_REQUEST['search_from']!='1970-01-01'){echo $_REQUEST['search_from'];} else{ echo $fromDate; } ?>">
+                <div class="input-group input-large" data-date-format="dd/mm/yyyy">
+                <input type="text" class="form-control form-control-inline input-medium default-date-picker1" data-date-format="dd/mm/yyyy" name="search_from" id="search_from" autocomplete="off" value="<?php if(isset($_REQUEST['search_from']) && $_REQUEST['search_from']!='1970-01-01'){echo $_REQUEST['search_from'];} else{ echo $fromDate; } ?>">
                   <span class="input-group-addon">To</span>
-                  <input type="text" class="form-control form-control-inline input-medium default-date-picker1" data-date-format="dd-mm-yyyy" name="search_to" id="search_to" autocomplete="off" value="<?php if(isset($_REQUEST['search_to']) && $_REQUEST['search_to']!='1970-01-01'){echo $_REQUEST['search_to'];} else{echo $currentdate; } ?>">
+                  <input type="text" class="form-control form-control-inline input-medium default-date-picker1" data-date-format="dd/mm/yyyy" name="search_to" id="search_to" autocomplete="off" value="<?php if(isset($_REQUEST['search_to']) && $_REQUEST['search_to']!='1970-01-01'){echo $_REQUEST['search_to'];} else{echo $currentdate; } ?>">
                 
                
                 </div>

@@ -80,9 +80,10 @@
                                         </div>
                                         <div class="col-lg-6">
                                             <span>*Password :</span>
-                                            <div class="form-group input-group">
+                                            <div class="form-group input-group employee-password-group">
                                                 <span class="input-group-addon" style="padding: 8px 16px 0px 20px;"><p class="fa fa-key"></p></span>
-                                                <input type="password" class="form-control" minlength="6" name="employeeUpass" value="<?php echo $employeeUpass ?>" placeholder="Password" required>
+                                                <input type="password" class="form-control" id="employeeUpass" minlength="6" name="employeeUpass" value="<?php echo $employeeUpass ?>" placeholder="Password" required>
+                                                <button type="button" class="employee-password-toggle" id="toggleEmployeePassword" aria-label="Show password" aria-controls="employeeUpass"><i class="fa fa-eye" aria-hidden="true"></i></button>
                                             </div>
                                         </div>
                                     </div>
@@ -205,6 +206,20 @@
     <script src="../dist/js/sb-admin-2.js"></script>
     <script type="text/javascript">
     </script>
+    <script>
+        (function () {
+            var password = document.getElementById('employeeUpass');
+            var toggle = document.getElementById('toggleEmployeePassword');
+            if (!password || !toggle) return;
+
+            toggle.addEventListener('click', function () {
+                var visible = password.type === 'password';
+                password.type = visible ? 'text' : 'password';
+                toggle.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+                toggle.innerHTML = '<i class="fa ' + (visible ? 'fa-eye-slash' : 'fa-eye') + '" aria-hidden="true"></i>';
+            });
+        }());
+    </script>
     <script type="text/javascript">
         function checkname(){
             $("#loaderIcon").show();
@@ -217,6 +232,7 @@
                     url:'checkAvailibility.php',
                     data: {
                         employeeUname:name,
+                        company_id:document.querySelector('.company-selector').value,
                     },
                     success: function (response){
                         $("#loaderIcon").hide();
@@ -366,6 +382,30 @@
     })();
     </script>
     <style>
+        .employee-password-group .form-control {
+            padding-right: 44px;
+        }
+        .employee-password-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 4;
+            width: 42px;
+            height: 34px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #667085;
+            cursor: pointer;
+        }
+        .employee-password-toggle:hover,
+        .employee-password-toggle:focus {
+            color: #2e6da4;
+            outline: none;
+        }
+        .employee-password-toggle:focus-visible {
+            box-shadow: 0 0 0 2px rgba(46, 109, 164, .25);
+        }
         .employee-form-page .is-invalid {
             border-color: #d9534f !important;
             box-shadow: 0 0 0 0.2rem rgba(217, 83, 79, 0.15) !important;

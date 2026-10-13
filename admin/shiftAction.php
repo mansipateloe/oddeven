@@ -128,14 +128,17 @@ if ($action === "save") {
 }
 if ($action === "assign") {
     oecrm_require_permission($conn, "shift_assignments", "assign");
+    $returnPage = ($_POST["return_page"] ?? "") === "activeShiftAssignments.php"
+        ? "activeShiftAssignments.php"
+        : "shiftAssignments.php";
     $employeeId = oecrm_int_param($_POST, "employee_id");
     $shiftId = oecrm_int_param($_POST, "shift_id");
     $effective = $_POST["effective_from"] ?? "";
     $reason = trim($_POST["reason"] ?? "");
     if (!$effective) {
-        http_response_code(400);
-        // exit("http_response_code(500);")
-        exit("Effective date is required.");
+        $_SESSION["shift_error"] = "Effective date is required.";
+        header("Location: " . $returnPage);
+        exit();
     }
     $actor = (int) $_SESSION["adminId"];
     $stmt = mysqli_prepare(
@@ -147,8 +150,9 @@ if ($action === "assign") {
     $match = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
     mysqli_stmt_close($stmt);
     if (!$match || $match["employee_company"] != $match["shift_company"]) {
-        http_response_code(400);
-        exit("Employee and shift must belong to the same company.");
+        $_SESSION["shift_error"] = "Employee and shift must belong to the same company.";
+        header("Location: " . $returnPage);
+        exit();
     }
     mysqli_begin_transaction($conn);
     try {
@@ -239,12 +243,13 @@ if ($action === "assign") {
             ["shift_id" => $shiftId, "effective_from" => $effective]
         );
         $_SESSION["shift_flash"] = "Shift assigned successfully.";
-        header("Location: shiftAssignments.php");
+        header("Location: " . $returnPage);
         exit();
     } catch (Throwable $e) {
         mysqli_rollback($conn);
-        http_response_code(400);
-        exit($e->getMessage());
+        $_SESSION["shift_error"] = $e->getMessage();
+        header("Location: " . $returnPage);
+        exit();
     }
 }
 if ($action === "delete") {

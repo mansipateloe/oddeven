@@ -14,6 +14,7 @@ $companyId=(int)($_POST['company_id']??oecrm_current_company_id($conn));
 $departmentId=max(0,(int)($_POST['department_id']??0));
 $employeeCode=employee_post('employeeCode');$designation=employee_post('designation');$name=employee_post('name');$birthdate=employee_post('birthdate');$username=employee_post('employeeUname');$companyEmail=employee_post('companyEmail');$personalEmail=employee_post('personalEmail');$mobile1=employee_post('mobile1');$mobile2=employee_post('mobile2');$skype=employee_post('skypeUname');$joiningDate=employee_post('joiningDate');$salary=employee_post('salary');$bankName=employee_post('bankName');$ifsc=employee_post('bankIFSCno');$holder=employee_post('bankAcHolderName');$accountNo=employee_post('bankAcNo');$address=employee_post('address');
 $employmentType=employee_post('employment_type')?:'permanent';$employmentStatus=employee_post('employment_status')?:'active';$confirmationDate=employee_post('confirmation_date')?:null;$noticeDays=max(0,(int)($_POST['notice_period_days']??0));$exitDate=employee_post('exit_date')?:null;$exitReason=employee_post('exit_reason');
+$emergencyName=employee_post('emergency_contact_name');$emergencyPhone=employee_post('emergency_contact_phone');$bloodGroup=employee_post('blood_group');$maritalStatus=employee_post('marital_status');$currentAddress=array_key_exists('current_address',$_POST)?employee_post('current_address'):$address;$permanentAddress=array_key_exists('permanent_address',$_POST)?employee_post('permanent_address'):$address;
 $allowedTypes=['permanent','probation','contract','intern','consultant'];$allowedStatuses=['active','inactive','notice_period','resigned','terminated','retired'];
 if(!$companyId||$employeeCode===''||$designation===''||$name===''||$username===''||$companyEmail===''||!in_array($employmentType,$allowedTypes,true)||!in_array($employmentStatus,$allowedStatuses,true)){http_response_code(400);exit('Please complete all required employee fields.');}
 if($joiningDate===''){http_response_code(400);exit('Joining date is required.');}
@@ -22,13 +23,12 @@ $status=in_array($employmentStatus,['active','notice_period'],true)?0:1;
 mysqli_begin_transaction($conn);
 try{
  $dupChecks = [
-   ['employeeCode','employee code','SELECT id FROM employeestbl WHERE company_id=? AND employeeCode=? AND id<>? LIMIT 1','ss'],
-   ['employeeUname','username','SELECT id FROM employeestbl WHERE company_id=? AND employeeUname=? AND id<>? LIMIT 1','ss'],
-   ['companyEmail','company email','SELECT id FROM employeestbl WHERE company_id=? AND companyEmail=? AND id<>? LIMIT 1','ss'],
-   ['mobile1','mobile number','SELECT id FROM employeestbl WHERE company_id=? AND mobile1=? AND id<>? LIMIT 1','ss'],
+   [$employeeCode,'employee code','SELECT id FROM employeestbl WHERE company_id=? AND employeeCode=? AND id<>? LIMIT 1'],
+   [$username,'username','SELECT id FROM employeestbl WHERE company_id=? AND employeeUname=? AND id<>? LIMIT 1'],
+   [$companyEmail,'company email','SELECT id FROM employeestbl WHERE company_id=? AND companyEmail=? AND id<>? LIMIT 1'],
+   [$mobile1,'mobile number','SELECT id FROM employeestbl WHERE company_id=? AND mobile1=? AND id<>? LIMIT 1'],
  ];
- foreach($dupChecks as [$field,$label,$sql]){
-   $value = $$field;
+ foreach($dupChecks as [$value,$label,$sql]){
    if($value==='') continue;
    $stmt=mysqli_prepare($conn,$sql);
    mysqli_stmt_bind_param($stmt,'ssi',$companyId,$value,$employeeId);
@@ -46,8 +46,8 @@ try{
   $stmt=mysqli_prepare($conn,'UPDATE employeestbl SET company_id=?,department_id=?,employeeCode=?,designation=?,name=?,birthdate=?,employeeUname=?,employeeUpass=?,companyEmail=?,personalEmail=?,mobile1=?,mobile2=?,skypeUname=?,joiningDate=?,salary=?,bankName=?,bankIFSCno=?,bankAcHolderName=?,bankAcNo=?,address=?,status=? WHERE id=?');
   mysqli_stmt_bind_param($stmt,'iissssssssssssssssssii',$companyId,$departmentId,$employeeCode,$designation,$name,$birthdate,$username,$passwordHash,$companyEmail,$personalEmail,$mobile1,$mobile2,$skype,$joiningDate,$salary,$bankName,$ifsc,$holder,$accountNo,$address,$status,$employeeId);mysqli_stmt_execute($stmt);mysqli_stmt_close($stmt);
  }else{throw new RuntimeException('Invalid employee save mode.');}
- $stmt=mysqli_prepare($conn,'INSERT INTO employee_profiles(employee_id,employment_type,employment_status,confirmation_date,notice_period_days,exit_date,exit_reason,current_address,permanent_address) VALUES(?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE employment_type=VALUES(employment_type),employment_status=VALUES(employment_status),confirmation_date=VALUES(confirmation_date),notice_period_days=VALUES(notice_period_days),exit_date=VALUES(exit_date),exit_reason=VALUES(exit_reason),current_address=IF(current_address IS NULL OR current_address="",VALUES(current_address),current_address),permanent_address=IF(permanent_address IS NULL OR permanent_address="",VALUES(permanent_address),permanent_address)');
- mysqli_stmt_bind_param($stmt,'isssissss',$employeeId,$employmentType,$employmentStatus,$confirmationDate,$noticeDays,$exitDate,$exitReason,$address,$address);mysqli_stmt_execute($stmt);mysqli_stmt_close($stmt);
+ $stmt=mysqli_prepare($conn,'INSERT INTO employee_profiles(employee_id,employment_type,employment_status,confirmation_date,notice_period_days,exit_date,exit_reason,emergency_contact_name,emergency_contact_phone,blood_group,marital_status,current_address,permanent_address) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE employment_type=VALUES(employment_type),employment_status=VALUES(employment_status),confirmation_date=VALUES(confirmation_date),notice_period_days=VALUES(notice_period_days),exit_date=VALUES(exit_date),exit_reason=VALUES(exit_reason),emergency_contact_name=VALUES(emergency_contact_name),emergency_contact_phone=VALUES(emergency_contact_phone),blood_group=VALUES(blood_group),marital_status=VALUES(marital_status),current_address=VALUES(current_address),permanent_address=VALUES(permanent_address)');
+ mysqli_stmt_bind_param($stmt,'isssissssssss',$employeeId,$employmentType,$employmentStatus,$confirmationDate,$noticeDays,$exitDate,$exitReason,$emergencyName,$emergencyPhone,$bloodGroup,$maritalStatus,$currentAddress,$permanentAddress);mysqli_stmt_execute($stmt);mysqli_stmt_close($stmt);
  if($oldStatus!==$employmentStatus){$today=date('Y-m-d');$actor=(int)$_SESSION['adminId'];$stmt=mysqli_prepare($conn,'INSERT INTO employee_status_history(employee_id,old_status,new_status,effective_date,reason,changed_by) VALUES(?,?,?,?,?,?)');mysqli_stmt_bind_param($stmt,'issssi',$employeeId,$oldStatus,$employmentStatus,$today,$exitReason,$actor);mysqli_stmt_execute($stmt);mysqli_stmt_close($stmt);}
  mysqli_commit($conn);oecrm_audit($conn,'employees',$mode==='create'?'create':'update','employee',$employeeId,$mode==='create'?'Employee created':'Employee updated',null,['company_id'=>$companyId,'department_id'=>$departmentId,'employment_status'=>$employmentStatus]);$_SESSION['employee_flash']=$mode==='create'?'Employee created successfully.':'Employee updated successfully.';header('Location: employeeProfile.php?id='.$employeeId);exit;
 }catch(Throwable $e){mysqli_rollback($conn);http_response_code(400);exit($e->getMessage());}

@@ -19,7 +19,7 @@ if (isset($_POST["generate_comp"])) {
 }
 $requests = mysqli_query(
     $conn,
-    "SELECT r.*,e.name employee_name,e.employeeCode,t.name type_name,(SELECT (b.opening_balance+b.credited+b.adjusted-b.used-b.pending) FROM employee_leave_balances b WHERE b.employee_id=r.employee_id AND b.leave_type_id=r.leave_type_id AND b.balance_year=YEAR(r.start_date)) available_balance FROM leave_requests r JOIN employeestbl e ON e.id=r.employee_id JOIN leavetypetbl t ON t.id=r.leave_type_id WHERE r.company_id=" .
+    "SELECT r.*,e.name employee_name,e.employeeCode,t.name type_name,p.is_paid,(SELECT (b.opening_balance+b.credited+b.adjusted-b.used-b.pending) FROM employee_leave_balances b WHERE b.employee_id=r.employee_id AND b.leave_type_id=r.leave_type_id AND b.balance_year=YEAR(r.start_date)) available_balance FROM leave_requests r JOIN employeestbl e ON e.id=r.employee_id JOIN leavetypetbl t ON t.id=r.leave_type_id JOIN leave_policies p ON p.company_id=r.company_id AND p.leave_type_id=r.leave_type_id WHERE r.company_id=" .
         (int) $companyId .
         ' ORDER BY FIELD(r.status,"pending","approved","rejected"),r.id DESC'
 );
@@ -58,7 +58,9 @@ $comp = mysqli_fetch_assoc(
     "n"
 ); ?>"><button class="btn btn-primary"><i class="fa fa-magic"></i> Generate Comp-Off</button></form></div><div class="panel panel-default"><div class="panel-heading">Leave Approval</div><div class="panel-body table-responsive"><table class="table foundation-table"><thead><tr><th>Employee</th><th>Dates</th><th>Type</th><th>Days</th><th>Sandwich</th><th>Unpaid</th><th>Balance</th><th>Status</th><th>Reason / Action</th></tr></thead><tbody><?php while (
     $r = mysqli_fetch_assoc($requests)
-): ?><tr><td><strong><?php echo oecrm_h(
+): $requestBalance = !empty($r["is_paid"])
+    ? oecrm_paid_leave_balance($conn, (int) $r["employee_id"], $r["start_date"])
+    : null; ?><tr><td><strong><?php echo oecrm_h(
     $r["employee_name"]
 ); ?></strong><small><?php echo oecrm_h(
     $r["employeeCode"]
@@ -78,7 +80,9 @@ $comp = mysqli_fetch_assoc(
     $r["unpaid_days"],
     1
 ); ?></td><td><?php echo number_format(
-    (float) $r["available_balance"],
+    $requestBalance
+        ? $requestBalance["available"]
+        : (float) $r["available_balance"],
     1
 ); ?></td><td><span class="leave-status <?php echo $r[
     "status"

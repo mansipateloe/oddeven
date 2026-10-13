@@ -6,7 +6,9 @@ oecrm_require_permission($conn, "shift_assignments", "view");
 //oecrm_require_permission($conn, "shift_assignments", "view","newdata");
 $companyId = oecrm_current_company_id($conn);
 $message = $_SESSION["shift_flash"] ?? "";
+$error = $_SESSION["shift_error"] ?? "";
 unset($_SESSION["shift_flash"]);
+unset($_SESSION["shift_error"]);
 $shifts = mysqli_query(
     $conn,
     "SELECT id,name,start_time,end_time FROM shifts WHERE status=1 AND company_id=" .
@@ -36,12 +38,16 @@ $history = mysqli_query(
   <?php if ($message): ?><div class="alert alert-success"><?php echo oecrm_h(
     $message
 ); ?></div><?php endif; ?>
+  <?php if ($error): ?><div class="alert alert-danger"><?php echo oecrm_h(
+    $error
+); ?></div><?php endif; ?>
   <div class="panel panel-default">
     <div class="panel-heading">Assign Employee Shift</div>
     <div class="panel-body">
       <form method="post" action="shiftAction.php" class="shift-assignment-form"><?php echo oecrm_csrf_field(); ?><input
           type="hidden" name="action" value="assign">
-        <div class="form-group"><label>Employee</label><select  name="employee_id" required>
+        <input type="hidden" name="return_page" value="activeShiftAssignments.php">
+        <div class="form-group"><label>Employee</label><input type="search" class="form-control shift-option-search" data-filter-select="shiftEmployeeSelect" placeholder="Search employee..." autocomplete="off"><select id="shiftEmployeeSelect" class="form-control" name="employee_id" required>
             <option value="">Select active employee</option><?php while (
                 $employee = mysqli_fetch_assoc($employees)
             ): ?><option value="<?php echo (int) $employee[
@@ -50,7 +56,7 @@ $history = mysqli_query(
     $employee["employeeCode"] . " - " . $employee["name"]
 ); ?></option><?php endwhile; ?>
           </select></div>
-        <div class="form-group"><label>Shift</label><select class="" name="shift_id" required>
+        <div class="form-group"><label>Shift</label><input type="search" class="form-control shift-option-search" data-filter-select="shiftSelect" placeholder="Search shift..." autocomplete="off"><select id="shiftSelect" class="form-control" name="shift_id" required>
             <option value="">Select shift</option><?php while (
                 $shift = mysqli_fetch_assoc($shifts)
             ): ?><option value="<?php echo (int) $shift[
@@ -128,4 +134,26 @@ $history = mysqli_query(
     </div>
   </div>
 </div>
+<script>
+(function () {
+    document.querySelectorAll('.shift-option-search').forEach(function (search) {
+        var select = document.getElementById(search.getAttribute('data-filter-select'));
+        if (!select) return;
+
+        var options = Array.prototype.slice.call(select.options);
+        search.addEventListener('input', function () {
+            var term = search.value.trim().toLocaleLowerCase();
+            options.forEach(function (option, index) {
+                if (index === 0) return;
+                var matches = option.textContent.toLocaleLowerCase().indexOf(term) !== -1;
+                option.hidden = !matches;
+                option.disabled = !matches;
+            });
+            if (select.selectedOptions.length && select.selectedOptions[0].disabled) {
+                select.value = '';
+            }
+        });
+    });
+}());
+</script>
 <?php include "footer.php"; ?>

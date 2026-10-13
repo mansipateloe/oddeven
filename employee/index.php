@@ -81,7 +81,7 @@ if (isset($_POST['loginButton'])) {
     }
 }
 ?><!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -94,6 +94,7 @@ if (isset($_POST['loginButton'])) {
     <link href="../dist/css/sb-admin-2.css" rel="stylesheet">
     <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="../vendor/custom/custom.css?v=20260627-3" rel="stylesheet">
+    <script defer src="../js/oecrm-date-format.js?v=20261013-1"></script>
 </head>
 <body style="background: linear-gradient(#edfaff,#bbe8fc);">
     
@@ -162,5 +163,4 @@ if (isset($_POST['loginButton'])) {
         window.history.replaceState( null, null, window.location.href );
     }
 </script>
-
 

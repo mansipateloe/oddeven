@@ -2,11 +2,22 @@
 require_once __DIR__ . "/../leave.php";
 $employeeId = (int) $_SESSION["employeeId"];
 $year = (int) date("Y");
+$paidLeaveBalance = null;
+$leaveBalanceError = "";
+try {
+    $paidLeaveBalance = oecrm_paid_leave_balance(
+        $conn,
+        $employeeId,
+        date("Y-m-d")
+    );
+} catch (DomainException $e) {
+    $leaveBalanceError = $e->getMessage();
+}
 $flash = $_SESSION["leave_flash"] ?? "";
 unset($_SESSION["leave_flash"]);
 $balances = mysqli_query(
     $conn,
-    "SELECT b.*,t.name,(b.opening_balance+b.credited+b.adjusted-b.used-b.pending) available FROM employee_leave_balances b JOIN leavetypetbl t ON t.id=b.leave_type_id WHERE b.employee_id=" .
+    "SELECT b.*,t.name,(b.opening_balance+b.credited+b.adjusted-b.used-b.pending) available FROM employee_leave_balances b JOIN leavetypetbl t ON t.id=b.leave_type_id JOIN leave_policies p ON p.leave_type_id=b.leave_type_id AND p.company_id=(SELECT company_id FROM employeestbl WHERE id=b.employee_id) WHERE p.is_paid=0 AND b.employee_id=" .
         $employeeId .
         " AND b.balance_year=" .
         $year .
@@ -16,7 +27,7 @@ $types = mysqli_query(
     $conn,
     "SELECT p.leave_type_id,t.name,p.allow_half_day FROM leave_policies p JOIN leavetypetbl t ON t.id=p.leave_type_id JOIN employeestbl e ON e.company_id=p.company_id WHERE e.id=" .
         $employeeId .
-        " AND p.status=1 ORDER BY t.name"
+        " AND p.status=1 ORDER BY (LOWER(t.name)='casual leave') DESC,t.name"
 );
 $requests = mysqli_query(
     $conn,
@@ -35,7 +46,25 @@ $comp = mysqli_fetch_assoc(
     $flash
 ): ?><div class="alert alert-success"><?php echo htmlspecialchars(
     $flash
-); ?></div><?php endif; ?><div class="leave-balance-strip"><?php while (
+); ?></div><?php endif; ?><?php if ($leaveBalanceError): ?><div class="alert alert-warning"><?php echo htmlspecialchars($leaveBalanceError); ?></div><?php endif; ?><div class="leave-balance-strip"><?php if ($paidLeaveBalance): ?><div><small>Paid Leave (all paid types)</small><strong><?php echo number_format(
+    $paidLeaveBalance["available"],
+    1
+); ?></strong><span><?php echo number_format(
+    $paidLeaveBalance["used"],
+    1
+); ?> used · <?php echo number_format(
+    $paidLeaveBalance["pending"],
+    1
+); ?> pending of <?php echo number_format(
+    $paidLeaveBalance["entitlement"],
+    1
+); ?> this contract year (<?php echo date(
+    "d/m/Y",
+    strtotime($paidLeaveBalance["period_start"])
+); ?> - <?php echo date(
+    "d/m/Y",
+    strtotime($paidLeaveBalance["period_end"])
+); ?>)</span></div><?php endif; ?><?php while (
     $b = mysqli_fetch_assoc($balances)
 ): ?><div><small><?php echo htmlspecialchars(
     $b["name"]
@@ -56,7 +85,9 @@ $comp = mysqli_fetch_assoc(
     $t = mysqli_fetch_assoc($types)
 ): ?><option value="<?php echo (int) $t[
     "leave_type_id"
-]; ?>"><?php echo htmlspecialchars(
+]; ?>" <?php echo strtolower($t["name"]) === "casual leave"
+    ? "selected"
+    : ""; ?>><?php echo htmlspecialchars(
     $t["name"]
 ); ?></option><?php endwhile; ?></select></div><div class="form-group"><label>Subject</label><input class="form-control" name="subject" required></div><div class="leave-date-grid"><div class="form-group"><label>Start Date</label><input type="date" class="form-control" name="start_date" min="<?php echo date(
     "Y-m-d"

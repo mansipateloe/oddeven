@@ -100,27 +100,28 @@ if ($selectedEmployee) {
         $shift = oecrm_employee_shift($conn, $employeeId, $date);
         $joined = empty($selectedEmployee['joiningDate']) || $selectedEmployee['joiningDate'] <= $date;
         $weeklyOff = $shift ? oecrm_shift_is_weekly_off($conn, (int) $shift['id'], $date) : false;
+        $companyOff = (int) $cursor->format('w') === 0 || $weeklyOff;
         $holiday = oecrm_is_holiday($conn, $date, $companyId);
-        $workedOnOffDay = $session && ($weeklyOff || $holiday);
+        $workedOnOffDay = $session && ($companyOff || $holiday);
 
         if (!$joined) {
             $statusKey = 'not-joined';
             $statusLabel = 'Not Joined';
-        } elseif (!$shift) {
-            $statusKey = 'no-shift';
-            $statusLabel = 'No Shift';
         } elseif ($workedOnOffDay) {
             $statusKey = 'worked-off';
-            $statusLabel = $holiday ? 'Worked on Holiday' : 'Worked on Weekly Off';
+            $statusLabel = $holiday ? 'Worked on Holiday' : 'Worked on Company Off';
             $stats['present']++;
         } elseif ($holiday) {
             $statusKey = 'holiday';
             $statusLabel = 'Holiday';
             $stats['off']++;
-        } elseif ($weeklyOff) {
+        } elseif ($companyOff) {
             $statusKey = 'weekly-off';
-            $statusLabel = 'Weekly Off';
+            $statusLabel = 'Company Off';
             $stats['off']++;
+        } elseif (!$shift) {
+            $statusKey = 'no-shift';
+            $statusLabel = 'No Shift';
         } elseif ($session) {
             $statusKey = str_replace('_', '-', $session['attendance_status']);
             $statusLabel = ucwords(str_replace('_', ' ', $session['attendance_status']));
@@ -242,7 +243,7 @@ function attendance_minutes($minutes)
             <div><i class="fa fa-check-circle"></i><span><strong><?php echo $stats['present']; ?></strong><small>Completed / Worked</small></span></div>
             <div><i class="fa fa-clock-o"></i><span><strong><?php echo $stats['short']; ?></strong><small>Incomplete / Short</small></span></div>
             <div><i class="fa fa-times-circle"></i><span><strong><?php echo $stats['missing']; ?></strong><small>Absent</small></span></div>
-            <div><i class="fa fa-calendar"></i><span><strong><?php echo $stats['off']; ?></strong><small>Holiday / Weekly Off</small></span></div>
+            <div><i class="fa fa-calendar"></i><span><strong><?php echo $stats['off']; ?></strong><small>Holiday / Company Off</small></span></div>
         </div>
 
         <div class="panel panel-default attendance-calendar-panel">
@@ -262,7 +263,7 @@ function attendance_minutes($minutes)
                             <td><?php echo attendance_event_times($row['events'], 'break_out'); ?></td>
                             <td><?php echo attendance_event_times($row['events'], 'sign_out'); ?></td>
                             <td><?php echo $session ? attendance_minutes($session['effective_minutes']) : '—'; ?></td>
-                            <td><span class="attendance-day-badge <?php echo oecrm_h($row['status_key']); ?>"><?php echo oecrm_h($row['status_label']); ?></span></td>
+                            <td class="<?php echo $row['status_key'] === 'weekly-off' ? 'attendance-company-off-cell' : ''; ?>"><span class="attendance-day-badge <?php echo oecrm_h($row['status_key']); ?>"><?php echo oecrm_h($row['status_label']); ?></span></td>
                             <td>
                                 <?php if ($session && !$isLocked && oecrm_can($conn, 'attendance_review', 'correct')): ?>
                                     <button class="icon-action correction-btn"

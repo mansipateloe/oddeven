@@ -6,7 +6,9 @@ require_once __DIR__ . "/../foundation.php";
 oecrm_require_permission($conn, "shift_assignments", "view");
 $companyId = oecrm_current_company_id($conn);
 $message = $_SESSION["shift_flash"] ?? "";
+$error = $_SESSION["shift_error"] ?? "";
 unset($_SESSION["shift_flash"]);
+unset($_SESSION["shift_error"]);
 $shifts = mysqli_query(
     $conn,
     "SELECT id,name,start_time,end_time FROM shifts WHERE status=1 AND company_id=" .
@@ -36,9 +38,11 @@ $history = mysqli_query(
     $message
 ): ?><div class="alert alert-success"><?php echo oecrm_h(
     $message
+); ?></div><?php endif; ?><?php if ($error): ?><div class="alert alert-danger"><?php echo oecrm_h(
+    $error
 ); ?></div><?php endif; ?><div class="panel panel-default"><div class="panel-heading">Assign Employee Shift</div>
 <div class="panel-body"><form method="post" action="shiftAction.php" class="shift-assignment-form"><?php echo oecrm_csrf_field(); ?>
-<input type="hidden" name="action" value="assign"><div class="form-group"><label>Employee</label>
+<input type="hidden" name="action" value="assign"><input type="hidden" name="return_page" value="shiftAssignments.php"><div class="form-group"><label>Employee</label>
 <select class="" name="employee_id" required><option value="">Select employee</option><?php while (
     $e = mysqli_fetch_assoc($employees)
 ): ?><option value="<?php echo (int) $e["id"]; ?>"><?php echo oecrm_h(

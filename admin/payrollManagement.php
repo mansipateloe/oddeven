@@ -111,7 +111,7 @@ if ($error): ?><div class="alert alert-danger"><?php echo oecrm_h(
     $run["status"] === "pending_approval"
 ): ?><form method="post" action="payrollAction.php"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="year" value="<?php echo $year; ?>"><input type="hidden" name="month" value="<?php echo $month; ?>"><button name="action" value="approve" class="btn btn-success btn-sm">Approve Payroll</button></form><?php elseif (
     $run["status"] === "approved"
-): ?><form method="post" action="payrollAction.php"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="year" value="<?php echo $year; ?>"><input type="hidden" name="month" value="<?php echo $month; ?>"><button name="action" value="lock" class="btn btn-danger btn-sm">Lock Payroll</button></form><?php endif; ?></div></div><div class="panel-body table-responsive"><table class="table foundation-table payroll-table"><thead><tr><th>Employee</th><th>Slip</th><th>Present</th><th>Paid Leave</th><th>Unpaid</th><th>Gross</th><th>Attendance Ded.</th><th>Leave Ded.</th><th>PT</th><th>Retention</th><th>Total Ded.</th><th>Net Salary</th></tr></thead><tbody><?php while (
+): ?><form method="post" action="payrollAction.php"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="year" value="<?php echo $year; ?>"><input type="hidden" name="month" value="<?php echo $month; ?>"><button name="action" value="lock" class="btn btn-danger btn-sm">Lock Payroll</button></form><?php endif; ?></div></div><div class="panel-body table-responsive"><table class="table foundation-table payroll-table"><thead><tr><th>Employee</th><th>Slip</th><th>Present</th><th>Paid Leave</th><th>Unpaid</th><th>Base Salary</th><th>Overtime Pay</th><th>Extra Day Pay</th><th>Attendance Ded.</th><th>Leave Ded.</th><th>PT</th><th>Retention</th><th>Total Ded.</th><th>Net Salary</th></tr></thead><tbody><?php while (
     $p = mysqli_fetch_assoc($items)
 ): ?><tr><td><strong><?php echo oecrm_h(
     $p["name"]
@@ -130,6 +130,12 @@ if ($error): ?><div class="alert alert-danger"><?php echo oecrm_h(
     1
 ); ?></td><td>Rs. <?php echo number_format(
     $p["gross_salary"],
+    2
+); ?></td><td title="<?php echo oecrm_h($p["notes"] ?? ""); ?>">Rs. <?php echo number_format(
+    $p["overtime_amount"],
+    2
+); ?></td><td title="<?php echo oecrm_h($p["notes"] ?? ""); ?>">Rs. <?php echo number_format(
+    $p["extra_day_amount"],
     2
 ); ?></td><td>Rs. <?php echo number_format(
     $p["attendance_deduction"],
@@ -153,4 +159,3 @@ if ($error): ?><div class="alert alert-danger"><?php echo oecrm_h(
     "F Y",
     strtotime(sprintf("%04d-%02d-01", $year, $month))
 ); ?> to calculate employee salaries.</p></div></div><?php endif; ?></div><?php include "footer.php"; ?>
-

@@ -5,13 +5,14 @@ include("process/config.php");
 include("functions.php");
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="<?php echo get_company_name(); ?>">
     <meta name="author" content="<?php echo get_company_name(); ?>">
     <meta name="keyword" content="<?php echo get_company_name(); ?>">
+    <script defer src="../js/oecrm-date-format.js?v=20261013-1"></script>
     <link rel="shortcut icon" href="img/favicon.ico">
     <title><?php echo get_company_name(); ?></title>
     <link href="css/bootstrap.min.css" rel="stylesheet">

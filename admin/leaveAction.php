@@ -48,23 +48,77 @@ if ($action === 'apply') {
         exit('Active employee not found for this company.');
     }
 
-    $calc = oecrm_leave_calculate($conn, $employeeId, $leaveTypeId, $start, $end, $half);
-    $year = (int)date('Y', strtotime($start));
-    $balance = oecrm_leave_balance($conn, $employeeId, $leaveTypeId, $year);
-    $available = (float)($balance['available'] ?? 0);
-    $unpaid = !empty($calc['policy']['is_paid']) ? max(0, $calc['payable_days'] - $available) : $calc['payable_days'];
+    try {
+        $calc = oecrm_leave_calculate($conn, $employeeId, $leaveTypeId, $start, $end, $half);
+        $period = oecrm_employee_leave_period($conn, $employeeId, $start);
+        $endPeriod = oecrm_employee_leave_period($conn, $employeeId, $end);
+    } catch (DomainException $e) {
+        http_response_code(400);
+        exit($e->getMessage());
+    }
+    if ($half && empty($calc['policy']['allow_half_day'])) {
+        http_response_code(400);
+        exit('Half-day leave is not allowed for this leave type.');
+    }
+    if ($half && $start !== $end) {
+        http_response_code(400);
+        exit('Half-day leave must use the same start and end date.');
+    }
+    if ($period['start_date'] !== $endPeriod['start_date'] || $period['end_date'] !== $endPeriod['end_date'] || $end > $period['end_date']) {
+        http_response_code(400);
+        exit('A leave request cannot cross a contract leave year or contract end date. Submit separate requests for each contract year.');
+    }
+    if (empty($calc['policy']['is_paid']) && date('Y', strtotime($start)) !== date('Y', strtotime($end))) {
+        http_response_code(400);
+        exit('Unpaid leave requests cannot cross calendar years.');
+    }
+    $year = !empty($calc['policy']['is_paid'])
+        ? (int)date('Y', strtotime($period['start_date']))
+        : (int)date('Y', strtotime($start));
+    mysqli_begin_transaction($conn);
+    $employeeLock = mysqli_prepare(
+        $conn,
+        'SELECT id FROM employeestbl WHERE id=? AND company_id=? FOR UPDATE'
+    );
+    mysqli_stmt_bind_param($employeeLock, 'ii', $employeeId, $employee['company_id']);
+    mysqli_stmt_execute($employeeLock);
+    $lockedEmployee = mysqli_fetch_assoc(mysqli_stmt_get_result($employeeLock));
+    mysqli_stmt_close($employeeLock);
+    if (!$lockedEmployee) {
+        mysqli_rollback($conn);
+        http_response_code(404);
+        exit('Active employee not found for this company.');
+    }
+    try {
+        $paidBalance = !empty($calc['policy']['is_paid'])
+            ? oecrm_paid_leave_balance($conn, $employeeId, $start)
+            : null;
+    } catch (DomainException $e) {
+        mysqli_rollback($conn);
+        http_response_code(400);
+        exit($e->getMessage());
+    }
+    $paidDays = $paidBalance
+        ? min((float)$calc['payable_days'], (float)$paidBalance['available'])
+        : 0;
+    $balanceDays = !empty($calc['policy']['is_paid'])
+        ? $paidDays
+        : (float)$calc['payable_days'];
+    $unpaid = !empty($calc['policy']['is_paid'])
+        ? max(0, $calc['payable_days'] - $paidDays)
+        : $calc['payable_days'];
 
     $overlapStmt = mysqli_prepare($conn, "SELECT id FROM leave_requests WHERE employee_id=? AND status IN ('pending','approved') AND start_date<=? AND end_date>=? LIMIT 1");
     mysqli_stmt_bind_param($overlapStmt, 'iss', $employeeId, $end, $start);
     mysqli_stmt_execute($overlapStmt);
     if (mysqli_fetch_assoc(mysqli_stmt_get_result($overlapStmt))) {
         mysqli_stmt_close($overlapStmt);
+        mysqli_rollback($conn);
         http_response_code(400);
         exit('Leave dates overlap an existing request.');
     }
     mysqli_stmt_close($overlapStmt);
 
-    mysqli_begin_transaction($conn);
     try {
         $typeName = '';
         $typeStmt = mysqli_prepare($conn, 'SELECT name FROM leavetypetbl WHERE id=?');
@@ -89,8 +143,11 @@ if ($action === 'apply') {
         $requestId = mysqli_insert_id($conn);
         mysqli_stmt_close($requestStmt);
 
-        $balanceStmt = mysqli_prepare($conn, 'UPDATE employee_leave_balances SET pending=pending+? WHERE employee_id=? AND leave_type_id=? AND balance_year=?');
-        mysqli_stmt_bind_param($balanceStmt, 'diii', $calc['payable_days'], $employeeId, $leaveTypeId, $year);
+        $balanceStmt = mysqli_prepare($conn, 'INSERT INTO employee_leave_balances(employee_id,leave_type_id,balance_year,credited,pending) VALUES(?,?,?,?,?) ON DUPLICATE KEY UPDATE credited=VALUES(credited),pending=pending+VALUES(pending)');
+        $credited = !empty($calc['policy']['is_paid'])
+            ? $paidBalance['entitlement']
+            : (float)$calc['policy']['annual_entitlement'];
+        mysqli_stmt_bind_param($balanceStmt, 'iiidd', $employeeId, $leaveTypeId, $year, $credited, $balanceDays);
         mysqli_stmt_execute($balanceStmt);
         mysqli_stmt_close($balanceStmt);
         mysqli_commit($conn);
@@ -115,7 +172,7 @@ if (in_array($action, ['approve', 'reject', 'update_note'], true)) {
     try {
         $allowedStatuses = $action === 'approve' ? ['pending','rejected'] : ($action === 'reject' ? ['pending'] : ['pending','approved','rejected']);
         $statusSql = "'" . implode("','", array_map(static function ($status) use ($conn) { return mysqli_real_escape_string($conn, $status); }, $allowedStatuses)) . "'";
-        $requestStmt = mysqli_prepare($conn, 'SELECT * FROM leave_requests WHERE id=? AND company_id=? AND status IN ('.$statusSql.') FOR UPDATE');
+        $requestStmt = mysqli_prepare($conn, 'SELECT r.*,p.is_paid FROM leave_requests r JOIN leave_policies p ON p.company_id=r.company_id AND p.leave_type_id=r.leave_type_id WHERE r.id=? AND r.company_id=? AND r.status IN ('.$statusSql.') FOR UPDATE');
         mysqli_stmt_bind_param($requestStmt, 'ii', $requestId, $companyId);
         mysqli_stmt_execute($requestStmt);
         $request = mysqli_fetch_assoc(mysqli_stmt_get_result($requestStmt));
@@ -124,7 +181,12 @@ if (in_array($action, ['approve', 'reject', 'update_note'], true)) {
             throw new RuntimeException('Leave request not found for the active company or action is not allowed.');
         }
 
-        $year = (int)date('Y', strtotime($request['start_date']));
+        $requestPeriod = $action !== 'update_note' && !empty($request['is_paid'])
+            ? oecrm_employee_leave_period($conn, (int)$request['employee_id'], $request['start_date'])
+            : null;
+        $year = $requestPeriod
+            ? (int)date('Y', strtotime($requestPeriod['start_date']))
+            : (int)date('Y', strtotime($request['start_date']));
         $actor = (int)$_SESSION['adminId'];
         if ($action === 'update_note') {
             $statusStmt = mysqli_prepare($conn, 'UPDATE leave_requests SET approver_note=?,approved_by=?,approved_at=NOW() WHERE id=? AND company_id=?');
@@ -155,15 +217,18 @@ if (in_array($action, ['approve', 'reject', 'update_note'], true)) {
         mysqli_stmt_execute($legacyStmt);
         mysqli_stmt_close($legacyStmt);
 
+        $balanceDays = !empty($request['is_paid'])
+            ? max(0, (float)$request['payable_days'] - (float)$request['unpaid_days'])
+            : (float)$request['payable_days'];
         if ($action === 'approve' && $request['status'] === 'pending') {
             $balanceStmt = mysqli_prepare($conn, 'UPDATE employee_leave_balances SET pending=GREATEST(0,pending-?),used=used+? WHERE employee_id=? AND leave_type_id=? AND balance_year=?');
-            mysqli_stmt_bind_param($balanceStmt, 'ddiii', $request['payable_days'], $request['payable_days'], $request['employee_id'], $request['leave_type_id'], $year);
+            mysqli_stmt_bind_param($balanceStmt, 'ddiii', $balanceDays, $balanceDays, $request['employee_id'], $request['leave_type_id'], $year);
         } elseif ($action === 'approve' && $request['status'] === 'rejected') {
             $balanceStmt = mysqli_prepare($conn, 'UPDATE employee_leave_balances SET used=used+? WHERE employee_id=? AND leave_type_id=? AND balance_year=?');
-            mysqli_stmt_bind_param($balanceStmt, 'diii', $request['payable_days'], $request['employee_id'], $request['leave_type_id'], $year);
+            mysqli_stmt_bind_param($balanceStmt, 'diii', $balanceDays, $request['employee_id'], $request['leave_type_id'], $year);
         } else {
             $balanceStmt = mysqli_prepare($conn, 'UPDATE employee_leave_balances SET pending=GREATEST(0,pending-?) WHERE employee_id=? AND leave_type_id=? AND balance_year=?');
-            mysqli_stmt_bind_param($balanceStmt, 'diii', $request['payable_days'], $request['employee_id'], $request['leave_type_id'], $year);
+            mysqli_stmt_bind_param($balanceStmt, 'diii', $balanceDays, $request['employee_id'], $request['leave_type_id'], $year);
         }
         mysqli_stmt_execute($balanceStmt);
         mysqli_stmt_close($balanceStmt);
