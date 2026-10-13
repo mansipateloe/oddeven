@@ -3,7 +3,7 @@ if (ob_get_level() === 0) {
     ob_start();
 }
 require_once __DIR__ . '/../security.php';
-include 'dbconnect.php';
+require_once __DIR__ . '/../dbconnect.php';
 require_once __DIR__ . '/../foundation.php';
 
 if (isset($_SESSION['adminId'])) {

@@ -2,8 +2,7 @@
 require_once __DIR__ . "/../security.php";
 require_once __DIR__ . "/../leave.php";
 $isAdmin = strpos($_SERVER["SCRIPT_NAME"], "/admin/") !== false;
-require_once __DIR__ .
-    ($isAdmin ? "/../admin/dbconnect.php" : "/dbconnect.php");
+require_once __DIR__ . '/../dbconnect.php';
 if ($isAdmin) {
     oecrm_require_admin_login();
 } else {

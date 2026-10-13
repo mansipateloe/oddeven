@@ -9,8 +9,8 @@ echo "Step 2: loading security.php...<br>\n";
 require_once __DIR__ . '/../security.php';
 echo "security.php OK<br>\n";
 
-echo "Step 3: loading admin/dbconnect.php...<br>\n";
-include __DIR__ . '/dbconnect.php';
+echo "Step 3: loading shared dbconnect.php...<br>\n";
+require_once __DIR__ . '/../dbconnect.php';
 echo "dbconnect.php OK<br>\n";
 
 if (!isset($conn) || !$conn) {

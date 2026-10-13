@@ -1,4 +1,4 @@
-﻿<?php include 'dbconnect.php'; ?>
+﻿<?php require_once __DIR__ . '/../dbconnect.php'; ?>
 <?php require_once __DIR__ . '/../security.php'; ?>
 <?php require_once __DIR__ . '/../foundation.php'; ?>
 <?php oecrm_require_admin_login(); ?>

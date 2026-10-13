@@ -2,7 +2,7 @@
 ob_start();
 $active_menu = 'lead';
 require_once __DIR__ . '/../security.php';
-include __DIR__ . '/dbconnect.php';
+require_once __DIR__ . '/../dbconnect.php';
 require_once __DIR__ . '/../foundation.php';
 oecrm_require_admin_login();
 

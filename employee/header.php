@@ -1,6 +1,6 @@
 <?php require_once __DIR__ . '/../security.php';
 oecrm_require_employee_login();
-include 'dbconnect.php';
+require_once __DIR__ . '/../dbconnect.php';
 include 'validation.php';
 require_once __DIR__ . '/../birthdays.php';
 
