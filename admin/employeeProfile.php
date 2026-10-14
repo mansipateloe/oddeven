@@ -36,6 +36,12 @@ $increments = mysqli_query(
         (int) $employeeId .
         " ORDER BY effective_date DESC,id DESC"
 );
+$leaveRequests = mysqli_query(
+    $conn,
+    "SELECT r.*, t.name AS type_name FROM leave_requests r JOIN leavetypetbl t ON t.id=r.leave_type_id WHERE r.employee_id=" .
+        (int) $employeeId .
+        " ORDER BY r.start_date DESC, r.id DESC"
+);
 $documents = mysqli_query(
     $conn,
     "SELECT * FROM employee_documents WHERE employee_id=" .
@@ -190,6 +196,9 @@ while ($r = mysqli_fetch_assoc($increments)): ?><tr><td><?php echo oecrm_h(
     2
 ); ?>%</td><td><?php echo oecrm_h($r["reason"]); ?></td></tr><?php endwhile;
 ?></tbody></table></div></div></div>
+<div class="panel panel-default"><div class="panel-heading">Leave History</div><div class="panel-body"><div class="table-responsive"><table class="table profile-table"><thead><tr><th>Dates</th><th>Type</th><th>Days</th><th>Status</th><th>Remarks</th></tr></thead><tbody><?php
+if (mysqli_num_rows($leaveRequests) === 0): ?><tr><td colspan="5" class="empty-cell">No leave requests recorded.</td></tr><?php endif;
+while ($leave = mysqli_fetch_assoc($leaveRequests)): ?><tr><td><strong><?php echo oecrm_h($leave["start_date"]); ?></strong><small><?php echo oecrm_h(" to " . $leave["end_date"]); ?></small></td><td><?php echo oecrm_h($leave["type_name"] ?: "-"); ?></td><td><?php echo number_format((float) ($leave["payable_days"] ?? 0), 1); ?></td><td><span class="leave-status <?php echo oecrm_h($leave["status"] ?? "pending"); ?>"><?php echo ucfirst(oecrm_h($leave["status"] ?? "pending")); ?></span></td><td><?php echo oecrm_h($leave["approver_note"] ?: ($leave["description"] ?: "-")); ?></td></tr><?php endwhile; ?></tbody></table></div></div></div>
 </main><aside><div class="panel panel-default"><div class="panel-heading">Documents</div><div class="panel-body"><form method="post" action="employeeProfileAction.php" enctype="multipart/form-data" class="document-upload-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="document"><input type="hidden" name="employee_id" value="<?php echo $employeeId; ?>"><div class="form-group"><label>Document Type</label><select class="form-control" name="document_type"><?php foreach (
     [
         "resume",
