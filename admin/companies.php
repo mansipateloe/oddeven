@@ -9,53 +9,92 @@ $message = '';
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();
-    $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
-    $legalName = trim($_POST['legal_name'] ?? '');
-    $displayName = trim($_POST['display_name'] ?? '');
-    $code = strtoupper(trim($_POST['code'] ?? ''));
-    $type = $_POST['company_type'] ?? 'other';
-    $countryId = (int) ($_POST['country_id'] ?? 0);
-    $stateId = (int) ($_POST['state_id'] ?? 0);
-    $cityId = (int) ($_POST['city_id'] ?? 0);
-    $location = null;
-    if ($countryId) {
-        $stmt = mysqli_prepare($conn, 'SELECT c.iso2 country_code,s.id state_id,ct.id city_id FROM countries c LEFT JOIN states s ON s.id=? AND s.country_id=c.id LEFT JOIN cities ct ON ct.id=? AND ct.state_id=s.id AND ct.country_id=c.id WHERE c.id=?');
-        mysqli_stmt_bind_param($stmt, 'iii', $stateId, $cityId, $countryId);
-        mysqli_stmt_execute($stmt);
-        $location = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
-        mysqli_stmt_close($stmt);
-    }
-    $country = strtoupper($location['country_code'] ?? trim($_POST['country_code'] ?? 'IN'));
-    $currency = strtoupper(trim($_POST['currency_code'] ?? 'INR'));
-    $gstin = trim($_POST['gstin'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $status = isset($_POST['status']) ? 1 : 0;
-    $types = ['india_gst', 'india_non_gst', 'usa', 'other'];
 
-    if ($legalName === '' || $displayName === '' || $code === '' || !in_array($type, $types, true) || ($countryId && (!$location || ($stateId && !$location['state_id']) || ($cityId && !$location['city_id'])))) {
-        $error = 'Please complete all required company fields.';
-    } elseif ($id) {
-        oecrm_require_permission($conn, 'companies', 'edit');
-        $stmt = mysqli_prepare($conn, 'SELECT * FROM companies WHERE id = ?');
-        mysqli_stmt_bind_param($stmt, 'i', $id); mysqli_stmt_execute($stmt);
-        $old = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt)); mysqli_stmt_close($stmt);
-        $stmt = mysqli_prepare($conn, 'UPDATE companies SET code=?, legal_name=?, display_name=?, company_type=?, country_code=?,country_id=?,state_id=?,city_id=?, currency_code=?, gstin=?, email=?, status=? WHERE id=?');
-        mysqli_stmt_bind_param($stmt, 'sssssiiisssii', $code, $legalName, $displayName, $type, $country, $countryId, $stateId, $cityId, $currency, $gstin, $email, $status, $id);
-        if (mysqli_stmt_execute($stmt)) {
-            oecrm_audit($conn, 'companies', 'update', 'company', $id, 'Company updated', $old, $_POST);
-            $message = 'Company updated successfully.';
-        } else { $error = 'Company could not be updated. Code must be unique.'; }
-        mysqli_stmt_close($stmt);
+    if (isset($_POST['delete_company'])) {
+        oecrm_require_permission($conn, 'companies', 'delete');
+        $companyId = (int) ($_POST['delete_company'] ?? 0);
+        if ($companyId <= 0) {
+            $error = 'Invalid company selected.';
+        } else {
+            $companyStmt = mysqli_prepare($conn, 'SELECT id, display_name FROM companies WHERE id = ?');
+            mysqli_stmt_bind_param($companyStmt, 'i', $companyId);
+            mysqli_stmt_execute($companyStmt);
+            $company = mysqli_fetch_assoc(mysqli_stmt_get_result($companyStmt));
+            mysqli_stmt_close($companyStmt);
+
+            if (!$company) {
+                $error = 'Company not found.';
+            } else {
+                $employeeStmt = mysqli_prepare($conn, 'SELECT COUNT(*) total FROM employeestbl WHERE company_id = ?');
+                mysqli_stmt_bind_param($employeeStmt, 'i', $companyId);
+                mysqli_stmt_execute($employeeStmt);
+                $employeeCount = mysqli_fetch_assoc(mysqli_stmt_get_result($employeeStmt));
+                mysqli_stmt_close($employeeStmt);
+
+                if ((int) ($employeeCount['total'] ?? 0) > 0) {
+                    $error = 'This company is assigned to employees and cannot be deleted.';
+                } else {
+                    $stmt = mysqli_prepare($conn, 'DELETE FROM companies WHERE id = ?');
+                    mysqli_stmt_bind_param($stmt, 'i', $companyId);
+                    if (mysqli_stmt_execute($stmt)) {
+                        oecrm_audit($conn, 'companies', 'delete', 'company', $companyId, 'Company deleted', $company, ['deleted_company_id' => $companyId]);
+                        $message = 'Company deleted successfully.';
+                    } else {
+                        $error = 'Company could not be deleted.';
+                    }
+                    mysqli_stmt_close($stmt);
+                }
+            }
+        }
     } else {
-        oecrm_require_permission($conn, 'companies', 'create');
-        $stmt = mysqli_prepare($conn, 'INSERT INTO companies (code, legal_name, display_name, company_type, country_code,country_id,state_id,city_id, currency_code, gstin, email, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
-        mysqli_stmt_bind_param($stmt, 'sssssiiisssi', $code, $legalName, $displayName, $type, $country, $countryId, $stateId, $cityId, $currency, $gstin, $email, $status);
-        if (mysqli_stmt_execute($stmt)) {
-            $newId = mysqli_insert_id($conn);
-            oecrm_audit($conn, 'companies', 'create', 'company', $newId, 'Company created', null, $_POST);
-            $message = 'Company created successfully.';
-        } else { $error = 'Company could not be created. Code must be unique.'; }
-        mysqli_stmt_close($stmt);
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : 0;
+        $legalName = trim($_POST['legal_name'] ?? '');
+        $displayName = trim($_POST['display_name'] ?? '');
+        $code = strtoupper(trim($_POST['code'] ?? ''));
+        $type = $_POST['company_type'] ?? 'other';
+        $countryId = (int) ($_POST['country_id'] ?? 0);
+        $stateId = (int) ($_POST['state_id'] ?? 0);
+        $cityId = (int) ($_POST['city_id'] ?? 0);
+        $location = null;
+        if ($countryId) {
+            $stmt = mysqli_prepare($conn, 'SELECT c.iso2 country_code,s.id state_id,ct.id city_id FROM countries c LEFT JOIN states s ON s.id=? AND s.country_id=c.id LEFT JOIN cities ct ON ct.id=? AND ct.state_id=s.id AND ct.country_id=c.id WHERE c.id=?');
+            mysqli_stmt_bind_param($stmt, 'iii', $stateId, $cityId, $countryId);
+            mysqli_stmt_execute($stmt);
+            $location = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+            mysqli_stmt_close($stmt);
+        }
+        $country = strtoupper($location['country_code'] ?? trim($_POST['country_code'] ?? 'IN'));
+        $currency = strtoupper(trim($_POST['currency_code'] ?? 'INR'));
+        $gstin = trim($_POST['gstin'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $status = isset($_POST['status']) ? 1 : 0;
+        $types = ['india_gst', 'india_non_gst', 'usa', 'other'];
+
+        if ($legalName === '' || $displayName === '' || $code === '' || !in_array($type, $types, true) || ($countryId && (!$location || ($stateId && !$location['state_id']) || ($cityId && !$location['city_id'])))) {
+            $error = 'Please complete all required company fields.';
+        } elseif ($id) {
+            oecrm_require_permission($conn, 'companies', 'edit');
+            $stmt = mysqli_prepare($conn, 'SELECT * FROM companies WHERE id = ?');
+            mysqli_stmt_bind_param($stmt, 'i', $id); mysqli_stmt_execute($stmt);
+            $old = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt)); mysqli_stmt_close($stmt);
+            $stmt = mysqli_prepare($conn, 'UPDATE companies SET code=?, legal_name=?, display_name=?, company_type=?, country_code=?,country_id=?,state_id=?,city_id=?, currency_code=?, gstin=?, email=?, status=? WHERE id=?');
+            mysqli_stmt_bind_param($stmt, 'sssssiiisssii', $code, $legalName, $displayName, $type, $country, $countryId, $stateId, $cityId, $currency, $gstin, $email, $status, $id);
+            if (mysqli_stmt_execute($stmt)) {
+                oecrm_audit($conn, 'companies', 'update', 'company', $id, 'Company updated', $old, $_POST);
+                $message = 'Company updated successfully.';
+            } else { $error = 'Company could not be updated. Code must be unique.'; }
+            mysqli_stmt_close($stmt);
+        } else {
+            oecrm_require_permission($conn, 'companies', 'create');
+            $stmt = mysqli_prepare($conn, 'INSERT INTO companies (code, legal_name, display_name, company_type, country_code,country_id,state_id,city_id, currency_code, gstin, email, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            mysqli_stmt_bind_param($stmt, 'sssssiiisssi', $code, $legalName, $displayName, $type, $country, $countryId, $stateId, $cityId, $currency, $gstin, $email, $status);
+            if (mysqli_stmt_execute($stmt)) {
+                $newId = mysqli_insert_id($conn);
+                oecrm_audit($conn, 'companies', 'create', 'company', $newId, 'Company created', null, $_POST);
+                $message = 'Company created successfully.';
+            } else { $error = 'Company could not be created. Code must be unique.'; }
+            mysqli_stmt_close($stmt);
+        }
     }
 }
 
@@ -96,13 +135,23 @@ $countries = mysqli_query($conn, 'SELECT id,name,iso2 FROM countries WHERE flag=
     <div class="panel panel-default">
       <div class="panel-heading">Companies</div>
       <div class="panel-body table-responsive">
-        <table class="table foundation-table"><thead><tr><th>Company</th><th>Type</th><th>Currency</th><th>Status</th><th></th></tr></thead><tbody>
-        <?php while($row=mysqli_fetch_assoc($companiesResult)): ?><tr><td><strong><?php echo oecrm_h($row['display_name']); ?></strong><small><?php echo oecrm_h($row['code']); ?></small></td><td><?php echo oecrm_h(str_replace('_',' ',ucwords($row['company_type'],'_'))); ?></td><td><?php echo oecrm_h($row['currency_code']); ?></td><td><span class="status-pill <?php echo $row['status']?'active':'inactive'; ?>"><?php echo $row['status']?'Active':'Inactive'; ?></span></td><td><a class="icon-action" href="companies.php?edit=<?php echo (int)$row['id']; ?>" title="Edit"><i class="fa fa-pencil"></i></a></td></tr><?php endwhile; ?>
+        <table class="table foundation-table"><thead><tr><th>Company</th><th>Type</th><th>Currency</th><th>Status</th><th>Action</th></tr></thead><tbody>
+        <?php while($row=mysqli_fetch_assoc($companiesResult)): ?><tr><td><strong><?php echo oecrm_h($row['display_name']); ?></strong><small><?php echo oecrm_h($row['code']); ?></small></td><td><?php echo oecrm_h(str_replace('_',' ',ucwords($row['company_type'],'_'))); ?></td><td><?php echo oecrm_h($row['currency_code']); ?></td><td><span class="status-pill <?php echo $row['status']?'active':'inactive'; ?>"><?php echo $row['status']?'Active':'Inactive'; ?></span></td><td><div style="display:flex; gap:8px; align-items:center;">
+          <a class="icon-action" href="companies.php?edit=<?php echo (int)$row['id']; ?>" title="Edit"><i class="fa fa-pencil"></i></a>
+          <?php if (oecrm_can($conn, 'companies', 'delete')): ?>
+            <form method="post" class="company-delete-form" style="display:inline; margin:0;">
+              <?php echo oecrm_csrf_field(); ?>
+              <input type="hidden" name="delete_company" value="<?php echo (int)$row['id']; ?>">
+              <button type="submit" class="icon-action" title="Delete"><i class="fa fa-trash"></i></button>
+            </form>
+          <?php endif; ?>
+        </div></td></tr><?php endwhile; ?>
         </tbody></table>
       </div>
     </div>
   </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
   var country=document.getElementById('companyCountry'),state=document.getElementById('companyState'),city=document.getElementById('companyCity'),code=document.getElementById('companyCountryCode');
@@ -110,6 +159,26 @@ document.addEventListener('DOMContentLoaded',function(){
   country.addEventListener('change',function(){code.value=country.options[country.selectedIndex].dataset.code||'';city.innerHTML='<option value="">Select City</option>';load('states',country.value,state,'');});
   state.addEventListener('change',function(){load('cities',state.value,city,'');});
   if(country.value)load('states',country.value,state,state.dataset.selected);
+
+  document.querySelectorAll('.company-delete-form').forEach(function(form){
+    form.addEventListener('submit', function(event){
+      event.preventDefault();
+      Swal.fire({
+        title: 'Delete company?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+      }).then(function(result){
+        if (result.isConfirmed) {
+          form.submit();
+        }
+      });
+    });
+  });
 });
 </script>
 <?php include 'footer.php'; ?>
