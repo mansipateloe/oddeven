@@ -58,9 +58,20 @@ $comp = mysqli_fetch_assoc(
     "n"
 ); ?>"><button class="btn btn-primary"><i class="fa fa-magic"></i> Generate Comp-Off</button></form></div><div class="panel panel-default"><div class="panel-heading">Leave Approval</div><div class="panel-body table-responsive"><table class="table foundation-table"><thead><tr><th>Employee</th><th>Dates</th><th>Type</th><th>Days</th><th>Sandwich</th><th>Unpaid</th><th>Balance</th><th>Status</th><th>Reason / Action</th></tr></thead><tbody><?php while (
     $r = mysqli_fetch_assoc($requests)
-): $requestBalance = !empty($r["is_paid"])
-    ? oecrm_paid_leave_balance($conn, (int) $r["employee_id"], $r["start_date"])
-    : null; ?><tr><td><strong><?php echo oecrm_h(
+):
+$requestBalance = null;
+$balanceWarning = "";
+if (!empty($r["is_paid"])) {
+    try {
+        $requestBalance = oecrm_paid_leave_balance($conn, (int) $r["employee_id"], $r["start_date"]);
+    } catch (DomainException $exception) {
+        $balanceWarning = $exception->getMessage();
+    }
+}
+$balanceValue = $requestBalance
+    ? (float) $requestBalance["available"]
+    : ($r["available_balance"] !== null ? (float) $r["available_balance"] : null);
+?><tr><td><strong><?php echo oecrm_h(
     $r["employee_name"]
 ); ?></strong><small><?php echo oecrm_h(
     $r["employeeCode"]
@@ -79,12 +90,10 @@ $comp = mysqli_fetch_assoc(
 ); ?></td><td><?php echo number_format(
     $r["unpaid_days"],
     1
-); ?></td><td><?php echo number_format(
-    $requestBalance
-        ? $requestBalance["available"]
-        : (float) $r["available_balance"],
+); ?></td><td><?php echo $balanceValue !== null ? number_format(
+    $balanceValue,
     1
-); ?></td><td><span class="leave-status <?php echo $r[
+) : "-"; ?><?php if ($balanceWarning): ?><small class="text-warning" style="display:block;"><?php echo oecrm_h($balanceWarning); ?></small><?php endif; ?></td><td><span class="leave-status <?php echo $r[
     "status"
 ]; ?>"><?php echo ucfirst(
     $r["status"]

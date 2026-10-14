@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
     $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
     ini_set('session.gc_maxlifetime', (string) OECRM_SESSION_LIFETIME_SECONDS);
     session_set_cookie_params([
-        'lifetime' => OECRM_SESSION_LIFETIME_SECONDS,
+        'lifetime' => 0,
         'path' => '/',
         'secure' => $secure,
         'httponly' => true,
