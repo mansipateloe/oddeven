@@ -1421,7 +1421,38 @@ if (isset($_POST['LeaveSave'])) {
 
 
 
+if (!function_exists('oecrm_lead_redirect_error')) {
+    function oecrm_lead_redirect_error($message)
+    {
+        $_SESSION['lead_flash'] = $message;
+        $_SESSION['lead_flash_type'] = 'danger';
+        $_SESSION['lead_form'] = [
+            'leadDate' => $_POST['leadDate'] ?? '',
+            'executiveName' => $_POST['executiveName'] ?? '',
+            'nick_name' => $_POST['nick_name'] ?? '',
+            'company' => $_POST['company'] ?? '',
+            'cperson' => $_POST['cperson'] ?? '',
+            'mobileno1' => $_POST['mobileno1'] ?? '',
+            'mobileno2' => $_POST['mobileno2'] ?? '',
+            'emailid' => $_POST['emailid'] ?? '',
+            'emailid2' => $_POST['emailid2'] ?? '',
+            'city' => $_POST['city'] ?? '',
+            'lead_source' => $_POST['lead_source'] ?? '',
+            'leadType' => $_POST['leadType'] ?? 'medium',
+            'address' => $_POST['address'] ?? '',
+            'followupType' => $_POST['followupType'] ?? 'Call',
+            'nextFollowupDate' => $_POST['nextFollowupDate'] ?? '',
+            'nextFollowupTime' => $_POST['nextFollowupTime'] ?? '',
+            'status' => $_POST['status'] ?? '',
+            'remarks' => $_POST['remarks'] ?? '',
+        ];
+        header('Location:add_lead.php');
+        exit;
+    }
+}
+
 if (isset($_POST['leadSave'])) {
+    oecrm_require_csrf();
     oecrm_require_permission($conn, 'clients', 'create');
     $companyId = oecrm_current_company_id($conn);
     $actor = (int) $_SESSION['adminId'];
@@ -1447,43 +1478,43 @@ if (isset($_POST['leadSave'])) {
 
     $allowedStatuses = ['pending', 'inprogress', 'completed', 'closed'];
     if ($status !== '' && !in_array($status, $allowedStatuses, true)) {
-        $_SESSION['lead_flash'] = 'Please select a valid status.';
-        header('Location:add_lead.php');
-        exit;
-    }
-    if ($status === '') {
-        $status = 'pending';
+        oecrm_lead_redirect_error('Please select a valid status.');
     }
     if ($leadDate === '' || !strtotime($leadDate)) {
-        $leadDate = date('Y-m-d');
+        oecrm_lead_redirect_error('Lead date is required.');
     }
     if ($executiveName === '') {
-        $executiveName = $company ?: ($cperson ?: 'Lead');
+        oecrm_lead_redirect_error('Client name is required.');
+    }
+    if ($company === '') {
+        oecrm_lead_redirect_error('Company name is required.');
+    }
+    if ($cperson === '') {
+        oecrm_lead_redirect_error('Contact person is required.');
+    }
+    if ($mobileno1 === '' && $emailid === '') {
+        oecrm_lead_redirect_error('Please enter Mobile No1 or Company Email ID.');
+    }
+    if ($leadSource <= 0) {
+        oecrm_lead_redirect_error('Lead source is required.');
+    }
+    if ($status === '') {
+        oecrm_lead_redirect_error('Status is required.');
     }
     if ($mobileno1 !== '' && strlen($mobileno1) !== 10) {
-        $_SESSION['lead_flash'] = 'Mobile No1 must contain exactly 10 digits when entered.';
-        header('Location:add_lead.php');
-        exit;
+        oecrm_lead_redirect_error('Mobile No1 must contain exactly 10 digits when entered.');
     }
     if ($mobileno2 !== '' && strlen($mobileno2) !== 10) {
-        $_SESSION['lead_flash'] = 'Mobile No2 must contain exactly 10 digits when entered.';
-        header('Location:add_lead.php');
-        exit;
+        oecrm_lead_redirect_error('Mobile No2 must contain exactly 10 digits when entered.');
     }
     if ($emailid !== '' && !filter_var($emailid, FILTER_VALIDATE_EMAIL)) {
-        $_SESSION['lead_flash'] = 'Please enter a valid company email address.';
-        header('Location:add_lead.php');
-        exit;
+        oecrm_lead_redirect_error('Please enter a valid company email address.');
     }
     if ($emailid2 !== '' && !filter_var($emailid2, FILTER_VALIDATE_EMAIL)) {
-        $_SESSION['lead_flash'] = 'Please enter a valid personal email address.';
-        header('Location:add_lead.php');
-        exit;
+        oecrm_lead_redirect_error('Please enter a valid personal email address.');
     }
     if ($nextFollowupDate && $nextFollowupDate < date('Y-m-d')) {
-        $_SESSION['lead_flash'] = 'Next follow-up date cannot be in the past.';
-        header('Location:add_lead.php');
-        exit;
+        oecrm_lead_redirect_error('Next follow-up date cannot be in the past.');
     }
 
     mysqli_begin_transaction($conn);
@@ -1504,11 +1535,10 @@ if (isset($_POST['leadSave'])) {
         mysqli_commit($conn);
         oecrm_audit($conn, 'clients', 'create', 'lead', $id, 'Lead created', null, ['company_name' => $company, 'status' => $status]);
         $_SESSION['lead_flash'] = 'Lead created successfully.';
+        unset($_SESSION['lead_form'], $_SESSION['lead_flash_type']);
     } catch (Throwable $exception) {
         mysqli_rollback($conn);
-        $_SESSION['lead_flash'] = $exception->getMessage();
-        header('Location:add_lead.php');
-        exit;
+        oecrm_lead_redirect_error($exception->getMessage());
     }
     header('Location:leads.php');
     exit;
@@ -1598,77 +1628,101 @@ if (isset($_POST['deleteBankDetails'])) {
 
 
 if (isset($_POST['addCountry'])) {
+    oecrm_require_csrf();
+    $country_code = trim((string) ($_POST['country_code'] ?? ''));
+    $country_symbols = trim((string) ($_POST['country_symbols'] ?? ''));
 
-    //$notice = $_POST['notice'];
-
-    $country_code = mysqli_real_escape_string($conn, $_POST['country_code']);
-
-    $country_symbols = mysqli_real_escape_string($conn, $_POST['country_symbols']);
-
-
-
-    $qry = "INSERT INTO `country`(`country_code`, `country_symbols`) VALUES ('$country_code','$country_symbols')";
-
-    // echo $qry; die();
-
-    if (mysqli_query($conn, $qry)) {
-
-        echo "Data inserted succesfully.";
-
+    if ($country_code === '' || $country_symbols === '') {
+        $_SESSION['country_flash'] = ['type' => 'danger', 'message' => 'Country code and symbol are required.'];
         header('Location:addcountry.php');
-
-    } else {
-
-        echo "Data not inserted succesfully.";
-
+        exit;
     }
 
+    $duplicateStmt = mysqli_prepare($conn, 'SELECT country_id FROM country WHERE LOWER(TRIM(country_code))=LOWER(?) OR TRIM(country_symbols)=? LIMIT 1');
+    mysqli_stmt_bind_param($duplicateStmt, 'ss', $country_code, $country_symbols);
+    mysqli_stmt_execute($duplicateStmt);
+    $duplicate = mysqli_fetch_assoc(mysqli_stmt_get_result($duplicateStmt));
+    mysqli_stmt_close($duplicateStmt);
+
+    if ($duplicate) {
+        $_SESSION['country_flash'] = ['type' => 'warning', 'message' => 'Country code or symbol already exists.'];
+        header('Location:addcountry.php');
+        exit;
+    }
+
+    $stmt = mysqli_prepare($conn, 'INSERT INTO country(country_code, country_symbols) VALUES (?, ?)');
+    mysqli_stmt_bind_param($stmt, 'ss', $country_code, $country_symbols);
+    $saved = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+
+    $_SESSION['country_flash'] = $saved
+        ? ['type' => 'success', 'message' => 'Country details added successfully.']
+        : ['type' => 'danger', 'message' => 'Country details could not be added.'];
+    header('Location:addcountry.php');
+    exit;
 }
 
 
 
 if (isset($_POST['updateCountry'])) {
+    oecrm_require_csrf();
+    $country_code = trim((string) ($_POST['country_code'] ?? ''));
+    $country_symbols = trim((string) ($_POST['country_symbols'] ?? ''));
+    $id = (int) ($_POST['id'] ?? 0);
 
-    //$notice = $_POST['notice'];
-
-    $country_code = mysqli_real_escape_string($conn, $_POST['country_code']);
-
-    $country_symbols = mysqli_real_escape_string($conn, $_POST['country_symbols']);
-
-    $id = mysqli_real_escape_string($conn, $_POST['id']);
-
-
-
-    $qry = "UPDATE `country` SET country_code='$country_code', country_symbols='$country_symbols' where country_id=$id";
-
-    /*echo $qry; die();*/
-
-    if (mysqli_query($conn, $qry)) {
-
-        echo "Data updated succesfully.";
-
-        header('Location:addcountry.php');
-
-    } else {
-
-        echo "Data not updated succesfully.";
-
+    if ($id <= 0 || $country_code === '' || $country_symbols === '') {
+        $_SESSION['country_flash'] = ['type' => 'danger', 'message' => 'Country code and symbol are required.'];
+        header('Location:addcountry.php' . ($id > 0 ? '?edit=' . $id : ''));
+        exit;
     }
 
+    $duplicateStmt = mysqli_prepare($conn, 'SELECT country_id FROM country WHERE (LOWER(TRIM(country_code))=LOWER(?) OR TRIM(country_symbols)=?) AND country_id<>? LIMIT 1');
+    mysqli_stmt_bind_param($duplicateStmt, 'ssi', $country_code, $country_symbols, $id);
+    mysqli_stmt_execute($duplicateStmt);
+    $duplicate = mysqli_fetch_assoc(mysqli_stmt_get_result($duplicateStmt));
+    mysqli_stmt_close($duplicateStmt);
+
+    if ($duplicate) {
+        $_SESSION['country_flash'] = ['type' => 'warning', 'message' => 'Country code or symbol already exists.'];
+        header('Location:addcountry.php?edit=' . $id);
+        exit;
+    }
+
+    $stmt = mysqli_prepare($conn, 'UPDATE country SET country_code=?, country_symbols=? WHERE country_id=?');
+    mysqli_stmt_bind_param($stmt, 'ssi', $country_code, $country_symbols, $id);
+    $saved = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+
+    $_SESSION['country_flash'] = $saved
+        ? ['type' => 'success', 'message' => 'Country details updated successfully.']
+        : ['type' => 'danger', 'message' => 'Country details could not be updated.'];
+    header('Location:addcountry.php');
+    exit;
 }
 
 
 
-if (isset($_GET['country_delete'])) {
+if (isset($_POST['deleteCountry'])) {
+    oecrm_require_csrf();
+    $id = (int) ($_POST['deleteCountry'] ?? 0);
 
-    $id = $_GET['country_delete'];
+    if ($id <= 0) {
+        $_SESSION['country_flash'] = ['type' => 'danger', 'message' => 'Invalid country details selected.'];
+        header('Location:addcountry.php');
+        exit;
+    }
 
-    $deleteQry = "delete from country where country_id=$id";
+    $stmt = mysqli_prepare($conn, 'DELETE FROM country WHERE country_id=?');
+    mysqli_stmt_bind_param($stmt, 'i', $id);
+    $deleted = mysqli_stmt_execute($stmt);
+    $affected = mysqli_stmt_affected_rows($stmt);
+    mysqli_stmt_close($stmt);
 
-    $deleteResult = mysqli_query($conn, $deleteQry);
-
-    header("location: addcountry.php");
-
+    $_SESSION['country_flash'] = ($deleted && $affected > 0)
+        ? ['type' => 'success', 'message' => 'Country details deleted successfully.']
+        : ['type' => 'warning', 'message' => 'Country details not found or already deleted.'];
+    header('Location:addcountry.php');
+    exit;
 }
 
 

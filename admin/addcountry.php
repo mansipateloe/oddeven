@@ -3,18 +3,33 @@ $active_menu= 'setting';
 $active_submenu='add_country';
 include 'header.php'; 
 
+$id = 0;
+$update = false;
+$country_symbols = '';
+$country_code = '';
+$countryFlash = $_SESSION['country_flash'] ?? null;
+unset($_SESSION['country_flash']);
+
 if(isset($_GET['edit']))
 {
-    $id = $_GET['edit'];
+    $id = (int) $_GET['edit'];
     $update = true;
-    $getAccountQry = "select * from country where country_id = $id";
-    $getAccountResult = mysqli_query($conn, $getAccountQry);
-    $getAccountRes = mysqli_fetch_assoc($getAccountResult);
+    $getAccountStmt = mysqli_prepare($conn, 'SELECT * FROM country WHERE country_id = ? LIMIT 1');
+    mysqli_stmt_bind_param($getAccountStmt, 'i', $id);
+    mysqli_stmt_execute($getAccountStmt);
+    $getAccountRes = mysqli_fetch_assoc(mysqli_stmt_get_result($getAccountStmt));
+    mysqli_stmt_close($getAccountStmt);
     
     //echo '<pre>'; print_r($getAccountRes);die((__FILE__).'-->'.(__FUNCTION__).'--Line('. (__LINE__).')');
-    $country_symbols = $getAccountRes['country_symbols'];
-    $country_code = $getAccountRes['country_code'];
-    $id = $getAccountRes['country_id'];
+    if ($getAccountRes) {
+        $country_symbols = $getAccountRes['country_symbols'];
+        $country_code = $getAccountRes['country_code'];
+        $id = (int) $getAccountRes['country_id'];
+    } else {
+        $update = false;
+        $id = 0;
+        $countryFlash = ['type' => 'warning', 'message' => 'Country details not found.'];
+    }
 }
 
 ?>
@@ -26,11 +41,18 @@ if(isset($_GET['edit']))
 
         <div class="col-lg-12">
             <h4>Manage Country Details</h4>
+            <?php if (!empty($countryFlash['message'])): ?>
+                <div class="alert alert-<?php echo oecrm_h($countryFlash['type']); ?> alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <?php echo oecrm_h($countryFlash['message']); ?>
+                </div>
+            <?php endif; ?>
             <div class="dataTablesbox2 dataTablesbox">
 
                 <form role="form" method="POST">
 
-                    <input type="hidden" name="id" value="<?php echo $id; ?>">
+                    <?php echo oecrm_csrf_field(); ?>
+                    <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
                     <div class="row">
 
                         <div class="col-lg-3">
@@ -39,7 +61,7 @@ if(isset($_GET['edit']))
 
                             <div class="form-group">
 
-                                <input type="text" class="form-control" name="country_code" value="<?php if(isset($_GET['edit'])){ echo $country_code; } ?>" required maxlength="20">
+                                <input type="text" class="form-control" name="country_code" value="<?php echo oecrm_h($country_code); ?>" required maxlength="20">
 
                             </div>
 
@@ -50,7 +72,7 @@ if(isset($_GET['edit']))
 
                             <div class="form-group">
 
-                                <input type="text" class="form-control" name="country_symbols" required maxlength="3" value="<?php if(isset($_GET['edit'])){ echo $country_symbols; } ?>" >
+                                <input type="text" class="form-control" name="country_symbols" required maxlength="3" value="<?php echo oecrm_h($country_symbols); ?>" >
 
                             </div>
 
@@ -166,7 +188,7 @@ if(isset($_GET['edit']))
 
                                                 echo "<td>" . $rowNotice['country_symbols'] . "</td>";
 
-                                                echo '<td class="center" align="center"><a href="addcountry.php?edit=' . $rowNotice["country_id"] . '" style="display: inline-block;width: 28px;"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;<a href="addcountry.php?country_delete=' . $rowNotice["country_id"] . '" onclick="return confirm(\'Are you sure you want to delete?\');" style="display: inline-block;width: 28px;"><i class="fa fa-trash-o"></i></a></td>';
+                                                echo '<td class="center" align="center"><a href="addcountry.php?edit=' . (int) $rowNotice["country_id"] . '" style="display: inline-block;width: 28px;"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;<form method="post" style="display:inline;" data-confirm="Are you sure you want to delete these country details?">' . oecrm_csrf_field() . '<input type="hidden" name="deleteCountry" value="' . (int) $rowNotice["country_id"] . '"><button type="submit" class="btn btn-link" style="display: inline-block;width: 28px;padding:0;border:0;"><i class="fa fa-trash-o"></i></button></form></td>';
 
                                                 echo "</tr>";
                                             }

@@ -67,10 +67,10 @@ $roles = mysqli_stmt_get_result($stmt);
                                             <a class="oecrm-action-btn" href="add_role.php?id=<?php echo (int) $row['id']; ?>" title="Edit"><i class="fa fa-pencil"></i></a>
                                         <?php endif; ?>
                                         <?php if (oecrm_role_can_manage($conn, 'delete')): ?>
-                                            <form method="post" action="action_delete_role.php" style="display:inline;">
+                                            <form method="post" action="action_delete_role.php" style="display:inline;" data-confirm="Are you sure you want to delete this role?">
                                                 <?php echo oecrm_csrf_field(); ?>
                                                 <input type="hidden" name="id" value="<?php echo (int) $row['id']; ?>">
-                                                <button type="submit" class="btn btn-link oecrm-action-btn oecrm-action-danger" data-confirm="Are you sure you want to delete this role?" title="Delete"><i class="fa fa-trash-o"></i></button>
+                                                <button type="submit" class="btn btn-link oecrm-action-btn oecrm-action-danger" title="Delete"><i class="fa fa-trash-o"></i></button>
                                             </form>
                                         <?php endif; ?>
                                     </td>

@@ -18,6 +18,12 @@ function oecrm_role_redirect($id = 0)
     exit;
 }
 
+function oecrm_role_redirect_form($id = 0)
+{
+    header('Location: add_role.php' . ($id > 0 ? '?id=' . (int) $id : ''));
+    exit;
+}
+
 function oecrm_role_can_manage($conn, $action)
 {
     return oecrm_is_super_admin()
@@ -49,7 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['saveRole'])) {
 
     if ($name === '') {
         oecrm_role_flash('danger', 'Role name is required.');
-        oecrm_role_redirect($roleId);
+        $_SESSION['role_form_name'] = $name;
+        oecrm_role_redirect_form($roleId);
     }
 
     if ($isEdit) {
@@ -79,7 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['saveRole'])) {
 
     if ($duplicate) {
         oecrm_role_flash('warning', 'Role name already exists.');
-        oecrm_role_redirect($roleId);
+        $_SESSION['role_form_name'] = $name;
+        oecrm_role_redirect_form($roleId);
     }
 
     $actor = (int) ($_SESSION['adminId'] ?? 0);
@@ -131,9 +139,22 @@ if ($isEdit) {
     oecrm_role_require_manage($conn, 'create');
 }
 
+$roleFlash = $_SESSION['role_flash'] ?? null;
+$roleFormName = $_SESSION['role_form_name'] ?? null;
+unset($_SESSION['role_flash'], $_SESSION['role_form_name']);
+if ($roleFormName !== null) {
+    $role['name'] = $roleFormName;
+}
+
 include 'header.php';
 ?>
 <div id="page-wrapper" class="compact-admin-page">
+    <?php if (!empty($roleFlash['message'])): ?>
+        <div class="alert alert-<?php echo oecrm_h($roleFlash['type']); ?> alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <?php echo oecrm_h($roleFlash['message']); ?>
+        </div>
+    <?php endif; ?>
     <div class="panel panel-default">
         <div class="panel-heading panel-box">
             <h4><?php echo $isEdit ? 'Edit Role' : 'Add Role'; ?></h4>

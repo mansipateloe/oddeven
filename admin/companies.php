@@ -7,6 +7,30 @@ oecrm_require_permission($conn, 'companies', 'view');
 
 $message = '';
 $error = '';
+
+function oecrm_company_code_exists(mysqli $conn, string $code, int $excludeId = 0): bool
+{
+    $sql = 'SELECT id FROM companies WHERE code=?';
+    if ($excludeId > 0) {
+        $sql .= ' AND id<>?';
+    }
+    $sql .= ' LIMIT 1';
+
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) {
+        return false;
+    }
+    if ($excludeId > 0) {
+        mysqli_stmt_bind_param($stmt, 'si', $code, $excludeId);
+    } else {
+        mysqli_stmt_bind_param($stmt, 's', $code);
+    }
+    mysqli_stmt_execute($stmt);
+    $exists = (bool) mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    mysqli_stmt_close($stmt);
+    return $exists;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();
 
@@ -72,6 +96,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($legalName === '' || $displayName === '' || $code === '' || !in_array($type, $types, true) || ($countryId && (!$location || ($stateId && !$location['state_id']) || ($cityId && !$location['city_id'])))) {
             $error = 'Please complete all required company fields.';
+        } elseif (oecrm_company_code_exists($conn, $code, $id)) {
+            $error = 'Company code already exists. Please use a unique company code.';
         } elseif ($id) {
             oecrm_require_permission($conn, 'companies', 'edit');
             $stmt = mysqli_prepare($conn, 'SELECT * FROM companies WHERE id = ?');
@@ -79,20 +105,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $old = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt)); mysqli_stmt_close($stmt);
             $stmt = mysqli_prepare($conn, 'UPDATE companies SET code=?, legal_name=?, display_name=?, company_type=?, country_code=?,country_id=?,state_id=?,city_id=?, currency_code=?, gstin=?, email=?, status=? WHERE id=?');
             mysqli_stmt_bind_param($stmt, 'sssssiiisssii', $code, $legalName, $displayName, $type, $country, $countryId, $stateId, $cityId, $currency, $gstin, $email, $status, $id);
-            if (mysqli_stmt_execute($stmt)) {
+            try {
+                $saved = mysqli_stmt_execute($stmt);
+            } catch (mysqli_sql_exception $exception) {
+                $saved = false;
+                $error = $exception->getCode() === 1062 ? 'Company code already exists. Please use a unique company code.' : 'Company could not be updated.';
+            }
+            if ($saved) {
                 oecrm_audit($conn, 'companies', 'update', 'company', $id, 'Company updated', $old, $_POST);
                 $message = 'Company updated successfully.';
-            } else { $error = 'Company could not be updated. Code must be unique.'; }
+            } elseif ($error === '') { $error = 'Company could not be updated.'; }
             mysqli_stmt_close($stmt);
         } else {
             oecrm_require_permission($conn, 'companies', 'create');
             $stmt = mysqli_prepare($conn, 'INSERT INTO companies (code, legal_name, display_name, company_type, country_code,country_id,state_id,city_id, currency_code, gstin, email, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
             mysqli_stmt_bind_param($stmt, 'sssssiiisssi', $code, $legalName, $displayName, $type, $country, $countryId, $stateId, $cityId, $currency, $gstin, $email, $status);
-            if (mysqli_stmt_execute($stmt)) {
+            try {
+                $saved = mysqli_stmt_execute($stmt);
+            } catch (mysqli_sql_exception $exception) {
+                $saved = false;
+                $error = $exception->getCode() === 1062 ? 'Company code already exists. Please use a unique company code.' : 'Company could not be created.';
+            }
+            if ($saved) {
                 $newId = mysqli_insert_id($conn);
                 oecrm_audit($conn, 'companies', 'create', 'company', $newId, 'Company created', null, $_POST);
                 $message = 'Company created successfully.';
-            } else { $error = 'Company could not be created. Code must be unique.'; }
+            } elseif ($error === '') { $error = 'Company could not be created.'; }
             mysqli_stmt_close($stmt);
         }
     }

@@ -16,9 +16,14 @@ require_once __DIR__.'/employee_continuations.php';
 function oecrm_leave_policy($conn,$companyId,$leaveTypeId){$stmt=mysqli_prepare($conn,'SELECT p.*,s.comp_off_expiry_days,s.minimum_comp_off_minutes,s.sandwich_enabled company_sandwich FROM leave_policies p JOIN leave_settings s ON s.company_id=p.company_id WHERE p.company_id=? AND p.leave_type_id=? AND p.status=1');mysqli_stmt_bind_param($stmt,'ii',$companyId,$leaveTypeId);mysqli_stmt_execute($stmt);$r=mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));mysqli_stmt_close($stmt);return $r;}
 function oecrm_employee_leave_period($conn,$employeeId,$date)
 {
-    $target=DateTimeImmutable::createFromFormat('!Y-m-d',$date);
-    $dateErrors=DateTimeImmutable::getLastErrors();
-    if(!$target||($dateErrors&&($dateErrors['warning_count']||$dateErrors['error_count'])))throw new DomainException('A valid leave date is required.');
+    $target=null;
+    foreach(['!Y-m-d','!d/m/Y','!d-m-Y'] as $format){
+        $candidate=DateTimeImmutable::createFromFormat($format,(string)$date);
+        $dateErrors=DateTimeImmutable::getLastErrors();
+        if($candidate&&(!$dateErrors||(!$dateErrors['warning_count']&&!$dateErrors['error_count']))){$target=$candidate;break;}
+    }
+    if(!$target)throw new DomainException('A valid leave date is required.');
+    $date=$target->format('Y-m-d');
     $stmt=mysqli_prepare($conn,'SELECT e.company_id,e.joiningDate,p.exit_date FROM employeestbl e LEFT JOIN employee_profiles p ON p.employee_id=e.id WHERE e.id=?');
     mysqli_stmt_bind_param($stmt,'i',$employeeId);
     mysqli_stmt_execute($stmt);

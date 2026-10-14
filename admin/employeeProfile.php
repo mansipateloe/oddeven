@@ -42,6 +42,36 @@ $leaveRequests = mysqli_query(
         (int) $employeeId .
         " ORDER BY r.start_date DESC, r.id DESC"
 );
+$leaveYear = (int) date("Y");
+$leaveYearStart = sprintf("%04d-01-01", $leaveYear);
+$leaveYearEnd = sprintf("%04d-12-31", $leaveYear);
+$leaveSummaryStmt = mysqli_prepare(
+    $conn,
+    "SELECT t.name AS type_name,p.is_paid,
+        CASE WHEN b.id IS NULL THEN p.annual_entitlement ELSE b.opening_balance+b.credited+b.adjusted END entitlement,
+        CASE WHEN b.id IS NULL THEN COALESCE(SUM(CASE WHEN r.status='approved' THEN CASE WHEN p.is_paid=1 THEN GREATEST(0,r.payable_days-r.unpaid_days) ELSE r.payable_days END ELSE 0 END),0) ELSE b.used END used_days,
+        CASE WHEN b.id IS NULL THEN COALESCE(SUM(CASE WHEN r.status='pending' THEN CASE WHEN p.is_paid=1 THEN GREATEST(0,r.payable_days-r.unpaid_days) ELSE r.payable_days END ELSE 0 END),0) ELSE b.pending END pending_days
+     FROM leave_policies p
+     JOIN leavetypetbl t ON t.id=p.leave_type_id
+     LEFT JOIN employee_leave_balances b ON b.employee_id=? AND b.leave_type_id=p.leave_type_id AND b.balance_year=?
+     LEFT JOIN leave_requests r ON r.employee_id=? AND r.leave_type_id=p.leave_type_id AND r.start_date BETWEEN ? AND ?
+     WHERE p.company_id=? AND p.status=1
+     GROUP BY p.leave_type_id,t.name,p.is_paid,p.annual_entitlement,b.id,b.opening_balance,b.credited,b.adjusted,b.used,b.pending
+     ORDER BY t.name"
+);
+mysqli_stmt_bind_param(
+    $leaveSummaryStmt,
+    "iiissi",
+    $employeeId,
+    $leaveYear,
+    $employeeId,
+    $leaveYearStart,
+    $leaveYearEnd,
+    $employee["company_id"]
+);
+mysqli_stmt_execute($leaveSummaryStmt);
+$leaveSummary = mysqli_stmt_get_result($leaveSummaryStmt);
+mysqli_stmt_close($leaveSummaryStmt);
 $documents = mysqli_query(
     $conn,
     "SELECT * FROM employee_documents WHERE employee_id=" .
@@ -113,6 +143,7 @@ $displayDetail = function ($value) {
 <tr><th>Current Address</th><td><?php echo $displayDetail($employee["current_address"]); ?></td></tr>
 <tr><th>Permanent Address</th><td><?php echo $displayDetail($employee["permanent_address"]); ?></td></tr>
 </tbody></table></div></div></div>
+<div class="panel panel-default"><div class="panel-heading">Leave Summary - <?php echo $leaveYear; ?></div><div class="panel-body table-responsive"><table class="table profile-table"><thead><tr><th>Leave Type</th><th>Entitlement</th><th>Used</th><th>Pending</th><th>Remaining</th></tr></thead><tbody><?php if (mysqli_num_rows($leaveSummary) === 0): ?><tr><td colspan="5" class="empty-cell">No leave policies configured.</td></tr><?php endif; ?><?php while ($summary = mysqli_fetch_assoc($leaveSummary)): $remaining = max(0, (float) $summary["entitlement"] - (float) $summary["used_days"] - (float) $summary["pending_days"]); ?><tr><td><?php echo oecrm_h($summary["type_name"]); ?><small><?php echo !empty($summary["is_paid"]) ? "Paid" : "Unpaid"; ?></small></td><td><?php echo number_format((float) $summary["entitlement"], 1); ?></td><td><?php echo number_format((float) $summary["used_days"], 1); ?></td><td><?php echo number_format((float) $summary["pending_days"], 1); ?></td><td><strong><?php echo number_format($remaining, 1); ?></strong></td></tr><?php endwhile; ?></tbody></table></div></div>
 <div class="panel panel-default"><div class="panel-heading">Employment Details</div><div class="panel-body"><form method="post" action="employeeProfileAction.php" class="employee-detail-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="profile"><input type="hidden" name="employee_id" value="<?php echo $employeeId; ?>">
 <div class="employee-form-grid"><div class="form-group"><label>Employment Type</label><select class="form-control" name="employment_type"><?php foreach (
     ["permanent", "probation", "contract", "intern", "consultant"]
@@ -179,7 +210,9 @@ if (
 ): ?><tr><td colspan="6" class="empty-cell">No renewal history recorded.</td></tr><?php endif;
 while ($r = mysqli_fetch_assoc($continuations)): ?><tr><td><?php echo (int) $r["term_no"]; ?></td><td><?php echo oecrm_h(($r["previous_from"] ?: "-") . " to " . ($r["previous_to"] ?: "-")); ?></td><td><?php echo oecrm_h($r["renewed_from"] . " to " . $r["renewed_to"]); ?></td><td><?php echo oecrm_h($r["renewal_date"]); ?></td><td><?php echo oecrm_h(ucwords(str_replace("_", " ", $r["status"]))); ?></td><td><?php echo oecrm_h($r["remarks"] ?: "-"); ?></td></tr><?php endwhile;
 ?></tbody></table></div></div></div>
-<div class="panel panel-default"><div class="panel-heading">Increment History</div><div class="panel-body"><form method="post" action="employeeProfileAction.php" class="inline-record-form increment-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="increment"><input type="hidden" name="employee_id" value="<?php echo $employeeId; ?>"><input type="date" class="form-control" name="effective_date" required><input type="number" step="0.01" class="form-control" name="revised_salary" placeholder="Revised salary" required><input class="form-control" name="reason" placeholder="Reason"><button class="btn btn-primary"><i class="fa fa-plus"></i> Add</button></form><div class="table-responsive"><table class="table profile-table"><thead><tr><th>Effective Date</th><th>Previous</th><th>Revised</th><th>Increase</th><th>Reason</th></tr></thead><tbody><?php
+<div class="panel panel-default"><div class="panel-heading">
+    
+</div><div class="panel-body"><form method="post" action="employeeProfileAction.php" class="inline-record-form increment-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="increment"><input type="hidden" name="employee_id" value="<?php echo $employeeId; ?>"><input type="date" class="form-control" name="effective_date" required><input type="number" step="0.01" class="form-control" name="revised_salary" placeholder="Revised salary" required><input class="form-control" name="reason" placeholder="Reason"><button class="btn btn-primary"><i class="fa fa-plus"></i> Add</button></form><div class="table-responsive"><table class="table profile-table"><thead><tr><th>Effective Date</th><th>Previous</th><th>Revised</th><th>Increase</th><th>Reason</th></tr></thead><tbody><?php
 if (
     mysqli_num_rows($increments) === 0
 ): ?><tr><td colspan="5" class="empty-cell">No increments recorded.</td></tr><?php endif;

@@ -1,12 +1,43 @@
 <?php
-include 'header.php';
+$active_menu = 'lead';
+$active_submenu = 'view_lead';
+require_once __DIR__ . '/../dbconnect.php';
+require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../foundation.php';
-$id=oecrm_int_param($_GET,'leadId');$companyId=oecrm_current_company_id($conn);oecrm_require_permission($conn,'clients','view');
-$stmt=mysqli_prepare($conn,'SELECT * FROM leads WHERE lead_id=? AND company_id=? AND is_active=1');mysqli_stmt_bind_param($stmt,'ii',$id,$companyId);mysqli_stmt_execute($stmt);$details=mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));mysqli_stmt_close($stmt);
-if(!$details){http_response_code(404);exit('Lead not found.');}
+oecrm_require_admin_login();
+
+$id = isset($_GET['leadId']) && preg_match('/^\d+$/', (string) $_GET['leadId'])
+    ? (int) $_GET['leadId']
+    : 0;
+$companyId = oecrm_current_company_id($conn);
+oecrm_require_permission($conn, 'clients', 'view');
+
+if ($id <= 0) {
+    $_SESSION['lead_flash'] = 'Invalid lead selected.';
+    header('Location:leads.php');
+    exit;
+}
+
+$stmt = mysqli_prepare($conn, 'SELECT * FROM leads WHERE lead_id=? AND company_id=? AND is_active=1');
+mysqli_stmt_bind_param($stmt, 'ii', $id, $companyId);
+mysqli_stmt_execute($stmt);
+$details = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+mysqli_stmt_close($stmt);
+
+if (!$details) {
+    $_SESSION['lead_flash'] = 'Lead not found or no longer active.';
+    header('Location:leads.php');
+    exit;
+}
+
+$flash = $_SESSION['lead_flash'] ?? '';
+unset($_SESSION['lead_flash']);
+
+include 'header.php';
 ?>
 
 <div id="page-wrapper">
+    <?php if ($flash): ?><div class="alert alert-info"><?php echo oecrm_h($flash); ?></div><?php endif; ?>
     <div class="panel panel-default">
         <div class="panel-heading panel-box">
             <h4>Lead Details</h4>
@@ -16,7 +47,7 @@ if(!$details){http_response_code(404);exit('Lead not found.');}
                 <?php if (oecrm_can($conn, 'clients', 'create')): ?>
                     <form method="post" action="leadConvertAction.php" style="display:inline;">
                         <?php echo oecrm_csrf_field(); ?>
-                        <input type="hidden" name="lead_id" value="<?php echo $id; ?>">
+                        <input type="hidden" name="lead_id" value="<?php echo (int) $id; ?>">
                         <button type="submit" class="btn btn-success" onclick="return confirm('Convert this lead into a client?');">
                             <i class="fa fa-exchange"></i> Convert to Client
                         </button>
@@ -29,41 +60,41 @@ if(!$details){http_response_code(404);exit('Lead not found.');}
                     <table class="table lead-details">
                         <tr>
                             <td class="f-bold">Name:</td>
-                            <td><?= $details['executive_name'] ?></td>
+                            <td><?php echo oecrm_h($details['executive_name']); ?></td>
 
                             <td class="f-bold">Company Name:</td>
-                            <td><?= $details['company_name'] ?></td>
+                            <td><?php echo oecrm_h($details['company_name']); ?></td>
                         </tr>
 
                         <tr>
                             <td class="f-bold">Contact Person:</td>
-                            <td><?= $details['contact_person'] ?></td>
+                            <td><?php echo oecrm_h($details['contact_person']); ?></td>
 
                             <td class="f-bold">Mobile Number 1:</td>
-                            <td><?= $details['mobile_no1'] ?></td>
+                            <td><?php echo oecrm_h($details['mobile_no1']); ?></td>
                         </tr>
                         <tr>
                             <td class="f-bold">Mobile Number 2:</td>
-                            <td><?= $details['mobile_no2'] ?></td>
+                            <td><?php echo oecrm_h($details['mobile_no2']); ?></td>
 
-                            <td class="f-bold">Eamil:</td>
-                            <td><?= $details['email'] ?></td>
+                            <td class="f-bold">Email:</td>
+                            <td><?php echo oecrm_h($details['email']); ?></td>
                         </tr>
 
                         <tr>
                             <td class="f-bold">Personal Email:</td>
-                            <td><?= $details['personal_email'] ?></td>
+                            <td><?php echo oecrm_h($details['personal_email']); ?></td>
 
                             <td class="f-bold">City:</td>
-                            <td><?= $details['city'] ?></td>
+                            <td><?php echo oecrm_h($details['city']); ?></td>
                         </tr>
 
                         <tr>
                             <td class="f-bold">Address:</td>
-                            <td><?= $details['address'] ?></td>
+                            <td><?php echo oecrm_h($details['address']); ?></td>
 
                             <td class="f-bold">Created By:</td>
-                            <td><?= $details['created_by'] == 0 ? "Admin" : "User"  ?></td>
+                            <td><?php echo (int) $details['created_by'] === 0 ? 'Admin' : 'User'; ?></td>
                         </tr>
                     </table>
 
@@ -102,7 +133,7 @@ if(!$details){http_response_code(404);exit('Lead not found.');}
                                     <h4 class="modal-title" id="myModalLabel">Add New Followup</h4>
                                 </div>
                                 <div class="modal-body">
-                                    <input type="hidden" name="lead_id" value="<?= $id ?>">
+                                    <input type="hidden" name="lead_id" value="<?php echo (int) $id; ?>">
                                     <!-- Lead Priority -->
                                     <div class="mb-3" style="display:none;">
                                         <label for="leadType" class="form-label">Lead Priority</label>
@@ -129,7 +160,7 @@ if(!$details){http_response_code(404);exit('Lead not found.');}
                                                         $selected_type="";
                                                         
 
-                                                        echo "<option value='".$fet_followup_types['name']."' ".$selected_type.">".$fet_followup_types['name']."</option>";
+                                                        echo "<option value='".oecrm_h($fet_followup_types['name'])."' ".$selected_type.">".oecrm_h($fet_followup_types['name'])."</option>";
                                                     }
                                                 ?>
                                             </select>
@@ -156,9 +187,9 @@ if(!$details){http_response_code(404);exit('Lead not found.');}
                                         <label for="status">Status</label>
                                         <select class="form-control" id="leadType" name="status" required>
                                             <option value="status" selected disabled>Select Status</option>
-                                            <option value="close">Close</option>
+                                            <option value="closed">Closed</option>
                                             <option value="inprogress">Inprogress</option>
-                                            <option value="complete">Complete</option>
+                                            <option value="completed">Completed</option>
                                             <option value="pending">Pending</option>
                                         </select>
                                     </div>
@@ -195,32 +226,35 @@ if(!$details){http_response_code(404);exit('Lead not found.');}
                                 $stmt=mysqli_prepare($conn,'SELECT * FROM lead_followup WHERE lead_id=? AND status<>"cancelled" ORDER BY id DESC');mysqli_stmt_bind_param($stmt,'i',$id);mysqli_stmt_execute($stmt);$followupQuery=mysqli_stmt_get_result($stmt);
                                 while ($followupRow = mysqli_fetch_assoc($followupQuery)) {
                                     if($followupRow['status']=="0"){$followupRow['status']="pending";}
+                                    $createdAt = !empty($followupRow['created_at']) ? date('d-m-Y', strtotime($followupRow['created_at'])) : '-';
+                                    $nextDate = !empty($followupRow['next_followup_date']) ? date('d-m-Y', strtotime($followupRow['next_followup_date'])) : '-';
+                                    $nextTime = !empty($followupRow['next_followup_time']) ? date('h:i A', strtotime($followupRow['next_followup_time'])) : '-';
                                 ?>
                                     <tr>
-                                        <td><?= $count++ ?> </td>
-                                        <td><?= date('d-m-Y',strtotime($followupRow['created_at'])) ?></td>
+                                        <td><?php echo $count++; ?> </td>
+                                        <td><?php echo oecrm_h($createdAt); ?></td>
                                         
-                                        <td><?= $followupRow['followup_type'] ?></td>
-                                        <td><?= $followupRow['remarks'] ?></td>
-                                        <td><?= date('d-m-Y',strtotime($followupRow['next_followup_date'])) ?></td>
-                                        <td><?= date('h:i A',strtotime($followupRow['next_followup_time'])) ?></td>
+                                        <td><?php echo oecrm_h($followupRow['followup_type']); ?></td>
+                                        <td><?php echo oecrm_h($followupRow['remarks']); ?></td>
+                                        <td><?php echo oecrm_h($nextDate); ?></td>
+                                        <td><?php echo oecrm_h($nextTime); ?></td>
                                         
                                         <!-- <td><?= $followupRow['created_by'] == 0 ? "Admin" : "User" ?></td> -->
-                                        <td><?= $followupRow['status'] ?></td>
+                                        <td><?php echo oecrm_h($followupRow['status']); ?></td>
                                         <td>
                                             <!-- <button type="button" class="btn btn-info btn-xs" onclick="openModaledit()" <?= $editrowView['id'] ?>><i class="fa fa-pencil"></i>
 
                                             </button>  -->
                                             <!-- <a href="view_lead_followup_details.php?leadId=<?= $followupRow['id'] ?>" class="btn btn-info btn-xs" title="Detail"><i class="fa fa-eye"></i></a> -->
-                                            <a href="edit_followup_details.php?edit=<?= $followupRow['id'] ?>" class="btn btn-xs btn-warning" title="Edit"><i class="fa fa-pencil"></i></a>
+                                            <a href="edit_followup_details.php?edit=<?php echo (int) $followupRow['id']; ?>" class="btn btn-xs btn-warning" title="Edit"><i class="fa fa-pencil"></i></a>
                                             <!-- edit modal -->
                                         
                                             <!--end edit modal -->
 
                                             <form method="post" action="delete_lead_followup.php" style="display:inline;">
                                                 <?php echo oecrm_csrf_field(); ?>
-                                                <input type="hidden" name="delete" value="<?= (int) $followupRow['id'] ?>">
-                                                <input type="hidden" name="lead_id" value="<?= (int) $followupRow['lead_id'] ?>">
+                                                <input type="hidden" name="delete" value="<?php echo (int) $followupRow['id']; ?>">
+                                                <input type="hidden" name="lead_id" value="<?php echo (int) $followupRow['lead_id']; ?>">
                                                 <button type="submit" class="btn btn-link" style="padding:0;border:0;" data-confirm="Cancel this follow-up?"><i class="fa fa-trash-o "></i></button>
                                             </form>
                                         </td>

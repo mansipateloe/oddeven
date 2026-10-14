@@ -81,6 +81,31 @@ function oecrm_client_contact_exists(mysqli $conn, int $companyId, string $field
     return $exists;
 }
 
+function oecrm_client_tax_id_exists(mysqli $conn, int $companyId, string $taxId, int $excludeId = 0): bool
+{
+    $sql = 'SELECT id FROM clients WHERE company_id=? AND UPPER(TRIM(tax_id))=UPPER(?) ';
+    if ($excludeId > 0) {
+        $sql .= 'AND id<>? ';
+    }
+    $sql .= 'LIMIT 1';
+
+    $stmt = mysqli_prepare($conn, $sql);
+    if (!$stmt) {
+        return false;
+    }
+
+    if ($excludeId > 0) {
+        mysqli_stmt_bind_param($stmt, 'isi', $companyId, $taxId, $excludeId);
+    } else {
+        mysqli_stmt_bind_param($stmt, 'is', $companyId, $taxId);
+    }
+
+    mysqli_stmt_execute($stmt);
+    $exists = (bool) mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    mysqli_stmt_close($stmt);
+    return $exists;
+}
+
 function oecrm_bind_param_values(mysqli_stmt $stmt, array $values): void
 {
     $types = '';
@@ -156,6 +181,7 @@ try {
         }
         $email = strtolower($email);
         $phone = substr(preg_replace('/\D+/', '', $phone), 0, 10);
+        $tax_id = strtoupper($tax_id);
 
         $currency = strtoupper(substr(trim($_POST['currency_code'] ?? 'INR'), 0, 3));
         $terms = max(0, (int) ($_POST['payment_terms_days'] ?? 0));
@@ -184,6 +210,10 @@ try {
 
         if ($tax_id !== '' && !oecrm_validate_gst(strtoupper($tax_id))) {
             throw new RuntimeException('Please enter a valid 15-character GST / Tax ID.');
+        }
+
+        if ($tax_id !== '' && oecrm_client_tax_id_exists($conn, $companyId, $tax_id, $excludeId)) {
+            throw new RuntimeException('This GST / Tax ID is already used for another client in this company.');
         }
 
         if ($id) {
