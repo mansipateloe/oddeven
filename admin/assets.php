@@ -7,13 +7,22 @@ oecrm_require_permission($conn, 'assets', 'view');
 $companyId = oecrm_current_company_id($conn);
 $q = trim($_GET['q'] ?? '');
 $status = trim($_GET['status'] ?? '');
+$assetStatuses = [
+    'available' => 'Available',
+    'allocated' => 'Allocated',
+    'repair' => 'Repair',
+    'retired' => 'Retired',
+    'lost' => 'Lost',
+];
 $where = 'a.company_id=?';
 $types = 'i';
 $params = [$companyId];
-if (in_array($status, ['available', 'allocated', 'repair', 'retired', 'lost'], true)) {
+if (isset($assetStatuses[$status])) {
     $where .= ' AND a.lifecycle_status=?';
     $types .= 's';
     $params[] = $status;
+} else {
+    $status = '';
 }
 if ($q !== '') {
     $where .= ' AND (a.asset_code LIKE ? OR a.serial_number LIKE ? OR a.brand LIKE ? OR a.model LIKE ?)';
@@ -50,7 +59,12 @@ unset($_SESSION['asset_flash'], $_SESSION['asset_error']);
         <div class="panel-body">
             <form method="get" class="client-filters">
                 <input class="form-control" name="q" value="<?php echo oecrm_h($q); ?>" placeholder="Search code, serial, brand or model">
-                <select class="form-control" name="status"><option value="">All statuses</option><?php foreach (['available', 'allocated', 'repair', 'retired', 'lost'] as $value): ?><option value="<?php echo $value; ?>" <?php echo $status === $value ? 'selected' : ''; ?>><?php echo ucfirst($value); ?></option><?php endforeach; ?></select>
+                <select class="form-control" name="status" data-oecrm-native="1">
+                    <option value="">All statuses</option>
+                    <?php foreach ($assetStatuses as $value => $label): ?>
+                        <option value="<?php echo oecrm_h($value); ?>" <?php echo $status === $value ? 'selected' : ''; ?>><?php echo oecrm_h($label); ?></option>
+                    <?php endforeach; ?>
+                </select>
                 <button class="btn btn-default"><i class="fa fa-search"></i> Search</button>
             </form>
             <div class="table-responsive">

@@ -44,15 +44,23 @@ if ($display === '') {
 
 $duplicate = null;
 if ($email !== '') {
-    $duplicate = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id FROM clients WHERE company_id=" . (int)$companyId . " AND LOWER(email)=LOWER('" . mysqli_real_escape_string($conn, $email) . "') LIMIT 1"));
+    $duplicateStmt = mysqli_prepare($conn, 'SELECT id FROM clients WHERE company_id=? AND LOWER(email)=LOWER(?) LIMIT 1');
+    mysqli_stmt_bind_param($duplicateStmt, 'is', $companyId, $email);
+    mysqli_stmt_execute($duplicateStmt);
+    $duplicate = mysqli_fetch_assoc(mysqli_stmt_get_result($duplicateStmt));
+    mysqli_stmt_close($duplicateStmt);
 }
 if (!$duplicate && $phone !== '') {
-    $duplicate = mysqli_fetch_assoc(mysqli_query($conn, "SELECT id FROM clients WHERE company_id=" . (int)$companyId . " AND phone='" . mysqli_real_escape_string($conn, $phone) . "' LIMIT 1"));
+    $duplicateStmt = mysqli_prepare($conn, 'SELECT id FROM clients WHERE company_id=? AND phone=? LIMIT 1');
+    mysqli_stmt_bind_param($duplicateStmt, 'is', $companyId, $phone);
+    mysqli_stmt_execute($duplicateStmt);
+    $duplicate = mysqli_fetch_assoc(mysqli_stmt_get_result($duplicateStmt));
+    mysqli_stmt_close($duplicateStmt);
 }
 
 if ($duplicate) {
-    $_SESSION['client_flash'] = 'A client with this email or phone already exists.';
-    header('Location: clientProfile.php?id=' . (int) $duplicate['id']);
+    $_SESSION['lead_flash'] = 'A client with this email or phone already exists.';
+    header('Location: lead_details.php?leadId=' . (int) $leadId);
     exit;
 }
 
@@ -73,14 +81,37 @@ $currency = 'INR';
 $paymentTerms = 0;
 $phoneValue = $phone;
 $actor = (int) ($_SESSION['adminId'] ?? 0);
-$stmt = mysqli_prepare($conn, 'INSERT INTO clients(company_id,client_code,legal_name,display_name,client_type,status,industry,website,email,phone,billing_address,city,state,country,tax_id,currency_code,payment_terms_days,notes,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-mysqli_stmt_bind_param($stmt, 'issssssssssssssisis', $companyId, $clientCode, $legal, $display, $clientType, $status, $industry, $website, $email, $phoneValue, $address, $city, $state, $country, $taxId, $currency, $paymentTerms, $notes, $actor);
-mysqli_stmt_execute($stmt);
-$clientId = mysqli_insert_id($conn);
-mysqli_stmt_close($stmt);
 
-mysqli_query($conn, 'UPDATE leads SET is_active=0,status="closed" WHERE lead_id=' . (int) $leadId . ' AND company_id=' . (int) $companyId);
-oecrm_audit($conn, 'clients', 'create', 'client', $clientId, 'Lead converted to client', $lead, ['lead_id' => $leadId, 'client_code' => $clientCode]);
+mysqli_begin_transaction($conn);
+try {
+    $stmt = mysqli_prepare($conn, 'INSERT INTO clients(company_id,client_code,legal_name,display_name,client_type,status,industry,website,email,phone,billing_address,city,state,country,tax_id,currency_code,payment_terms_days,notes,created_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    mysqli_stmt_bind_param($stmt, 'issssssssssssssisis', $companyId, $clientCode, $legal, $display, $clientType, $status, $industry, $website, $email, $phoneValue, $address, $city, $state, $country, $taxId, $currency, $paymentTerms, $notes, $actor);
+    $inserted = mysqli_stmt_execute($stmt);
+    $clientId = mysqli_insert_id($conn);
+    mysqli_stmt_close($stmt);
+
+    if (!$inserted || $clientId <= 0) {
+        throw new RuntimeException('Client could not be created.');
+    }
+
+    $updateStmt = mysqli_prepare($conn, 'UPDATE leads SET is_active=0,status="closed" WHERE lead_id=? AND company_id=? AND is_active=1');
+    mysqli_stmt_bind_param($updateStmt, 'ii', $leadId, $companyId);
+    $updated = mysqli_stmt_execute($updateStmt);
+    $affected = mysqli_stmt_affected_rows($updateStmt);
+    mysqli_stmt_close($updateStmt);
+
+    if (!$updated || $affected < 1) {
+        throw new RuntimeException('Lead could not be marked as converted.');
+    }
+
+    oecrm_audit($conn, 'clients', 'create', 'client', $clientId, 'Lead converted to client', $lead, ['lead_id' => $leadId, 'client_code' => $clientCode]);
+    mysqli_commit($conn);
+} catch (Throwable $exception) {
+    mysqli_rollback($conn);
+    $_SESSION['lead_flash'] = $exception->getMessage();
+    header('Location: lead_details.php?leadId=' . (int) $leadId);
+    exit;
+}
 
 $_SESSION['client_flash'] = 'Lead converted to client successfully.';
 $_SESSION['lead_flash'] = 'Lead converted to client successfully.';

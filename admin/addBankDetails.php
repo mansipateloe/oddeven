@@ -7,6 +7,15 @@ require_once __DIR__ . "/../dbconnect.php";
 require_once __DIR__ . "/../security.php";
 require_once __DIR__ . "/../foundation.php";
 
+if (isset($_GET["bank_delete"])) {
+    $_SESSION["bank_details_flash"] = [
+        "type" => "warning",
+        "message" => "Please use the delete button on this page to delete bank details securely.",
+    ];
+    header("Location: addBankDetails.php");
+    exit;
+}
+
 oecrm_require_admin_login();
 
 function oecrm_bank_details_flash($type, $message)

@@ -8,11 +8,21 @@
                     <?php if (!empty($_SESSION['expense_flash'])): ?>
                         <div class="alert alert-warning"><?php echo oecrm_h($_SESSION['expense_flash']); unset($_SESSION['expense_flash']); ?></div>
                     <?php endif; ?>
+                    <style>
+                        .expense-date-field {
+                            width: 100%;
+                            min-width: 160px;
+                            height: 45px;
+                            line-height: 45px;
+                            padding: 6px 12px;
+                            box-sizing: border-box;
+                        }
+                    </style>
                     <div class="dataTablesbox2">
                         <form role="form" method="POST">
                             <?php echo oecrm_csrf_field(); ?>
                             <div class="row">
-                                <div class="col-lg-6"><div class="form-group"><label>Date :</label><input type="date" class="form-control" name="expensedate" value="<?php echo date('Y-m-d'); ?>" required></div></div>
+                                <div class="col-lg-6"><div class="form-group"><label>Date :</label><input type="date" class="form-control expense-date-field" name="expensedate" value="<?php echo date('Y-m-d'); ?>" required></div></div>
                                 <div class="col-lg-6">
                                     <div class="form-group">
                                         <label>Expense Category :</label>

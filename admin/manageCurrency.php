@@ -18,6 +18,14 @@ function oecrm_currency_redirect($editId = 0)
     exit;
 }
 
+function oecrm_currency_redirect_with_form($editId, array $values, array $errors, $message)
+{
+    $_SESSION['currency_form'] = $values;
+    $_SESSION['currency_errors'] = $errors;
+    oecrm_currency_flash('danger', $message);
+    oecrm_currency_redirect($editId);
+}
+
 function oecrm_currency_can_manage($conn, $action = 'view')
 {
     return oecrm_is_super_admin()
@@ -58,25 +66,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $name = oecrm_currency_normalize_name($_POST['name'] ?? '');
         $symbol = oecrm_currency_normalize_symbol($_POST['symbol'] ?? '');
         $rate = trim((string) ($_POST['rate'] ?? ''));
+        $submittedValues = [
+            'id' => $id,
+            'name' => $name,
+            'symbol' => $symbol,
+            'rate' => $rate,
+        ];
 
-        if ($name === '' || $symbol === '' || $rate === '') {
-            oecrm_currency_flash('danger', 'Currency name, symbol and rate are required.');
-            oecrm_currency_redirect($id);
+        $fieldErrors = [];
+        if ($name === '') {
+            $fieldErrors['name'] = 'Currency name is required.';
+        }
+        if ($symbol === '') {
+            $fieldErrors['symbol'] = 'Currency symbol/code is required.';
+        }
+        if ($rate === '') {
+            $fieldErrors['rate'] = 'Currency rate is required.';
+        }
+        if ($fieldErrors) {
+            oecrm_currency_redirect_with_form($id, $submittedValues, $fieldErrors, 'Please correct the highlighted currency fields.');
         }
 
         if (strlen($name) > 100) {
-            oecrm_currency_flash('danger', 'Currency name must be 100 characters or less.');
-            oecrm_currency_redirect($id);
+            oecrm_currency_redirect_with_form($id, $submittedValues, ['name' => 'Currency name must be 100 characters or less.'], 'Please correct the highlighted currency fields.');
         }
 
         if (strlen($symbol) > 20) {
-            oecrm_currency_flash('danger', 'Currency symbol/code must be 20 characters or less.');
-            oecrm_currency_redirect($id);
+            oecrm_currency_redirect_with_form($id, $submittedValues, ['symbol' => 'Currency symbol/code must be 20 characters or less.'], 'Please correct the highlighted currency fields.');
         }
 
         if (!is_numeric($rate) || (float) $rate <= 0) {
-            oecrm_currency_flash('danger', 'Currency rate must be a positive number.');
-            oecrm_currency_redirect($id);
+            oecrm_currency_redirect_with_form($id, $submittedValues, ['rate' => 'Currency rate must be a positive number.'], 'Please correct the highlighted currency fields.');
         }
         $rateValue = (float) $rate;
 
@@ -121,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             oecrm_audit($conn, 'finance', 'edit', 'currency', $id, 'Currency updated', $existingCurrency, ['name' => $name, 'symbol' => $symbol, 'rate' => $rateValue]);
             oecrm_currency_flash('success', 'Currency updated successfully.');
+            unset($_SESSION['currency_form'], $_SESSION['currency_errors']);
             oecrm_currency_redirect();
         }
 
@@ -135,6 +156,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         oecrm_audit($conn, 'finance', 'create', 'currency', $newId, 'Currency created', null, ['name' => $name, 'symbol' => $symbol, 'rate' => $rateValue]);
         oecrm_currency_flash('success', 'Currency added successfully.');
+        unset($_SESSION['currency_form'], $_SESSION['currency_errors']);
         oecrm_currency_redirect();
     }
 
@@ -191,7 +213,12 @@ if ($editId > 0) {
 }
 
 $currencyFlash = $_SESSION['currency_flash'] ?? null;
-unset($_SESSION['currency_flash']);
+$currencyForm = $_SESSION['currency_form'] ?? [];
+$currencyErrors = $_SESSION['currency_errors'] ?? [];
+unset($_SESSION['currency_flash'], $_SESSION['currency_form'], $_SESSION['currency_errors']);
+$currencyValue = static function ($key, $default = '') use ($currencyForm) {
+    return array_key_exists($key, $currencyForm) ? $currencyForm[$key] : $default;
+};
 include 'header.php';
 $currencyResult = mysqli_query($conn, 'SELECT id,name,symbol,rate FROM currency_master ORDER BY name');
 ?>
@@ -207,27 +234,42 @@ $currencyResult = mysqli_query($conn, 'SELECT id,name,symbol,rate FROM currency_
         <div class="col-lg-12">
             <h4><?php echo $editCurrency ? 'Edit Currency' : 'Currency'; ?></h4>
             <div class="dataTablesbox2 dataTablesbox">
+                <style>
+                    .currency-field-error {
+                        display: block;
+                        color: #d9534f;
+                        font-size: 12px;
+                        margin-top: 6px;
+                    }
+                    .currency-is-invalid {
+                        border-color: #d9534f !important;
+                        box-shadow: 0 0 0 0.2rem rgba(217, 83, 79, 0.15) !important;
+                    }
+                </style>
                 <form role="form" method="POST" action="manageCurrency.php" novalidate>
                     <?php echo oecrm_csrf_field(); ?>
                     <input type="hidden" name="action" value="save_currency">
-                    <input type="hidden" name="id" value="<?php echo (int) ($editCurrency['id'] ?? 0); ?>">
+                    <input type="hidden" name="id" value="<?php echo (int) $currencyValue('id', $editCurrency['id'] ?? 0); ?>">
                     <div class="row">
                         <div class="col-lg-3">
                             <label>Name <span class="text-danger">*</span></label>
                             <div class="form-group">
-                                <input type="text" class="form-control" name="name" required maxlength="100" value="<?php echo oecrm_h($editCurrency['name'] ?? ''); ?>" placeholder="Currency name">
+                                <input type="text" class="form-control <?php echo isset($currencyErrors['name']) ? 'currency-is-invalid' : ''; ?>" name="name" required maxlength="100" value="<?php echo oecrm_h($currencyValue('name', $editCurrency['name'] ?? '')); ?>" placeholder="Currency name">
+                                <?php if (isset($currencyErrors['name'])): ?><span class="currency-field-error"><?php echo oecrm_h($currencyErrors['name']); ?></span><?php endif; ?>
                             </div>
                         </div>
                         <div class="col-lg-3">
                             <label>Symbol / Code <span class="text-danger">*</span></label>
                             <div class="form-group">
-                                <input type="text" class="form-control" name="symbol" required maxlength="20" value="<?php echo oecrm_h($editCurrency['symbol'] ?? ''); ?>" placeholder="₹ / INR / $">
+                                <input type="text" class="form-control <?php echo isset($currencyErrors['symbol']) ? 'currency-is-invalid' : ''; ?>" name="symbol" required maxlength="20" value="<?php echo oecrm_h($currencyValue('symbol', $editCurrency['symbol'] ?? '')); ?>" placeholder="INR / USD / EUR">
+                                <?php if (isset($currencyErrors['symbol'])): ?><span class="currency-field-error"><?php echo oecrm_h($currencyErrors['symbol']); ?></span><?php endif; ?>
                             </div>
                         </div>
                         <div class="col-lg-3">
                             <label>Rate <span class="text-danger">*</span></label>
                             <div class="form-group">
-                                <input type="number" step="0.000001" min="0.000001" class="form-control" name="rate" required value="<?php echo oecrm_h($editCurrency['rate'] ?? '1.000000'); ?>">
+                                <input type="number" step="0.000001" min="0.000001" class="form-control <?php echo isset($currencyErrors['rate']) ? 'currency-is-invalid' : ''; ?>" name="rate" required value="<?php echo oecrm_h($currencyValue('rate', $editCurrency['rate'] ?? '1.000000')); ?>">
+                                <?php if (isset($currencyErrors['rate'])): ?><span class="currency-field-error"><?php echo oecrm_h($currencyErrors['rate']); ?></span><?php endif; ?>
                             </div>
                         </div>
                         <div class="col-lg-3" align="right">

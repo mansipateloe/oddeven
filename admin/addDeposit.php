@@ -7,13 +7,23 @@
                             Add Deposit
                         </div>
                         <div class="panel-body add_deposit">
+                            <style>
+                                .add-deposit-date-field {
+                                    width: 100%;
+                                    min-width: 160px;
+                                    height: 45px;
+                                    line-height: 45px;
+                                    padding: 6px 12px;
+                                    box-sizing: border-box;
+                                }
+                            </style>
                         	<div class="dataTablesbox2">
                                 <form role="form" method="POST">
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="form-group">
                                                 <label>Date :</label>
-                                                <input type="date" class="form-control" name="deposit_date" required value="<?php echo date('Y-m-d'); ?>">
+                                                <input type="date" class="form-control add-deposit-date-field" name="deposit_date" required value="<?php echo date('Y-m-d'); ?>">
                                             </div>
                                         </div>
                                         <div class="col-lg-6">
@@ -203,13 +213,6 @@
                 </div>
             </div>
         </div>
-<script src="../vendor/jquery/jquery.min.js"></script>
-<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
-<script src="../vendor/metisMenu/metisMenu.min.js"></script>
-<script src="../vendor/raphael/raphael.min.js"></script>
-<script src="../vendor/morrisjs/morris.min.js"></script>
-<script src="../data/morris-data.js"></script>
-<script src="../dist/js/sb-admin-2.js"></script>
 <script type="text/javascript">
     function getInvoices(proj_id){
         $('#invoice_id').empty();
@@ -227,27 +230,5 @@
             }
         });
     }
-</script>
-
-<script src="../vendor/jquery/jquery.min.js"></script>
-<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
-<script src="../vendor/metisMenu/metisMenu.min.js"></script>
-<script src="../vendor/datatables/js/jquery.dataTables.min.js"></script>
-<script src="../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
-<script src="../vendor/datatables-responsive/dataTables.responsive.js"></script>
-<script src="../vendor/raphael/raphael.min.js"></script>
-<script src="../vendor/morrisjs/morris.min.js"></script>
-<script src="../data/morris-data.js"></script>
-<script src="../dist/js/sb-admin-2.js"></script>
-<script>
-    $(document).ready(function() {
-        $('#deposit_table').DataTable({
-            /*responsive: true,*/
-            // order: [[4, 'desc']],
-            // columnDefs: [
-            // { "orderable": false, "targets": 5 }
-            // ]
-        });
-    });
 </script>
 <?php include 'footer.php'; ?>

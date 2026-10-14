@@ -7,6 +7,16 @@
                             Add Invoice
                         </div>
                         <div class="panel-body add_deposit">
+                            <style>
+                                .add-invoice-date-field {
+                                    width: 100%;
+                                    min-width: 160px;
+                                    height: 45px;
+                                    line-height: 45px;
+                                    padding: 6px 12px;
+                                    box-sizing: border-box;
+                                }
+                            </style>
                         	<div>
                                 <form role="form" method="POST" action="invoices.php">
                                     <div class="row">
@@ -19,7 +29,7 @@
                                         <div class="col-lg-3">
                                             <div class="form-group">
                                                 <label>Date :</label>
-                                                <input type="date" class="form-control" name="invoice_date" value="<?php echo date('Y-m-d'); ?>">
+                                                <input type="date" class="form-control add-invoice-date-field" name="invoice_date" value="<?php echo date('Y-m-d'); ?>">
                                             </div>
                                         </div>
                                         <div class="col-lg-3">
