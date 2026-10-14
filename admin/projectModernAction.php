@@ -34,6 +34,9 @@ function oecrm_project_payload($conn, $companyId)
         throw new RuntimeException('Project name, client and start date are required.');
     }
     $start = date('Y-m-d', strtotime($start));
+    if ($end === null) {
+        throw new RuntimeException('Deadline date is required.');
+    }
     if ($end !== null && strtotime($end) < strtotime($start)) {
         throw new RuntimeException('Deadline date cannot be earlier than the start date.');
     }
@@ -81,6 +84,7 @@ try {
         oecrm_sync_project_team($conn, $id, $data['team'], $data['start']);
         oecrm_audit($conn, 'projects', 'create', 'project', $id, 'Project created', null, ['project_name' => $data['name'], 'client_id' => $data['clientId'], 'team' => $data['team']]);
         $_SESSION['project_flash'] = 'Project created successfully.';
+        unset($_SESSION['project_form']);
         header('Location: projectBoard.php?id=' . $id);
         exit;
     }
@@ -121,6 +125,7 @@ try {
         oecrm_sync_project_team($conn, $id, $data['team'], $data['start']);
         oecrm_audit($conn, 'projects', 'update', 'project', $id, 'Project updated', $old, ['project_name' => $data['name'], 'client_id' => $data['clientId'], 'team' => $data['team']]);
         $_SESSION['project_flash'] = 'Project updated successfully.';
+        unset($_SESSION['project_form']);
         header('Location: projectBoard.php?id=' . $id);
         exit;
     }
@@ -128,6 +133,20 @@ try {
     throw new RuntimeException('Invalid action.');
 } catch (Throwable $exception) {
     $_SESSION['project_error'] = $exception->getMessage();
+    $_SESSION['project_form'] = [
+        'project_name' => $_POST['project_name'] ?? '',
+        'client_id' => $_POST['client_id'] ?? '',
+        'status' => $_POST['status'] ?? 'pending',
+        'priority' => $_POST['priority'] ?? 'medium',
+        'start_date' => $_POST['start_date'] ?? '',
+        'end_date' => $_POST['end_date'] ?? '',
+        'budget' => $_POST['budget'] ?? '',
+        'extra_scope_value' => $_POST['extra_scope_value'] ?? '0',
+        'budget_hours' => $_POST['budget_hours'] ?? '',
+        'deadline_reason' => $_POST['deadline_reason'] ?? '',
+        'team' => array_values(array_map('intval', $_POST['team'] ?? [])),
+        'description' => $_POST['description'] ?? '',
+    ];
     $id = (int) ($_POST['id'] ?? 0);
     header('Location: projectEditor.php' . ($id ? '?id=' . $id : ''));
     exit;

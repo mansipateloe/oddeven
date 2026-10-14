@@ -34,7 +34,12 @@ if ($id) {
 $clients = mysqli_query($conn, 'SELECT id,display_name FROM clients WHERE company_id=' . (int) $companyId . ' AND status IN ("active","prospect") ORDER BY display_name');
 $employees = mysqli_query($conn, 'SELECT e.id,e.employeeCode,e.name,c.display_name company_name FROM employeestbl e LEFT JOIN companies c ON c.id=e.company_id WHERE e.status=0 ORDER BY c.display_name,e.name');
 $error = $_SESSION['project_error'] ?? '';
-unset($_SESSION['project_error']);
+$oldForm = $_SESSION['project_form'] ?? [];
+unset($_SESSION['project_error'], $_SESSION['project_form']);
+$formValue = static function ($key, $default = '') use ($oldForm) {
+    return array_key_exists($key, $oldForm) ? $oldForm[$key] : $default;
+};
+$formTeam = array_key_exists('team', $oldForm) ? array_map('intval', (array) $oldForm['team']) : $selectedTeam;
 ?>
 <div id="page-wrapper" class="compact-admin-page resource-form-page">
     <div class="foundation-titlebar">
@@ -50,19 +55,19 @@ unset($_SESSION['project_error']);
                 <?php echo oecrm_csrf_field(); ?>
                 <input type="hidden" name="action" value="<?php echo $id ? 'update_project' : 'create_project'; ?>">
                 <input type="hidden" name="id" value="<?php echo $id; ?>">
-                <div class="form-group"><label>Project Name</label><input class="form-control" name="project_name" required value="<?php echo oecrm_h($project['projectName'] ?? ''); ?>"></div>
+                <div class="form-group"><label>Project Name</label><input class="form-control" name="project_name" required value="<?php echo oecrm_h($formValue('project_name', $project['projectName'] ?? '')); ?>"></div>
                 <div class="form-group">
                     <label>Client</label>
                     <select class="form-control" name="client_id" required>
                         <option value="">Select client</option>
                         <?php while ($client = mysqli_fetch_assoc($clients)): ?>
-                            <option value="<?php echo (int) $client['id']; ?>" <?php echo (int) ($project['client_id'] ?? 0) === (int) $client['id'] ? 'selected' : ''; ?>><?php echo oecrm_h($client['display_name']); ?></option>
+                            <option value="<?php echo (int) $client['id']; ?>" <?php echo (int) $formValue('client_id', $project['client_id'] ?? 0) === (int) $client['id'] ? 'selected' : ''; ?>><?php echo oecrm_h($client['display_name']); ?></option>
                         <?php endwhile; ?>
                     </select>
                 </div>
-                <div class="form-group"><label>Status</label><select class="form-control" name="status"><?php foreach (['pending', 'inprogress', 'completed', 'cancel'] as $value): ?><option value="<?php echo $value; ?>" <?php echo ($project['status'] ?? 'pending') === $value ? 'selected' : ''; ?>><?php echo ucwords(str_replace('_', ' ', $value)); ?></option><?php endforeach; ?></select></div>
-                <div class="form-group"><label>Priority</label><select class="form-control" name="priority"><?php foreach (['low', 'medium', 'high', 'critical'] as $value): ?><option value="<?php echo $value; ?>" <?php echo ($project['priority'] ?? 'medium') === $value ? 'selected' : ''; ?>><?php echo ucfirst($value); ?></option><?php endforeach; ?></select></div>
-                <div class="form-group"><label>Start Date</label><input class="form-control" type="date" name="start_date" value="<?php echo oecrm_h($project['startdate'] ?? date('Y-m-d')); ?>" required></div>
+                <div class="form-group"><label>Status</label><select class="form-control" name="status"><?php foreach (['pending', 'inprogress', 'completed', 'cancel'] as $value): ?><option value="<?php echo $value; ?>" <?php echo $formValue('status', $project['status'] ?? 'pending') === $value ? 'selected' : ''; ?>><?php echo ucwords(str_replace('_', ' ', $value)); ?></option><?php endforeach; ?></select></div>
+                <div class="form-group"><label>Priority</label><select class="form-control" name="priority"><?php foreach (['low', 'medium', 'high', 'critical'] as $value): ?><option value="<?php echo $value; ?>" <?php echo $formValue('priority', $project['priority'] ?? 'medium') === $value ? 'selected' : ''; ?>><?php echo ucfirst($value); ?></option><?php endforeach; ?></select></div>
+                <div class="form-group"><label>Start Date</label><input class="form-control" type="date" name="start_date" value="<?php echo oecrm_h($formValue('start_date', $project['startdate'] ?? date('Y-m-d'))); ?>" required></div>
                 <?php if ($id): ?>
                     <div class="deadline-summary">
                         <div><small>Original Deadline</small><strong><?php echo oecrm_h(oecrm_project_deadline_format($originalDeadline)); ?></strong></div>
@@ -70,21 +75,21 @@ unset($_SESSION['project_error']);
                         <div><small>Extensions</small><strong><?php echo (int) ($project['deadline_extended_count'] ?? 0); ?></strong></div>
                     </div>
                 <?php endif; ?>
-                <div class="form-group"><label>Current Deadline</label><input class="form-control" type="date" name="end_date" value="<?php echo oecrm_h($currentDeadline ?: (($project['enddate'] ?? '') === '0000-00-00' ? '' : ($project['enddate'] ?? ''))); ?>"><small class="text-muted">Optional. If you change existing deadline, enter reason below.</small></div>
-                <div class="form-group"><label>Budget Amount</label><input class="form-control" type="number" min="0" step=".01" name="budget" value="<?php echo oecrm_h($project['amount'] ?? ''); ?>"></div>
-                <div class="form-group"><label>Extra Scope Value</label><input class="form-control" type="number" min="0" step=".01" name="extra_scope_value" value="<?php echo oecrm_h($project['extra_scope_value'] ?? '0'); ?>"><small class="text-muted">Additional approved value for extra work/tasks.</small></div>
-                <div class="form-group"><label>Budget Hours</label><input class="form-control" type="number" min="0" step=".25" name="budget_hours" value="<?php echo oecrm_h($project['budget_hours'] ?? ''); ?>"></div>
-                <?php if ($id): ?><div class="form-group resource-notes"><label>Deadline Change Reason</label><textarea class="form-control" name="deadline_reason" rows="2" placeholder="Required only when changing current deadline"></textarea></div><?php endif; ?>
+                <div class="form-group"><label>Current Deadline</label><input class="form-control" type="date" name="end_date" value="<?php echo oecrm_h($formValue('end_date', $currentDeadline ?: (($project['enddate'] ?? '') === '0000-00-00' ? '' : ($project['enddate'] ?? '')))); ?>" required><small class="text-muted">Required. If you change existing deadline, enter reason below.</small></div>
+                <div class="form-group"><label>Budget Amount</label><input class="form-control" type="number" min="0" step=".01" name="budget" value="<?php echo oecrm_h($formValue('budget', $project['amount'] ?? '')); ?>"></div>
+                <div class="form-group"><label>Extra Scope Value</label><input class="form-control" type="number" min="0" step=".01" name="extra_scope_value" value="<?php echo oecrm_h($formValue('extra_scope_value', $project['extra_scope_value'] ?? '0')); ?>"><small class="text-muted">Additional approved value for extra work/tasks.</small></div>
+                <div class="form-group"><label>Budget Hours</label><input class="form-control" type="number" min="0" step=".25" name="budget_hours" value="<?php echo oecrm_h($formValue('budget_hours', $project['budget_hours'] ?? '')); ?>"></div>
+                <?php if ($id): ?><div class="form-group resource-notes"><label>Deadline Change Reason</label><textarea class="form-control" name="deadline_reason" rows="2" placeholder="Required only when changing current deadline"><?php echo oecrm_h($formValue('deadline_reason', '')); ?></textarea></div><?php endif; ?>
                 <div class="form-group">
                     <label>Team Members</label>
                     <select class="form-control" name="team[]" multiple size="7" required>
                         <?php while ($employee = mysqli_fetch_assoc($employees)): ?>
-                            <option value="<?php echo (int) $employee['id']; ?>" <?php echo in_array((int) $employee['id'], $selectedTeam, true) ? 'selected' : ''; ?>><?php echo oecrm_h($employee['company_name'] . ' - ' . $employee['employeeCode'] . ' - ' . $employee['name']); ?></option>
+                            <option value="<?php echo (int) $employee['id']; ?>" <?php echo in_array((int) $employee['id'], $formTeam, true) ? 'selected' : ''; ?>><?php echo oecrm_h($employee['company_name'] . ' - ' . $employee['employeeCode'] . ' - ' . $employee['name']); ?></option>
                         <?php endwhile; ?>
                     </select>
                     <small>Only active employees are listed.</small>
                 </div>
-                <div class="form-group resource-notes"><label>Description</label><textarea class="form-control" name="description" rows="4"><?php echo oecrm_h($project['description'] ?? ''); ?></textarea></div>
+                <div class="form-group resource-notes"><label>Description</label><textarea class="form-control" name="description" rows="4"><?php echo oecrm_h($formValue('description', $project['description'] ?? '')); ?></textarea></div>
                 <div class="resource-actions">
                     <button class="btn btn-primary"><i class="fa fa-save"></i> <?php echo $id ? 'Update Project' : 'Create Project'; ?></button>
                     <a href="<?php echo $id ? 'projectBoard.php?id=' . $id : 'projectWorkspace.php'; ?>" class="btn btn-default">Cancel</a>

@@ -13,6 +13,7 @@ oecrm_require_csrf();
 
 if (!oecrm_can($conn, 'clients', 'delete') && !oecrm_can($conn, 'clients', 'edit') && !oecrm_legacy_can($conn, 'add_lead') && !oecrm_legacy_can($conn, 'view_lead')) {
     $_SESSION['lead_source_flash'] = 'You do not have permission to delete lead sources.';
+    $_SESSION['lead_source_flash_type'] = 'error';
     header('Location:manageLeadSource.php');
     exit;
 }
@@ -26,6 +27,7 @@ mysqli_stmt_close($stmt);
 
 if (!$leadSource) {
     $_SESSION['lead_source_flash'] = 'Lead source not found.';
+    $_SESSION['lead_source_flash_type'] = 'error';
     header('Location:manageLeadSource.php');
     exit;
 }
@@ -38,6 +40,7 @@ mysqli_stmt_close($usedStmt);
 
 if ((int) ($used['total'] ?? 0) > 0) {
     $_SESSION['lead_source_flash'] = 'Lead source is in use and cannot be deleted.';
+    $_SESSION['lead_source_flash_type'] = 'warning';
     header('Location:manageLeadSource.php');
     exit;
 }
@@ -48,6 +51,12 @@ $deleted = mysqli_stmt_execute($deleteStmt);
 $affected = mysqli_stmt_affected_rows($deleteStmt);
 mysqli_stmt_close($deleteStmt);
 
-$_SESSION['lead_source_flash'] = ($deleted && $affected > 0) ? 'Lead source deleted successfully.' : 'Lead source could not be deleted.';
+if ($deleted && $affected > 0) {
+    $_SESSION['lead_source_flash'] = 'Lead source deleted successfully.';
+    $_SESSION['lead_source_flash_type'] = 'success';
+} else {
+    $_SESSION['lead_source_flash'] = 'Lead source could not be deleted.';
+    $_SESSION['lead_source_flash_type'] = 'error';
+}
 header('Location:manageLeadSource.php');
 exit;

@@ -97,7 +97,7 @@ unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
                                                     echo "<tr class='gradeA even' role='row'>";
                                                     echo "<td class='sorting_1'>" . $row['id'] . "</td>";
                                                     echo "<td>" . $row['name'] . "</td>";
-                                                    echo '<td class="center" align="center"><form method="post" action="deleteLeadSource.php" class="delete-lead-source-form" style="display:inline;">' . oecrm_csrf_field() . '<input type="hidden" name="deleteLeadSource" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link delete-lead-source-btn" style="padding:0;border:0;" data-confirm="Are you sure you want to delete this lead source?"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
+                                                    echo '<td class="center" align="center"><form method="post" action="deleteLeadSource.php" class="delete-lead-source-form" style="display:inline;" data-confirm="Are you sure you want to delete this lead source?">' . oecrm_csrf_field() . '<input type="hidden" name="deleteLeadSource" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link delete-lead-source-btn" style="padding:0;border:0;"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
                                                     echo "</tr>";
                                                 }
                                             } else {
@@ -187,30 +187,5 @@ Swal.fire({
     confirmButtonText: 'OK'
 });
 <?php endif; ?>
-
-(function () {
-    document.querySelectorAll('.delete-lead-source-btn').forEach(function (button) {
-        button.addEventListener('click', function (event) {
-            event.preventDefault();
-            var form = button.closest('form');
-            if (!form) return;
-
-            Swal.fire({
-                title: 'Are you sure?',
-                text: button.getAttribute('data-confirm') || 'This action cannot be undone.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d9534f',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, delete it!',
-                cancelButtonText: 'Cancel'
-            }).then(function (result) {
-                if (result.isConfirmed) {
-                    form.submit();
-                }
-            });
-        });
-    });
-})();
 </script>
 <?php include 'footer.php'; ?>

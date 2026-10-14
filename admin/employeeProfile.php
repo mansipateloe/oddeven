@@ -42,36 +42,19 @@ $leaveRequests = mysqli_query(
         (int) $employeeId .
         " ORDER BY r.start_date DESC, r.id DESC"
 );
-$leaveYear = (int) date("Y");
-$leaveYearStart = sprintf("%04d-01-01", $leaveYear);
-$leaveYearEnd = sprintf("%04d-12-31", $leaveYear);
-$leaveSummaryStmt = mysqli_prepare(
-    $conn,
-    "SELECT t.name AS type_name,p.is_paid,
-        CASE WHEN b.id IS NULL THEN p.annual_entitlement ELSE b.opening_balance+b.credited+b.adjusted END entitlement,
-        CASE WHEN b.id IS NULL THEN COALESCE(SUM(CASE WHEN r.status='approved' THEN CASE WHEN p.is_paid=1 THEN GREATEST(0,r.payable_days-r.unpaid_days) ELSE r.payable_days END ELSE 0 END),0) ELSE b.used END used_days,
-        CASE WHEN b.id IS NULL THEN COALESCE(SUM(CASE WHEN r.status='pending' THEN CASE WHEN p.is_paid=1 THEN GREATEST(0,r.payable_days-r.unpaid_days) ELSE r.payable_days END ELSE 0 END),0) ELSE b.pending END pending_days
-     FROM leave_policies p
-     JOIN leavetypetbl t ON t.id=p.leave_type_id
-     LEFT JOIN employee_leave_balances b ON b.employee_id=? AND b.leave_type_id=p.leave_type_id AND b.balance_year=?
-     LEFT JOIN leave_requests r ON r.employee_id=? AND r.leave_type_id=p.leave_type_id AND r.start_date BETWEEN ? AND ?
-     WHERE p.company_id=? AND p.status=1
-     GROUP BY p.leave_type_id,t.name,p.is_paid,p.annual_entitlement,b.id,b.opening_balance,b.credited,b.adjusted,b.used,b.pending
-     ORDER BY t.name"
+$leaveBalanceYear = (int) date("Y");
+$leaveBalance = mysqli_fetch_assoc(
+    mysqli_query(
+        $conn,
+        "SELECT COALESCE(SUM(opening_balance+credited+adjusted),0) total_leave, COALESCE(SUM(used),0) used_leave FROM employee_leave_balances WHERE employee_id=" .
+            (int) $employeeId .
+            " AND balance_year=" .
+            $leaveBalanceYear
+    )
 );
-mysqli_stmt_bind_param(
-    $leaveSummaryStmt,
-    "iiissi",
-    $employeeId,
-    $leaveYear,
-    $employeeId,
-    $leaveYearStart,
-    $leaveYearEnd,
-    $employee["company_id"]
-);
-mysqli_stmt_execute($leaveSummaryStmt);
-$leaveSummary = mysqli_stmt_get_result($leaveSummaryStmt);
-mysqli_stmt_close($leaveSummaryStmt);
+$totalLeave = (float) ($leaveBalance["total_leave"] ?? 0);
+$usedLeave = (float) ($leaveBalance["used_leave"] ?? 0);
+$remainingLeave = max(0, $totalLeave - $usedLeave);
 $documents = mysqli_query(
     $conn,
     "SELECT * FROM employee_documents WHERE employee_id=" .
@@ -85,8 +68,46 @@ $displayDetail = function ($value) {
     }
     return nl2br(oecrm_h($value));
 };
+$formatLeaveCount = static function ($value) {
+    return rtrim(rtrim(number_format((float) $value, 1, ".", ""), "0"), ".");
+};
 ?>
 <div id="page-wrapper" class="compact-admin-page employee-profile-page">
+<style>
+.leave-history-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.leave-history-counts {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.leave-history-counts span {
+    background: #eef4ff;
+    border: 1px solid #b9d2ff;
+    border-radius: 4px;
+    color: #174ea6;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.2;
+    padding: 5px 9px;
+}
+.leave-history-counts .used {
+    background: #fff4e5;
+    border-color: #ffc875;
+    color: #9a5a00;
+}
+.leave-history-counts .remaining {
+    background: #eaf7ef;
+    border-color: #9dd8b2;
+    color: #176c35;
+}
+</style>
 <?php if ($message): ?><div class="alert alert-success"><?php echo oecrm_h(
     $message
 ); ?></div><?php endif; ?>
@@ -143,7 +164,6 @@ $displayDetail = function ($value) {
 <tr><th>Current Address</th><td><?php echo $displayDetail($employee["current_address"]); ?></td></tr>
 <tr><th>Permanent Address</th><td><?php echo $displayDetail($employee["permanent_address"]); ?></td></tr>
 </tbody></table></div></div></div>
-<div class="panel panel-default"><div class="panel-heading">Leave Summary - <?php echo $leaveYear; ?></div><div class="panel-body table-responsive"><table class="table profile-table"><thead><tr><th>Leave Type</th><th>Entitlement</th><th>Used</th><th>Pending</th><th>Remaining</th></tr></thead><tbody><?php if (mysqli_num_rows($leaveSummary) === 0): ?><tr><td colspan="5" class="empty-cell">No leave policies configured.</td></tr><?php endif; ?><?php while ($summary = mysqli_fetch_assoc($leaveSummary)): $remaining = max(0, (float) $summary["entitlement"] - (float) $summary["used_days"] - (float) $summary["pending_days"]); ?><tr><td><?php echo oecrm_h($summary["type_name"]); ?><small><?php echo !empty($summary["is_paid"]) ? "Paid" : "Unpaid"; ?></small></td><td><?php echo number_format((float) $summary["entitlement"], 1); ?></td><td><?php echo number_format((float) $summary["used_days"], 1); ?></td><td><?php echo number_format((float) $summary["pending_days"], 1); ?></td><td><strong><?php echo number_format($remaining, 1); ?></strong></td></tr><?php endwhile; ?></tbody></table></div></div>
 <div class="panel panel-default"><div class="panel-heading">Employment Details</div><div class="panel-body"><form method="post" action="employeeProfileAction.php" class="employee-detail-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="profile"><input type="hidden" name="employee_id" value="<?php echo $employeeId; ?>">
 <div class="employee-form-grid"><div class="form-group"><label>Employment Type</label><select class="form-control" name="employment_type"><?php foreach (
     ["permanent", "probation", "contract", "intern", "consultant"]
@@ -229,7 +249,7 @@ while ($r = mysqli_fetch_assoc($increments)): ?><tr><td><?php echo oecrm_h(
     2
 ); ?>%</td><td><?php echo oecrm_h($r["reason"]); ?></td></tr><?php endwhile;
 ?></tbody></table></div></div></div>
-<div class="panel panel-default"><div class="panel-heading">Leave History</div><div class="panel-body"><div class="table-responsive"><table class="table profile-table"><thead><tr><th>Dates</th><th>Type</th><th>Days</th><th>Status</th><th>Remarks</th></tr></thead><tbody><?php
+<div class="panel panel-default"><div class="panel-heading leave-history-heading"><span>Leave History</span><div class="leave-history-counts"><span>Total: <?php echo $formatLeaveCount($totalLeave); ?></span><span class="used">Used: <?php echo $formatLeaveCount($usedLeave); ?></span><span class="remaining">Remaining: <?php echo $formatLeaveCount($remainingLeave); ?></span></div></div><div class="panel-body"><div class="table-responsive"><table class="table profile-table"><thead><tr><th>Dates</th><th>Type</th><th>Days</th><th>Status</th><th>Remarks</th></tr></thead><tbody><?php
 if (mysqli_num_rows($leaveRequests) === 0): ?><tr><td colspan="5" class="empty-cell">No leave requests recorded.</td></tr><?php endif;
 while ($leave = mysqli_fetch_assoc($leaveRequests)): ?><tr><td><strong><?php echo oecrm_h($leave["start_date"]); ?></strong><small><?php echo oecrm_h(" to " . $leave["end_date"]); ?></small></td><td><?php echo oecrm_h($leave["type_name"] ?: "-"); ?></td><td><?php echo number_format((float) ($leave["payable_days"] ?? 0), 1); ?></td><td><span class="leave-status <?php echo oecrm_h($leave["status"] ?? "pending"); ?>"><?php echo ucfirst(oecrm_h($leave["status"] ?? "pending")); ?></span></td><td><?php echo oecrm_h($leave["approver_note"] ?: ($leave["description"] ?: "-")); ?></td></tr><?php endwhile; ?></tbody></table></div></div></div>
 </main><aside><div class="panel panel-default"><div class="panel-heading">Documents</div><div class="panel-body"><form method="post" action="employeeProfileAction.php" enctype="multipart/form-data" class="document-upload-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="document"><input type="hidden" name="employee_id" value="<?php echo $employeeId; ?>"><div class="form-group"><label>Document Type</label><select class="form-control" name="document_type"><?php foreach (

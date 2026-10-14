@@ -8,7 +8,8 @@ oecrm_require_admin_login();
 
 function oecrm_followup_type_flash($type, $message)
 {
-    $_SESSION['followup_type_flash'] = ['type' => $type, 'message' => $message];
+    $_SESSION['followup_type_flash'] = $message;
+    $_SESSION['followup_type_flash_type'] = $type === 'danger' ? 'error' : $type;
 }
 
 function oecrm_followup_type_redirect()
@@ -46,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addFollowupType'])) {
         oecrm_followup_type_redirect();
     }
 
-    $check = mysqli_prepare($conn, 'SELECT id FROM followup_type_tbl WHERE LOWER(name)=LOWER(?) LIMIT 1');
+    $check = mysqli_prepare($conn, 'SELECT id FROM followup_type_tbl WHERE LOWER(TRIM(name))=LOWER(?) LIMIT 1');
     if (!$check) {
         oecrm_followup_type_flash('danger', 'Follow-up type could not be checked.');
         oecrm_followup_type_redirect();
@@ -81,49 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addFollowupType'])) {
     oecrm_followup_type_redirect();
 }
 
-$followupTypeFlash = $_SESSION['followup_type_flash'] ?? null;
-unset($_SESSION['followup_type_flash']);
 include 'header.php';
-
-if (isset($_POST['addFollowupType'])) {
-    oecrm_require_csrf();
-    oecrm_require_permission($conn, 'clients', 'create');
-
-    $name = trim($_POST['name'] ?? '');
-    if ($name === '') {
-        $_SESSION['followup_type_flash'] = 'Follow-up type is required.';
-        $_SESSION['followup_type_flash_type'] = 'error';
-        header('Location: manageFollowupType.php');
-        exit;
-    }
-
-    $check = mysqli_prepare($conn, 'SELECT id FROM followup_type_tbl WHERE name=? LIMIT 1');
-    mysqli_stmt_bind_param($check, 's', $name);
-    mysqli_stmt_execute($check);
-    $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
-    mysqli_stmt_close($check);
-    if ($exists) {
-        $_SESSION['followup_type_flash'] = 'Follow-up type already exists.';
-        $_SESSION['followup_type_flash_type'] = 'warning';
-        header('Location: manageFollowupType.php');
-        exit;
-    }
-
-    $name = mysqli_real_escape_string($conn, $name);
-    $qry = "INSERT INTO `followup_type_tbl`(`id`, `name`) VALUES (NULL,'$name')";
-
-    if (mysqli_query($conn, $qry)) {
-        $_SESSION['followup_type_flash'] = 'Follow-up type added successfully.';
-        $_SESSION['followup_type_flash_type'] = 'success';
-        header('Location: manageFollowupType.php');
-        exit;
-    }
-
-    $_SESSION['followup_type_flash'] = 'Follow-up type could not be saved.';
-    $_SESSION['followup_type_flash_type'] = 'error';
-    header('Location: manageFollowupType.php');
-    exit;
-}
 
 $followupTypeFlash = $_SESSION['followup_type_flash'] ?? '';
 $followupTypeFlashType = $_SESSION['followup_type_flash_type'] ?? 'info';
@@ -137,12 +96,6 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
     <?php endif; ?>
     <div class="row">
         <div class="col-lg-12">
-            <?php if (!empty($followupTypeFlash['message'])): ?>
-                <div class="alert alert-<?php echo oecrm_h($followupTypeFlash['type']); ?> alert-dismissible" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <?php echo oecrm_h($followupTypeFlash['message']); ?>
-                </div>
-            <?php endif; ?>
             <div class="dataTablesbox">
                 <form id="followupTypeForm" role="form" method="POST" action="" novalidate>
                     <?php echo oecrm_csrf_field(); ?>

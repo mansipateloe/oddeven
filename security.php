@@ -1,8 +1,11 @@
 <?php
+const OECRM_SESSION_LIFETIME_SECONDS = 180000;
+
 if (session_status() === PHP_SESSION_NONE) {
     $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    ini_set('session.gc_maxlifetime', (string) OECRM_SESSION_LIFETIME_SECONDS);
     session_set_cookie_params([
-        'lifetime' => 0,
+        'lifetime' => OECRM_SESSION_LIFETIME_SECONDS,
         'path' => '/',
         'secure' => $secure,
         'httponly' => true,
@@ -47,8 +50,8 @@ function oecrm_session_guard()
         $_SESSION['_oecrm_user_agent'] = $userAgentHash;
         return true;
     }
-    $idleExpired = $now - (int) ($_SESSION['_oecrm_last_activity'] ?? 0) > 1800;
-    $absoluteExpired = $now - (int) $_SESSION['_oecrm_started_at'] > 43200;
+    $idleExpired = $now - (int) ($_SESSION['_oecrm_last_activity'] ?? 0) > OECRM_SESSION_LIFETIME_SECONDS;
+    $absoluteExpired = $now - (int) $_SESSION['_oecrm_started_at'] > OECRM_SESSION_LIFETIME_SECONDS;
     $agentChanged = !hash_equals((string) ($_SESSION['_oecrm_user_agent'] ?? ''), $userAgentHash);
     if ($idleExpired || $absoluteExpired || $agentChanged) {
         oecrm_destroy_session();
