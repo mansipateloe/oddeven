@@ -110,10 +110,10 @@ unset($_SESSION['designation_flash'], $_SESSION['designation_warning']);
                                 <td><?php echo oecrm_h($designation['designation']); ?></td>
                                 <td>
                                     <?php if (oecrm_designation_can_manage($conn, 'delete') || oecrm_designation_can_manage($conn, 'edit')): ?>
-                                        <form method="post" action="deleteDesignation.php" style="display:inline;">
+                                        <form method="post" action="deleteDesignation.php" class="designation-delete-form" style="display:inline;">
                                             <?php echo oecrm_csrf_field(); ?>
                                             <input type="hidden" name="deleteDesignation" value="<?php echo (int) $designation['id']; ?>">
-                                            <button type="submit" class="icon-action" data-confirm="Delete this designation?" title="Delete"><i class="fa fa-trash"></i></button>
+                                            <button type="submit" class="icon-action" title="Delete"><i class="fa fa-trash"></i></button>
                                         </form>
                                     <?php else: ?>
                                         -
@@ -173,6 +173,28 @@ unset($_SESSION['designation_flash'], $_SESSION['designation_warning']);
             return;
         }
         clearError();
+    });
+})();
+
+(function () {
+    document.querySelectorAll('.designation-delete-form').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'Delete designation?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then(function (result) {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
     });
 })();
 
