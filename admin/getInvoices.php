@@ -1,19 +1,18 @@
 <?php
-    require_once __DIR__ . '/../dbconnect.php';
-    require_once __DIR__ . '/../security.php';
-    require_once __DIR__ . '/../foundation.php';
-    oecrm_require_admin_login();
-    oecrm_require_permission($conn, 'finance', 'view');
-    $proj_id = oecrm_int_param($_POST, 'proj_id');
-    $data = array();
-
-    if (isset($_POST['proj_id'])) {
-        $project_sql = "select invoice_id from invoiceTbl where project_Id = $proj_id AND status=1 ORDER BY invoice_date DESC" ;
-
-        $project_result = mysqli_query($conn, $project_sql);
-        while($project_row = mysqli_fetch_assoc($project_result)){
-            $data[] = $project_row;
-        }
-    }
-    echo json_encode(array("data"=>$data));
-?>
+require_once __DIR__ . '/../dbconnect.php';
+require_once __DIR__ . '/../security.php';
+require_once __DIR__ . '/../foundation.php';
+require_once __DIR__ . '/../depositCollections.php';
+oecrm_require_admin_login();
+if (!oecrm_can($conn, 'finance', 'view') && !oecrm_can($conn, 'finance', 'create') && !oecrm_can($conn, 'finance', 'edit')) {
+    http_response_code(403);
+    exit;
+}
+header('Content-Type: application/json; charset=utf-8');
+try {
+    $data = oecrm_collection_invoice_options($conn, oecrm_current_company_id($conn), (int) ($_POST['proj_id'] ?? 0), (int) ($_POST['deposit_id'] ?? 0));
+    echo json_encode(['data' => $data]);
+} catch (InvalidArgumentException $e) {
+    http_response_code(400);
+    echo json_encode(['data' => [], 'error' => $e->getMessage()]);
+}

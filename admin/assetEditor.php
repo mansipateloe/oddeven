@@ -106,7 +106,7 @@ unset($_SESSION["asset_error"]);
     $a["serial_number"]
 ); ?>"></div>
             <div class="form-group"><label>Purchase Date</label><input class="form-control" type="date"
-                name="purchase_date" value="<?php echo oecrm_h(
+                name="purchase_date" min="1000-01-01" max="9999-12-31" value="<?php echo oecrm_h(
     $a["purchase_date"]
 ); ?>"></div>
             <div class="form-group"><label>Purchase Cost</label><input class="form-control" type="number" step=".01"
@@ -114,7 +114,7 @@ unset($_SESSION["asset_error"]);
     $a["purchase_cost"]
 ); ?>"></div>
             <div class="form-group"><label>Warranty Until</label><input class="form-control" type="date"
-                name="warranty_until" value="<?php echo oecrm_h(
+                name="warranty_until" min="1000-01-01" max="9999-12-31" value="<?php echo oecrm_h(
     $a["warranty_until"]
 ); ?>"></div>
             <div class="form-group"><label>Condition</label><select class="form-control" name="condition_status"><?php foreach (

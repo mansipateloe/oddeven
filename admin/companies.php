@@ -31,6 +31,21 @@ function oecrm_company_code_exists(mysqli $conn, string $code, int $excludeId = 
     return $exists;
 }
 
+function oecrm_company_identity_exists(mysqli $conn, string $field, string $value, int $excludeId = 0): bool
+{
+    if (!in_array($field, ['gstin', 'email'], true)) {
+        throw new InvalidArgumentException('Invalid company identity field.');
+    }
+    $value = trim($value);
+    // These fields are optional; several companies can leave them blank.
+    if ($value === '') return false;
+    $stmt = mysqli_prepare($conn, 'SELECT id FROM companies WHERE LOWER(TRIM(' . $field . '))=LOWER(?) AND id<>? LIMIT 1');
+    mysqli_stmt_bind_param($stmt, 'si', $value, $excludeId);
+    mysqli_stmt_execute($stmt);
+    $exists = (bool) mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    mysqli_stmt_close($stmt);
+    return $exists;
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();
 
@@ -89,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $country = strtoupper($location['country_code'] ?? trim($_POST['country_code'] ?? 'IN'));
         $currency = strtoupper(trim($_POST['currency_code'] ?? 'INR'));
-        $gstin = trim($_POST['gstin'] ?? '');
-        $email = trim($_POST['email'] ?? '');
+        $gstin = strtoupper(trim($_POST['gstin'] ?? ''));
+        $email = strtolower(trim($_POST['email'] ?? ''));
         $status = isset($_POST['status']) ? 1 : 0;
         $types = ['india_gst', 'india_non_gst', 'usa', 'other'];
 
@@ -98,6 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Please complete all required company fields.';
         } elseif (oecrm_company_code_exists($conn, $code, $id)) {
             $error = 'Company code already exists. Please use a unique company code.';
+        } elseif (oecrm_company_identity_exists($conn, 'gstin', $gstin, $id)) {
+            $error = 'This GSTIN / Tax ID is already registered to another company.';
+        } elseif (oecrm_company_identity_exists($conn, 'email', $email, $id)) {
+            $error = 'This email address is already registered to another company.';
         } elseif ($id) {
             oecrm_require_permission($conn, 'companies', 'edit');
             $stmt = mysqli_prepare($conn, 'SELECT * FROM companies WHERE id = ?');
@@ -143,6 +162,12 @@ if (!empty($_GET['edit'])) {
     mysqli_stmt_bind_param($stmt, 'i', $id); mysqli_stmt_execute($stmt);
     $edit = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt)); mysqli_stmt_close($stmt);
 }
+$formValues = $edit ?? [];
+if ($error !== '' && $_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['delete_company'])) {
+    $formFields = ['code', 'legal_name', 'display_name', 'company_type', 'country_id', 'state_id', 'city_id', 'country_code', 'currency_code', 'gstin', 'email'];
+    $formValues = array_merge($formValues, array_intersect_key($_POST, array_flip($formFields)));
+    $formValues['status'] = isset($_POST['status']) ? 1 : 0;
+}
 $companiesResult = mysqli_query($conn, 'SELECT * FROM companies ORDER BY status DESC, display_name');
 $countries = mysqli_query($conn, 'SELECT id,name,iso2 FROM countries WHERE flag=1 ORDER BY name');
 ?>
@@ -154,18 +179,18 @@ $countries = mysqli_query($conn, 'SELECT id,name,iso2 FROM countries WHERE flag=
         <?php if ($message): ?><div class="alert alert-success"><?php echo oecrm_h($message); ?></div><?php endif; ?>
         <?php if ($error): ?><div class="alert alert-danger"><?php echo oecrm_h($error); ?></div><?php endif; ?>
         <form method="post">
-          <?php echo oecrm_csrf_field(); ?><input type="hidden" name="id" value="<?php echo (int)($edit['id'] ?? 0); ?>">
-          <div class="form-group"><label>Company Code *</label><input class="form-control" name="code" maxlength="30" required value="<?php echo oecrm_h($edit['code'] ?? ''); ?>"></div>
-          <div class="form-group"><label>Legal Name *</label><input class="form-control" name="legal_name" required value="<?php echo oecrm_h($edit['legal_name'] ?? ''); ?>"></div>
-          <div class="form-group"><label>Display Name *</label><input class="form-control" name="display_name" required value="<?php echo oecrm_h($edit['display_name'] ?? ''); ?>"></div>
+          <?php echo oecrm_csrf_field(); ?><input type="hidden" name="id" value="<?php echo (int)($formValues['id'] ?? 0); ?>">
+          <div class="form-group"><label>Company Code *</label><input class="form-control" name="code" maxlength="30" required value="<?php echo oecrm_h($formValues['code'] ?? ''); ?>"></div>
+          <div class="form-group"><label>Legal Name *</label><input class="form-control" name="legal_name" required value="<?php echo oecrm_h($formValues['legal_name'] ?? ''); ?>"></div>
+          <div class="form-group"><label>Display Name *</label><input class="form-control" name="display_name" required value="<?php echo oecrm_h($formValues['display_name'] ?? ''); ?>"></div>
           <div class="form-row-two">
-            <div class="form-group"><label>Company Type</label><select class="form-control" name="company_type"><?php foreach(['india_gst'=>'India GST','india_non_gst'=>'India Non-GST','usa'=>'USA','other'=>'Other'] as $v=>$l): ?><option value="<?php echo $v; ?>" <?php echo (($edit['company_type'] ?? 'india_gst')===$v)?'selected':''; ?>><?php echo $l; ?></option><?php endforeach; ?></select></div>
-            <div class="form-group"><label>GSTIN / Tax ID</label><input class="form-control" name="gstin" value="<?php echo oecrm_h($edit['gstin'] ?? ''); ?>"></div>
+            <div class="form-group"><label>Company Type</label><select class="form-control" name="company_type"><?php foreach(['india_gst'=>'India GST','india_non_gst'=>'India Non-GST','usa'=>'USA','other'=>'Other'] as $v=>$l): ?><option value="<?php echo $v; ?>" <?php echo (($formValues['company_type'] ?? 'india_gst')===$v)?'selected':''; ?>><?php echo $l; ?></option><?php endforeach; ?></select></div>
+            <div class="form-group"><label>GSTIN / Tax ID</label><input class="form-control" name="gstin" value="<?php echo oecrm_h($formValues['gstin'] ?? ''); ?>"></div>
           </div>
-          <div class="form-row-two"><div class="form-group"><label>Country</label><select class="form-control" id="companyCountry" name="country_id"><option value="">Select Country</option><?php while($countryRow=mysqli_fetch_assoc($countries)):?><option value="<?php echo (int)$countryRow['id'];?>" data-code="<?php echo oecrm_h($countryRow['iso2']);?>" <?php echo (int)($edit['country_id']??0)===(int)$countryRow['id']?'selected':'';?>><?php echo oecrm_h($countryRow['name']);?></option><?php endwhile;?></select><input type="hidden" name="country_code" id="companyCountryCode" value="<?php echo oecrm_h($edit['country_code']??'IN');?>"></div><div class="form-group"><label>State</label><select class="form-control" id="companyState" name="state_id" data-selected="<?php echo (int)($edit['state_id']??0);?>"><option value="">Select State</option></select></div></div>
-          <div class="form-row-two"><div class="form-group"><label>City</label><select class="form-control" id="companyCity" name="city_id" data-selected="<?php echo (int)($edit['city_id']??0);?>"><option value="">Select City</option></select></div><div class="form-group"><label>Currency</label><input class="form-control" name="currency_code" maxlength="3" value="<?php echo oecrm_h($edit['currency_code'] ?? 'INR'); ?>"></div></div>
-          <div class="form-group"><label>Email</label><input type="email" class="form-control" name="email" value="<?php echo oecrm_h($edit['email'] ?? ''); ?>"></div>
-          <label class="foundation-toggle"><input type="checkbox" name="status" <?php echo !isset($edit['status']) || $edit['status'] ? 'checked' : ''; ?>> Active company</label>
+          <div class="form-row-two"><div class="form-group"><label>Country</label><select class="form-control" id="companyCountry" name="country_id"><option value="">Select Country</option><?php while($countryRow=mysqli_fetch_assoc($countries)):?><option value="<?php echo (int)$countryRow['id'];?>" data-code="<?php echo oecrm_h($countryRow['iso2']);?>" <?php echo (int)($formValues['country_id']??0)===(int)$countryRow['id']?'selected':'';?>><?php echo oecrm_h($countryRow['name']);?></option><?php endwhile;?></select><input type="hidden" name="country_code" id="companyCountryCode" value="<?php echo oecrm_h($formValues['country_code']??'IN');?>"></div><div class="form-group"><label>State</label><select class="form-control" id="companyState" name="state_id" data-selected="<?php echo (int)($formValues['state_id']??0);?>"><option value="">Select State</option></select></div></div>
+          <div class="form-row-two"><div class="form-group"><label>City</label><select class="form-control" id="companyCity" name="city_id" data-selected="<?php echo (int)($formValues['city_id']??0);?>"><option value="">Select City</option></select></div><div class="form-group"><label>Currency</label><input class="form-control" name="currency_code" maxlength="3" value="<?php echo oecrm_h($formValues['currency_code'] ?? 'INR'); ?>"></div></div>
+          <div class="form-group"><label>Email</label><input type="email" class="form-control" name="email" value="<?php echo oecrm_h($formValues['email'] ?? ''); ?>"></div>
+          <label class="foundation-toggle"><input type="checkbox" name="status" <?php echo !isset($formValues['status']) || $formValues['status'] ? 'checked' : ''; ?>> Active company</label>
           <div class="foundation-actions"><button class="btn btn-primary" type="submit"><i class="fa fa-save"></i> <?php echo $edit ? 'Update' : 'Save'; ?></button><?php if($edit): ?><a class="btn btn-default" href="companies.php">Cancel</a><?php endif; ?></div>
         </form>
       </div>

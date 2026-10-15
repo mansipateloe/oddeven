@@ -187,7 +187,7 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                                             if ((int) $invoice_row['status'] !== 1) {
                                                                 echo '<a type="button" class="disabled" style="pointer-events: none;"><i class="fa fa-money"></i></a>';
                                                             } else {
-                                                                echo '<a type="button" data-toggle="modal" data-target="#myModal' . $invoice_row['invoice_id'] . '"><i class="fa fa-money"></i></a>';
+                                                                echo '<a href="addDeposit.php?invoice_id=' . (int) $invoice_row['invoice_id'] . '" title="Collect Invoice"><i class="fa fa-money"></i></a>';
                                                             }
                                                             echo '&nbsp;&nbsp;
 
@@ -199,114 +199,6 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                                             </td>';
                                                         echo "</tr>";
 
-                                                        if ((int) $invoice_row['status'] === 1) {
-                                                        echo '<div id="myModal'.$invoice_row['invoice_id'].'" class="modal fade" role="dialog">
-                                                                <div class="modal-dialog">
-                                                                    <div class="modal-content">
-                                                                        <div class="modal-header">
-                                                                            <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                                                            <h4 class="modal-title">Add Deposit</h4>
-                                                                        </div>
-                                                                        <div class="modal-body">
-                                                                            <form role="form" method="POST">
-                                                                                <div class="row">
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <label>Invoice Date :</label>
-                                                                                            <input type="date" class="form-control" name="deposit_date" required value='.$invoice_row['invoice_date'].' readonly>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <label>Invoice Id :</label>
-                                                                                            <input type="text" class="form-control" name="invoice_id" required value='.$invoice_row['invoice_id'].' readonly>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <label>Invoice No :</label>
-                                                                                            <input type="text" class="form-control" name="invoice_no" required value='.$invoice_row['invoice_no'].' readonly>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <label>Amount :</label>
-                                                                                            <input type="text" class="form-control" name="amount" required value='.$invoice_row['total_amount'].' readonly>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <label>Project Name :</label>
-                                                                                            <select name="projects_Id" id="projects_Id" class="form-control" onchange="getInvoices(this.value)" disabled>';
-                                                                                                // <option value="">Select Project Name</option>';
-
-                                                                                                    echo "<option value='".$invoice_row['project_Id']."'>".$invoice_row['projectName']."</option>";
-
-                                                                                     echo  '</select>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <label>Select Date :</label>
-                                                                                            <input type="date" class="form-control" name="deposit_date" required value='.date('Y-m-d').'>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="row">
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <label>Account Name :</label>
-                                                                                            <select name="account_Id" id="account_Id" class="form-control" required>
-                                                                                                <option value="">Select Account Name</option>';
-
-                                                                                                    $qryAccount = "SELECT * FROM account";
-                                                                                                    $resultAccount = mysqli_query($conn,$qryAccount);
-                                                                                                    if($resultAccount->num_rows > 0){
-                                                                                                        while($resAccount = $resultAccount->fetch_assoc()){
-                                                                                                            echo "<option value='".$resAccount['account_id']."'>".$resAccount['account_name']."</option>";
-                                                                                                        }
-                                                                                                    }
-
-                                                                                            echo '</select>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <input type="hidden" name="project_Id" value='.$invoice_row['project_Id'].'>
-                                                                                    <input type="hidden" name="subject" value="">
-                                                                                    <input type="hidden" name="amount" value='.$invoice_row['total_amount'].'>
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <label>Tax Amount :</label>
-                                                                                            <input type="text" class="form-control" name="tax_amount" required >
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <label>Approx Amount :</label>
-                                                                                            <input type="text" class="form-control" name="approx_amount" required  >
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <label>Remark :</label>
-                                                                                            <textarea type="text" class="form-control" placeholder="Remark" rows="5" name="description"></textarea>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="row">
-                                                                                    <div class="col-lg-6">
-                                                                                        <div class="form-group">
-                                                                                            <input type="submit" class="btn btn-primary viewreport" name="addDeposit" value="Add Deposit">
-                                                                                            <input class="btn btn-danger cancel_btn" class="close" data-dismiss="modal" type="reset" value="Cancel">
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </form>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>';
-
-                                                        }
                                                         $i++;
                                                         $amounts += $invoice_row['total_amount'];
                                                     }

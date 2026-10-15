@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = 'hr_letters';
 $active_submenu = 'letters';
 include 'header.php';
@@ -164,18 +164,29 @@ unset($_SESSION['letter_flash'], $_SESSION['letter_error']);
         </div>
     </div>
 
-    <div class="panel panel-default">
+    <style>
+        #letter-history .letter-filters{display:grid;grid-template-columns:minmax(180px,240px) minmax(220px,340px) auto;align-items:end;gap:12px;justify-content:start}
+        #letter-history .history-filter{min-width:0}
+        #letter-history .history-filter label{display:block;margin-bottom:6px}
+        #letter-history .letter-filters .form-control{max-width:none}
+        #letter-history .oecrm-select-toggle span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        #letter-history .letter-filters>.btn{height:40px;white-space:nowrap}
+        @media(max-width:700px){#letter-history .letter-filters{grid-template-columns:minmax(0,1fr)}#letter-history .letter-filters>.btn{justify-self:start}}
+    </style>
+    <div class="panel panel-default" id="letter-history">
         <div class="panel-heading">Letter History</div>
         <div class="panel-body">
-            <form method="get" class="letter-filters">
-                <select name="type" class="form-control">
+            <form method="get" action="hrLetters.php#letter-history" class="letter-filters">
+                <div class="history-filter"><label for="history-letter-type">Letter Type</label>
+                <select id="history-letter-type" name="type" class="form-control" data-oecrm-dropdown="viewport">
                     <option value="">All types</option>
                     <?php foreach (oecrm_letter_types() as $key => $label): ?>
                         <option value="<?php echo $key; ?>" <?php echo $type === $key ? 'selected' : ''; ?>><?php echo $label; ?></option>
                     <?php endforeach; ?>
                 </select>
 
-                <select name="employee_id" class="form-control">
+                </div><div class="history-filter"><label for="history-employee">Employee</label>
+                <select id="history-employee" name="employee_id" class="form-control" data-oecrm-dropdown="viewport">
                     <option value="0">All employees</option>
                     <?php mysqli_data_seek($employees, 0); ?>
                     <?php while ($e = mysqli_fetch_assoc($employees)): ?>
@@ -183,7 +194,7 @@ unset($_SESSION['letter_flash'], $_SESSION['letter_error']);
                     <?php endwhile; ?>
                 </select>
 
-                <button class="btn btn-default"><i class="fa fa-filter"></i> Filter</button>
+                </div><button class="btn btn-default"><i class="fa fa-filter"></i> Filter</button>
             </form>
 
             <div class="table-responsive">

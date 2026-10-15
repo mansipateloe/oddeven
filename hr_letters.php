@@ -245,3 +245,28 @@ function oecrm_letter_print_styles()
   return "<style>* {box-sizing:border-box} body{marging:0; background:#eef1f6; color:#293044; font-family:Arial, sans-serif} .toolbar{max-width:900px; margin:18px auto; display:flex; gap:8px; justify-content:flex-end} .toolbar a, .toolbar button{border:0; background:#635bff; color:#fff; padding:10px 15px; border-radius:5px; text-decoration:none; cursor:pointer} .letter{width:210mm; min-height:297mm; margin:0 auto 24px; background:#fff; padding:22mm 20mm; box-shadow:0 8px 30px rgba(35,42,63,.12)} .letter-head{display:flex; justify-content:space-between; border-bottom:2px solid #635bff; padding-bottom:18px; margin-bottom:30px} .letter-head h1{font-size:21px;margin:0} .letter-meta{text-align:right;font-size:12px;color:#697089} .letter-body{font-size:14px; line-height:1.75} .letter-body h2{font-size:20px} .letter-footer{margin-top:55px;border-top:1px solid #ddd;padding-top:16px;font-size:12px;color:#697089} @media print {body{background:#fff}.toolbar{display:none}.letter{margin:0;box-shadow:none;width:auto;min-height:auto;padding:15mm}}</style>";   
   return "<style>*{box-sizing:border-box}body{margin:0;background:#eef1f6;color:#293044;font-family:Arial,sans-serif}.toolbar{max-width:900px;margin:18px auto;display:flex;gap:8px;justify-content:flex-end}.toolbar a,.toolbar button{border:0;background:#635bff;color:#fff;padding:10px 15px;border-radius:5px;text-decoration:none;cursor:pointer}.letter{width:210mm;min-height:297mm;margin:0 auto 24px;background:#fff;padding:22mm 20mm;box-shadow:0 8px 30px rgba(35,42,63,.12)}.letter-head{display:flex;justify-content:space-between;border-bottom:2px solid #635bff;padding-bottom:18px;margin-bottom:30px}.letter-head h1{font-size:21px;margin:0}.letter-meta{text-align:right;font-size:12px;color:#697089}.letter-body{font-size:14px;line-height:1.75}.letter-body h2{font-size:20px}.letter-footer{margin-top:55px;border-top:1px solid #ddd;padding-top:16px;font-size:12px;color:#697089}@media print{body{background:#fff}.toolbar{display:none}.letter{margin:0;box-shadow:none;width:auto;min-height:auto;padding:15mm}}</style>";
 }
+
+// status=-1 marks deleted templates. Keep the row so letter references and the
+// seeder's record of intentionally removed defaults remain intact.
+function oecrm_delete_letter_template($conn, $companyId, $id)
+{
+    if ($id <= 0) throw new InvalidArgumentException('Please select a valid template.');
+    mysqli_begin_transaction($conn);
+    try {
+        $stmt = mysqli_prepare($conn, 'SELECT * FROM hr_letter_templates WHERE id=? AND company_id=? AND status>=0 FOR UPDATE');
+        mysqli_stmt_bind_param($stmt, 'ii', $id, $companyId);
+        mysqli_stmt_execute($stmt);
+        $template = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+        mysqli_stmt_close($stmt);
+        if (!$template) throw new InvalidArgumentException('Template not found or already deleted.');
+        $stmt = mysqli_prepare($conn, 'UPDATE hr_letter_templates SET status=-1,is_default=0 WHERE id=? AND company_id=? AND status>=0');
+        mysqli_stmt_bind_param($stmt, 'ii', $id, $companyId);
+        if (!mysqli_stmt_execute($stmt)) throw new RuntimeException(mysqli_stmt_error($stmt));
+        mysqli_stmt_close($stmt);
+        mysqli_commit($conn);
+        return $template;
+    } catch (Throwable $e) {
+        mysqli_rollback($conn);
+        throw $e;
+    }
+}

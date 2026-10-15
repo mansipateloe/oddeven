@@ -1,143 +1,28 @@
-<?php include 'header.php'; ?> 
 <?php
-    if(isset($_GET['edit']))
-    {
-        $id = $_GET['edit'];
-        $getDepositQry = "select * from deposit where deposit_id = $id";
-        $getDepositResult = mysqli_query($conn, $getDepositQry);
-        $getDepositRes = mysqli_fetch_assoc($getDepositResult);
-        $accountId = $getDepositRes['account_Id'];
-        $projectId = $getDepositRes['project_Id'];
-    }
+require_once __DIR__ . '/../dbconnect.php';
+require_once __DIR__ . '/../security.php';
+require_once __DIR__ . '/../foundation.php';
+require_once __DIR__ . '/../depositCollections.php';
+oecrm_require_admin_login();
+oecrm_require_permission($conn, 'finance', 'edit');
+$collectionCompanyId = oecrm_current_company_id($conn);
+try {
+    $deposit = oecrm_collection_deposit($conn, $collectionCompanyId, (int) ($_GET['edit'] ?? 0));
+} catch (InvalidArgumentException $e) {
+    $_SESSION['deposit_flash'] = ['type' => 'danger', 'message' => $e->getMessage()];
+    header('Location:addDeposit.php');
+    exit;
+}
+include 'header.php';
+$collectionProjects = mysqli_query($conn, 'SELECT id,projectName FROM projectstbl WHERE company_id=' . (int) $collectionCompanyId . ' ORDER BY projectName');
+$collectionAccounts = mysqli_query($conn, 'SELECT account_id,account_name FROM account ORDER BY account_name');
+$flash = $_SESSION['deposit_flash'] ?? null;
+unset($_SESSION['deposit_flash']);
 ?>
-        <div id="page-wrapper">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="panel panel-default">
-                        <div class="panel-heading panel-box">
-                            <h4>Edit Deposit</h4>
-                        </div>
-                        <div class="panel-body edit_task">
-                        	<div class="dataTablesbox2">
-                                <form role="form" method="POST">
-                                <input type="hidden" name="id" value="<?php echo $id; ?>">
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label>Date :</label>
-                                                <input type="date" class="form-control" name="deposit_date" value="<?php echo $getDepositRes['deposit_date']; ?>" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label>Project Name :</label>
-                                                <select name="project_Id" id="project_Id" onchange="getInvoices(this.value)" class="form-control" required>
-                                                    <option value="">Select Project Name</option>
-                                                    <?php 
-                                                        $qryProject = "SELECT * FROM projectstbl order by id desc";
-                                                        $resultProject = mysqli_query($conn,$qryProject);
-                                                        if($resultProject->num_rows > 0){
-                                                            while($resProject = $resultProject->fetch_assoc()){
-                                                                $project_id = $resProject['id'];
-                                                                if($projectId == $project_id){
-                                                                    echo "<option value='".$resProject['id']."'selected>".$resProject['projectName']."</option>";
-                                                                }else{
-                                                                    echo "<option value='".$resProject['id']."'>".$resProject['projectName']."</option>";
-                                                                }
-                                                            }
-                                                        }
-                                                    ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label>Account Name :</label>
-                                                <select name="account_Id" id="account_Id" class="form-control" required>
-                                                    <option value="">Select Account Name</option>
-                                                    <?php 
-                                                        $qryAccount = "SELECT * FROM account";
-                                                        $resultAccount = mysqli_query($conn,$qryAccount);
-                                                        if($resultAccount->num_rows > 0){
-                                                            while($resAccount = $resultAccount->fetch_assoc()){
-                                                                $account_id = $resAccount['account_id'];
-                                                                if($account_id == $accountId){
-                                                                    echo "<option value='".$resAccount['account_id']."' selected>".$resAccount['account_name']."</option>";
-                                                                }else{
-                                                                    echo "<option value='".$resAccount['account_id']."'>".$resAccount['account_name']."</option>";
-                                                                }            
-                                                            }
-                                                        }
-                                                    ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label>Invoice :</label>
-                                                <select name="invoice_id" id="invoice_id" class="form-control" required>
-                                                    <option value="" selected disabled>Select Invoice</option>
-                                                    <?php 
-                                                        if($getDepositRes['invoice_id']){
-                                                            echo '<option value="'.$getDepositRes['invoice_id'].'" selected>'.$getDepositRes['invoice_id'].'</option>';
-                                                        }
-                                                     ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <input type="hidden" name="subject" value="">
-                                        <input type="hidden" name="amount" value="">
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label>Description :</label>
-                                                <textarea type="text" class="form-control" placeholder="Description" rows="5" name="description" required><?php echo $getDepositRes['description']; ?></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <input type="submit" class="btn btn-primary viewreport" name="updateDeposit" value="Update Deposit">
-                                                <input class="btn btn-danger cancel_btn" type="reset" value="Cancel">    
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div id="page-wrapper" class="compact-admin-page">
+    <?php if ($flash): ?><div class="alert alert-<?php echo oecrm_h($flash['type']); ?>"><?php echo oecrm_h($flash['message']); ?></div><?php endif; ?>
+    <div class="panel panel-default"><div class="panel-heading">Edit Deposit</div>
+        <div class="panel-body"><?php include 'depositForm.php'; ?></div>
     </div>
-
-    <script src="../vendor/jquery/jquery.min.js"></script>
-    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
-    <script src="../vendor/metisMenu/metisMenu.min.js"></script>
-    <script src="../vendor/raphael/raphael.min.js"></script>
-    <script src="../vendor/morrisjs/morris.min.js"></script>
-    <script src="../data/morris-data.js"></script>
-    <script src="../dist/js/sb-admin-2.js"></script>
-    <script type="text/javascript">
-        function getInvoices(proj_id){
-            $('#invoice_id').empty();
-            $.ajax({
-                type:'post',
-                url:'getInvoices.php',
-                data: {
-                    proj_id:proj_id,
-                },
-                dataType: 'JSON',
-                success: function (response){
-                    $.each( response.data, function( key, value ) {
-                        $("<option />", {val: value.invoice_id,text: value.invoice_id}).appendTo('#invoice_id');
-                    });
-                }
-            });
-        }
-    </script>
+</div>
 <?php include 'footer.php'; ?>

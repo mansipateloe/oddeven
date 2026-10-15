@@ -1,234 +1,74 @@
-<?php include 'header.php'; ?> 
-        <div id="page-wrapper">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="panel panel-default deposit_table">
-                        <div class="panel-heading">
-                            Add Deposit
-                        </div>
-                        <div class="panel-body add_deposit">
-                            <style>
-                                .add-deposit-date-field {
-                                    width: 100%;
-                                    min-width: 160px;
-                                    height: 45px;
-                                    line-height: 45px;
-                                    padding: 6px 12px;
-                                    box-sizing: border-box;
-                                }
-                            </style>
-                        	<div class="dataTablesbox2">
-                                <form role="form" method="POST">
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label>Date :</label>
-                                                <input type="date" class="form-control add-deposit-date-field" name="deposit_date" required value="<?php echo date('Y-m-d'); ?>">
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label>Project Name :</label>
-                                                <select name="project_Id" id="project_Id" class="form-control" onchange="getInvoices(this.value)" required>
-                                                    <option value="">Select Project Name</option>
-                                                    <?php 
-                                                        $qryProject = "SELECT * FROM projectstbl where status IN ('pending','inprogress') order by id desc";
-                                                        $resultProject = mysqli_query($conn,$qryProject);
-                                                        if($resultProject->num_rows > 0){
-                                                            while($resProject = $resultProject->fetch_assoc()){
-                                                                echo "<option value='".$resProject['id']."'>".$resProject['projectName']."</option>";
-                                                            }
-                                                        }
-                                                    ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label>Account Name :</label>
-                                                <select name="account_Id" id="account_Id" class="form-control" required>
-                                                    <option value="">Select Account Name</option>
-                                                    <?php 
-                                                        $qryAccount = "SELECT * FROM account";
-                                                        $resultAccount = mysqli_query($conn,$qryAccount);
-                                                        if($resultAccount->num_rows > 0){
-                                                            while($resAccount = $resultAccount->fetch_assoc()){
-                                                                echo "<option value='".$resAccount['account_id']."'>".$resAccount['account_name']."</option>";
-                                                            }
-                                                        }
-                                                    ?>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label>Invoice :</label>
-                                                <select name="invoice_id" id="invoice_id" class="form-control" required>
-                                                    <option value="" selected disabled>Select Invoice</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <input type="hidden" name="subject" value="">
-                                        <input type="hidden" name="amount" value="">
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <label>Remark :</label>
-                                                <textarea type="text" class="form-control" placeholder="Remark" rows="5" name="description"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <div class="form-group">
-                                                <input type="submit" class="btn btn-primary viewreport" name="addDeposit" value="Add Deposit">
-                                                <input class="btn btn-danger cancel_btn" type="reset" value="Cancel">    
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-12">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            View All Deposits
-                        </div>
-                        <div class="panel-body">
-                            <div id="dataTables-example_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <div class="dataTables_length" id="dataTables-example_length">
-                                        </div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <div id="dataTables-example_filter" class="dataTables_filter">
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- <div class="row">
-                                    <div class="col-sm-12">
-                                        <div class="search_box_area area2">
-                                                <div class="row">
-                                                    <div class="form-group col-md-3">
-                                                        <select name="project_Id" id="project" class="form-control">
-                                                            <option value="all" selected>Select Project Name</option>
-                                                            <?php 
-                                                                $qryProject = "SELECT * FROM projectstbl";
-                                                                $resultProject = mysqli_query($conn,$qryProject);
-                                                                if($resultProject->num_rows > 0){
-                                                                    while($resProject = $resultProject->fetch_assoc()){
-                                                                        echo "<option value='".$resProject['id']."'>".$resProject['projectName']."</option>";
-                                                                    }
-                                                                }
-                                                            ?>
-                                                        </select>
-                                                    </div>
-                                                    <div class="form-group col-md-3">
-                                                        <select name="account_Id" id="account" class="form-control" required>
-                                                            <option value="">Select Account Name</option>
-                                                            <?php 
-                                                                $qryAccount = "SELECT * FROM account";
-                                                                $resultAccount = mysqli_query($conn,$qryAccount);
-                                                                if($resultAccount->num_rows > 0){
-                                                                    while($resAccount = $resultAccount->fetch_assoc()){
-                                                                        echo "<option value='".$resAccount['account_id']."'>".$resAccount['account_name']."</option>";
-                                                                    }
-                                                                }
-                                                            ?>
-                                                        </select>
-                                                    </div>
-                                                    <div class="form-group col-md-3">
-                                                        <input type="date" name="startdate" id="startdate" class="form-control">
-                                                    </div>
-                                                    <div class="form-group col-md-3">
-                                                        <input type="date" name="enddate" id="enddate" class="form-control">
-                                                    </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                    </div> -->
-                                    <div class="col-sm-12">
-                                        <table width="100%" id="deposit_table" class="table table-striped table-bordered">
-                                            
-                                            <thead>
-                                                <tr role="row">
-                                                    <th>#</th>
-                                                    <th>Date</th>
-                                                    <th>Invoice No.</th>
-                                                    <th>Account Name</th>
-                                                    <th>Project Name</th>
-                                                    <th>Amount</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php
-                                                    $i = 1;
-                                                    $amounts = 0;
-                                                    $qryDeposit = "SELECT * FROM deposit order by deposit_id desc";
-                                                    $resultDeposit = mysqli_query($conn,$qryDeposit); 
-                                                    if($resultDeposit->num_rows > 0){
-                                                        while($rowDeposit = $resultDeposit->fetch_assoc()){
-                                                            echo "<tr class='gradeA even' role='row'>";
-                                                                echo "<td>".$i."</td>";
-                                                                echo "<td>".$rowDeposit['deposit_date']."</td>";
-                                                                echo "<td>".$rowDeposit['invoice_id']."</td>";
-                                                                $qryAccount = "SELECT * FROM account where account_id=".$rowDeposit['account_Id'];
-                                                                $resultAccount = mysqli_query($conn,$qryAccount);
-                                                                $rowAccount = $resultAccount->fetch_assoc();
-                                                                echo "<td>".$rowAccount['account_name']."</td>";
-                                                                $qryProject = "SELECT * FROM projectstbl where id=".$rowDeposit['project_Id'];
-                                                                $resultProject = mysqli_query($conn,$qryProject);
-                                                                $resProject = $resultProject->fetch_assoc();
-                                                                echo "<td>".$resProject['projectName']."</td>";
-                                                                echo "<td>".$rowDeposit['amount']."</td>";
-                                                                echo '<td class="center" align="center">
-
-                                                                <a href="editDeposit.php?edit='.$rowDeposit["deposit_id"].'" style="display: inline-block;width: 28px;"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;
-
-                                                                <a href="viewInvoice.php?id='.$rowDeposit["invoice_id"].'" style="display: inline-block;width: 28px;" title="View Invoice"><i class="fa fa-eye"></i></a>
-
-                                                                <a href="deleteDeposit.php?delete='.$rowDeposit["deposit_id"].'" onclick="return confirm(\'Are you sure you want to delete?\');" style="display: inline-block;width: 28px;"><i class="fa fa-trash-o"></i></a>
-                                                               
-                                                                </td>';
-                                                            echo "</tr>";
-                                                            $i++;
-                                                            $amounts += $rowDeposit['amount'];
-                                                        }
-                                                    }
-                                                 ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-<script type="text/javascript">
-    function getInvoices(proj_id){
-        $('#invoice_id').empty();
-        $.ajax({
-            type:'post',
-            url:'getInvoices.php',
-            data: {
-                proj_id:proj_id,
-            },
-            dataType: 'JSON',
-            success: function (response){
-                $.each( response.data, function( key, value ) {
-                    $("<option />", {val: value.invoice_id,text: value.invoice_id}).appendTo('#invoice_id');
-                });
-            }
-        });
+<?php
+require_once __DIR__ . '/../dbconnect.php';
+require_once __DIR__ . '/../security.php';
+require_once __DIR__ . '/../foundation.php';
+require_once __DIR__ . '/../depositCollections.php';
+require_once __DIR__ . '/../invoiceStatus.php';
+oecrm_require_admin_login();
+if (!oecrm_can($conn, 'finance', 'view') && !oecrm_can($conn, 'finance', 'create')) {
+    http_response_code(403);
+    exit('You do not have permission to view collections.');
+}
+$collectionCompanyId = oecrm_current_company_id($conn);
+include 'header.php';
+$collectionProjects = mysqli_query($conn, 'SELECT id,projectName FROM projectstbl WHERE company_id=' . (int) $collectionCompanyId . ' ORDER BY projectName');
+$collectionAccounts = mysqli_query($conn, 'SELECT account_id,account_name FROM account ORDER BY account_name');
+$deposit = null;
+$requestedInvoice = (int) ($_GET['invoice_id'] ?? 0);
+if ($requestedInvoice > 0) {
+    $lookup = oecrm_invoice_schema_prepare($conn, 'SELECT i.* FROM invoiceTbl i JOIN projectstbl p ON p.id=i.project_Id WHERE i.invoice_id=? AND p.company_id=?');
+    mysqli_stmt_bind_param($lookup, 'ii', $requestedInvoice, $collectionCompanyId);
+    mysqli_stmt_execute($lookup);
+    $requested = mysqli_fetch_assoc(mysqli_stmt_get_result($lookup));
+    mysqli_stmt_close($lookup);
+    if ($requested && (int) $requested['status'] === 1) {
+        $deposit = ['invoice_id' => $requestedInvoice, 'project_Id' => (int) $requested['project_Id']];
+    } else {
+        $_SESSION['deposit_flash'] = ['type' => 'warning', 'message' => 'Select a pending invoice belonging to the active company.'];
     }
-</script>
-<?php include 'footer.php'; ?>
+}
+$stmt = oecrm_invoice_schema_prepare($conn, 'SELECT d.*,i.invoice_no,i.invoice_date,i.status AS invoice_status,a.account_name,p.projectName
+    FROM deposit d JOIN invoiceTbl i ON i.invoice_id=d.invoice_id
+    JOIN projectstbl p ON p.id=i.project_Id LEFT JOIN account a ON a.account_id=d.account_Id
+    WHERE p.company_id=? ORDER BY d.deposit_date DESC,d.deposit_id DESC');
+mysqli_stmt_bind_param($stmt, 'i', $collectionCompanyId);
+mysqli_stmt_execute($stmt);
+$collections = mysqli_stmt_get_result($stmt);
+$flash = $_SESSION['deposit_flash'] ?? null;
+unset($_SESSION['deposit_flash']);
+?>
+<div id="page-wrapper" class="compact-admin-page">
+    <?php if ($flash): ?><div class="alert alert-<?php echo oecrm_h($flash['type']); ?>"><?php echo oecrm_h($flash['message']); ?></div><?php endif; ?>
+    <?php if (oecrm_can($conn, 'finance', 'create')): ?>
+    <div class="panel panel-default">
+        <div class="panel-heading">Add Deposit</div>
+        <div class="panel-body"><?php include 'depositForm.php'; ?></div>
+    </div>
+    <?php endif; ?>
+    <div class="panel panel-default">
+        <div class="panel-heading">Collections &amp; Deposits</div>
+        <div class="panel-body table-responsive">
+            <table class="table table-striped table-bordered" id="deposit_table">
+                <thead><tr><th>Date</th><th>Invoice No.</th><th>Receiving Bank Account</th><th>Project</th><th>Amount</th><th>Invoice Status</th><th>Action</th></tr></thead>
+                <tbody>
+                <?php if (!mysqli_num_rows($collections)): ?><tr><td colspan="7" class="text-center">No deposits found.</td></tr><?php endif; ?>
+                <?php while ($row = mysqli_fetch_assoc($collections)): ?>
+                    <tr>
+                        <td><?php echo oecrm_h($row['deposit_date']); ?></td>
+                        <td><?php echo oecrm_h($row['invoice_no'] ?: '#' . $row['invoice_id']); ?></td>
+                        <td><?php echo oecrm_h($row['account_name'] ?? 'Account unavailable'); ?></td>
+                        <td><?php echo oecrm_h($row['projectName']); ?></td>
+                        <td class="text-right"><?php echo number_format((float) $row['amount'], 2); ?></td>
+                        <td><?php echo oecrm_legacy_invoice_status_badge(['status' => $row['invoice_status']]); ?></td>
+                        <td>
+                            <?php if (oecrm_can($conn, 'finance', 'edit')): ?><a class="icon-action" href="editDeposit.php?edit=<?php echo (int) $row['deposit_id']; ?>" title="Edit Deposit"><i class="fa fa-pencil"></i></a><?php endif; ?>
+                            <a class="icon-action" href="viewInvoice.php?id=<?php echo (int) $row['invoice_id']; ?>" title="View Invoice"><i class="fa fa-eye"></i></a>
+                        </td>
+                    </tr>
+                <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<?php mysqli_stmt_close($stmt); include 'footer.php'; ?>

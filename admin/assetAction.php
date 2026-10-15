@@ -23,6 +23,15 @@ try {
         $purchase = trim($_POST["purchase_date"] ?? "") ?: null;
         $cost = (float) ($_POST["purchase_cost"] ?? 0);
         $warranty = trim($_POST["warranty_until"] ?? "") ?: null;
+        foreach (['Purchase Date' => $purchase, 'Warranty Until' => $warranty] as $label => $value) {
+            if ($value === null) continue;
+            $parts = explode('-', $value);
+            if (!preg_match('/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/D', $value)
+                || (int) $parts[0] < 1000
+                || !checkdate((int) ($parts[1] ?? 0), (int) ($parts[2] ?? 0), (int) $parts[0])) {
+                throw new InvalidArgumentException($label . ' must be a complete valid date (YYYY-MM-DD). Please select the day, month and year.');
+            }
+        }
         $condition = $_POST["condition_status"] ?? "good";
         $status = $_POST["lifecycle_status"] ?? "available";
         $notes = trim($_POST["notes"] ?? "");
@@ -87,7 +96,7 @@ try {
             );
             mysqli_stmt_bind_param(
                 $s,
-                "isssssssdsssi",
+                "issssssdssssi",
                 $companyId,
                 $code,
                 $type,

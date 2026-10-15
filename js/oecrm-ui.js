@@ -97,8 +97,47 @@
         wrapper.appendChild(panel);
         var label = button.querySelector('span');
         var search = panel.querySelector('input');
+        if (select.dataset.searchPlaceholder) {
+            search.placeholder = select.dataset.searchPlaceholder;
+            search.setAttribute('aria-label', select.dataset.searchPlaceholder);
+        }
         var optionsBox = panel.querySelector('.oecrm-select-options');
 
+        // Opt-in positioning for filters near the bottom of the viewport.
+        var viewportDropdown = select.dataset.oecrmDropdown === 'viewport';
+        function positionPanel() {
+            if (!viewportDropdown || !wrapper.classList.contains('open')) return;
+            var rect = button.getBoundingClientRect();
+            var viewport = window.visualViewport;
+            var height = viewport ? viewport.height : window.innerHeight;
+            var width = viewport ? viewport.width : window.innerWidth;
+            var offsetTop = viewport ? viewport.offsetTop : 0;
+            var offsetLeft = viewport ? viewport.offsetLeft : 0;
+            var gap = 6, margin = 10;
+            var below = Math.max(0, offsetTop + height - rect.bottom - margin - gap);
+            var above = Math.max(0, rect.top - offsetTop - margin - gap);
+            var openAbove = below < 220 && above > below;
+            var room = openAbove ? above : below;
+            var panelWidth = Math.min(Math.max(rect.width, 260), Math.max(0, width - margin * 2));
+            panel.style.position = 'fixed';
+            panel.style.transform = 'none';
+            panel.style.boxSizing = 'border-box';
+            panel.style.width = panelWidth + 'px';
+            panel.style.maxWidth = 'none';
+            panel.style.maxHeight = room + 'px';
+            panel.style.overflow = 'hidden';
+            panel.style.left = Math.max(offsetLeft + margin, Math.min(rect.left, offsetLeft + width - panelWidth - margin)) + 'px';
+            optionsBox.style.maxHeight = Math.min(240, Math.max(0, room - 60)) + 'px';
+            panel.style.top = (openAbove ? rect.top - gap - panel.offsetHeight : rect.bottom + gap) + 'px';
+        }
+        if (viewportDropdown) {
+            window.addEventListener('resize', positionPanel);
+            window.addEventListener('scroll', positionPanel, true);
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', positionPanel);
+                window.visualViewport.addEventListener('scroll', positionPanel);
+            }
+        }
         function syncLabel() {
             label.textContent = selectedText(select);
             button.classList.toggle('has-value', select.value !== '' || select.multiple && select.selectedOptions.length > 0);
@@ -107,8 +146,10 @@
         function render(filter) {
             optionsBox.innerHTML = '';
             var needle = (filter || '').toLowerCase();
+            if (select.dataset.searchPlaceholder) needle = needle.trim();
             Array.prototype.forEach.call(select.options, function (option) {
                 if (option.hidden) return;
+                if (select.dataset.searchPlaceholder && option.value === '') return;
                 if (option.disabled && option.value === '') return;
                 if (needle && option.text.toLowerCase().indexOf(needle) === -1) return;
                 var row = document.createElement('button');
@@ -140,10 +181,14 @@
             if (wrapper.classList.contains('open')) {
                 search.value = '';
                 render('');
-                window.setTimeout(function () { search.focus(); }, 10);
+                positionPanel();
+                window.setTimeout(function () {
+                    if (viewportDropdown) search.focus({preventScroll: true});
+                    else search.focus();
+                }, 10);
             }
         });
-        search.addEventListener('input', function () { render(search.value); });
+        search.addEventListener('input', function () { render(search.value); positionPanel(); });
         select.addEventListener('change', syncLabel);
         new MutationObserver(function () {
             syncLabel();
@@ -185,10 +230,13 @@
 
     ready(function () {
         if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-        window.scrollTo(0, 0);
+        var historyAnchor = currentFile() === 'hrLetters.php' && window.location.hash === '#letter-history'
+            ? document.getElementById('letter-history') : null;
+        if (!historyAnchor) window.scrollTo(0, 0);
         initialiseSidebar();
         initialiseSelects(document);
         initialiseTables();
+        if (historyAnchor) historyAnchor.scrollIntoView({block: 'start'});
         window.OECRM_UI = { refreshSelects: initialiseSelects, refreshTables: initialiseTables };
     });
 

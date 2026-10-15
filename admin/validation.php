@@ -737,170 +737,29 @@ $deposit_date = date('d-m-Y');
 
 
 
-if (isset($_POST['addDeposit'])) {
-    oecrm_require_permission($conn, 'finance', 'create');
-    require_once __DIR__ . '/../invoiceStatus.php';
-    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-    mysqli_begin_transaction($conn);
+if (isset($_POST['addDeposit']) || isset($_POST['updateDeposit'])) {
+    $isEdit = isset($_POST['updateDeposit']);
+    oecrm_require_permission($conn, 'finance', $isEdit ? 'edit' : 'create');
+    require_once __DIR__ . '/../depositCollections.php';
+    $depositId = $isEdit ? (int) ($_POST['id'] ?? 0) : 0;
     try {
-
-    $deposit_date = $_POST['deposit_date'];
-
-    $account_Id = $_POST['account_Id'];
-
-    $project_Id = $_POST['project_Id'];
-
-    $description = $_POST['description'];
-
-    $invoice_id = (int) ($_POST['invoice_id'] ?? 0);
-    oecrm_legacy_invoice_payment_guard($conn, $invoice_id);
-
-    $subject = $_POST['subject'];
-
-    $amount = $_POST['amount'];
-
-    $tax_amount = $_POST['tax_amount'];
-
-    $approx_amount = $_POST['approx_amount'];
-
-
-
-    $project_sql = "select * from invoicetbl where invoice_id = $invoice_id limit 1";
-
-
-
-    $project_result = mysqli_query($conn, $project_sql);
-
-    if (mysqli_num_rows($project_result) > 0) {
-
-        $project_row = mysqli_fetch_assoc($project_result);
-
-        $amount = $project_row['total_amount'];
-
-    }
-
-
-
-   $qryDeposit = "INSERT INTO deposit (deposit_date, account_Id, project_Id, subject, description, amount, invoice_id,tax_amount, approx_amount) VALUES ('$deposit_date', '$account_Id', '$project_Id', '$subject', '$description', '$amount', '$invoice_id', '$tax_amount', '$approx_amount')";
-
-
-
-    if (mysqli_query($conn, $qryDeposit)) {
-
-
-
-        $account_sql = "select * from account where account_id = $account_Id limit 1";
-
-
-
-        $account_result = mysqli_query($conn, $account_sql);
-
-        if (mysqli_num_rows($account_result) > 0) {
-
-            $account_row = mysqli_fetch_assoc($account_result);
-
-            $balance = $account_row['balance'];
-
+        if ($isEdit && $depositId <= 0) throw new InvalidArgumentException('Invalid deposit selected.');
+        $saved = oecrm_save_collection($conn, oecrm_current_company_id($conn), $_POST, $depositId);
+        try {
+        oecrm_audit($conn, 'finance', $isEdit ? 'edit' : 'create', 'deposit', $saved['id'], 'Invoice collection saved', $saved['old'], ['invoice_no' => $saved['invoice_no'], 'amount' => $saved['amount'], 'account_id' => (int) $_POST['account_Id']]);
+        } catch (Throwable $auditError) {
+            error_log('Collection audit failed: ' . $auditError->getMessage());
         }
-
-        $final_balance = $balance + $amount ;
-
-        $editAccount = "update account set balance='$final_balance' where account_id=" . $account_Id;
-
-        mysqli_query($conn, $editAccount);
-
-
-
-        $editAccount = "update invoicetbl set status='2' where invoice_id=" . $invoice_id;
-
-        mysqli_query($conn, $editAccount);
-
-
-
-        mysqli_commit($conn);
-        header('Location:addDeposit.php');
-        exit;
-
-    }
-
+        $_SESSION['deposit_flash'] = ['type' => 'success', 'message' => 'Deposit saved for invoice ' . $saved['invoice_no'] . '. Bank balance updated.'];
+        $redirect = 'addDeposit.php';
     } catch (Throwable $e) {
-        mysqli_rollback($conn);
-        error_log('Invoice deposit save failed: ' . $e->getMessage());
-        $_SESSION['invoice_flash'] = [
-            'type' => 'warning',
-            'message' => $e instanceof InvalidArgumentException ? $e->getMessage() : 'Deposit could not be saved. Please try again.',
-        ];
-        header('Location:addInvoice.php');
-        exit;
+        error_log('Collection save failed: ' . $e->getMessage());
+        $_SESSION['deposit_flash'] = ['type' => 'danger', 'message' => $e instanceof InvalidArgumentException ? $e->getMessage() : 'Deposit could not be saved. No balance was changed.'];
+        $redirect = $isEdit && $depositId > 0 ? 'editDeposit.php?edit=' . $depositId : 'addDeposit.php';
     }
+    header('Location:' . $redirect);
+    exit;
 }
-
-
-
-if (isset($_POST['updateDeposit'])) {
-    oecrm_require_permission($conn, 'finance', 'edit');
-    require_once __DIR__ . '/../invoiceStatus.php';
-    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-    mysqli_begin_transaction($conn);
-    try {
-
-    $id = $_POST['id'];
-
-    $deposit_date = $_POST['deposit_date'];
-
-    $account_Id = $_POST['account_Id'];
-
-    $project_Id = $_POST['project_Id'];
-
-    $description = $_POST['description'];
-
-    $invoice_id = (int) ($_POST['invoice_id'] ?? 0);
-    oecrm_legacy_invoice_payment_guard($conn, $invoice_id, false);
-
-    $subject = $_POST['subject'];
-
-    $amount = $_POST['amount'];
-
-
-
-    $project_sql = "select * from invoicetbl where invoice_id = $invoice_id limit 1";
-
-
-
-    $project_result = mysqli_query($conn, $project_sql);
-
-    if (mysqli_num_rows($project_result) > 0) {
-
-        $project_row = mysqli_fetch_assoc($project_result);
-
-        $amount = $project_row['total_amount'];
-
-    }
-
-
-
-    $editQryDeposit = "update deposit set deposit_date='$deposit_date', account_Id='$account_Id', project_Id='$project_Id', subject='$subject', description='$description', amount='$amount', invoice_id='$invoice_id' where deposit_id=" . $id;
-
-    if (mysqli_query($conn, $editQryDeposit)) {
-
-        mysqli_commit($conn);
-        header('Location:addDeposit.php');
-        exit;
-
-    }
-
-    } catch (Throwable $e) {
-        mysqli_rollback($conn);
-        error_log('Invoice deposit save failed: ' . $e->getMessage());
-        $_SESSION['invoice_flash'] = [
-            'type' => 'warning',
-            'message' => $e instanceof InvalidArgumentException ? $e->getMessage() : 'Deposit could not be saved. Please try again.',
-        ];
-        header('Location:addInvoice.php');
-        exit;
-    }
-}
-
 ?>
 
 <?php

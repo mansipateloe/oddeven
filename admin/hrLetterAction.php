@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../dbconnect.php';
 require_once __DIR__ . "/../security.php";
 require_once __DIR__ . "/../foundation.php";
@@ -13,6 +13,16 @@ $action = $_POST["action"] ?? "";
 $companyId = oecrm_current_company_id($conn);
 $actor = (int) $_SESSION["adminId"];
 try {
+    if ($action === "delete_template") {
+        // Template editing permission covers management of reusable templates.
+        oecrm_require_permission($conn, "hr_letter_templates", "edit");
+        $id = (int) ($_POST["id"] ?? 0);
+        $old = oecrm_delete_letter_template($conn, $companyId, $id);
+        oecrm_audit($conn, "hr_letter_templates", "delete", "hr_letter_template", $id, "Letter template deleted", $old, ["status" => -1]);
+        $_SESSION["letter_flash"] = "Letter template deleted. Existing letters are unchanged.";
+        header("Location: hrLetterTemplates.php");
+        exit();
+    }
     if ($action === "save_template") {
         $id = (int) ($_POST["id"] ?? 0);
         oecrm_require_permission(
@@ -37,6 +47,17 @@ try {
             );
         }
         mysqli_begin_transaction($conn);
+        if ($id) {
+            $check = mysqli_prepare($conn, "SELECT id FROM hr_letter_templates WHERE id=? AND company_id=? AND status>=0 FOR UPDATE");
+            mysqli_stmt_bind_param($check, "ii", $id, $companyId);
+            mysqli_stmt_execute($check);
+            $existing = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
+            mysqli_stmt_close($check);
+            if (!$existing) {
+                mysqli_rollback($conn);
+                throw new RuntimeException("Template not found or already deleted.");
+            }
+        }
         if ($default) {
             $s = mysqli_prepare(
                 $conn,
@@ -49,7 +70,7 @@ try {
         if ($id) {
             $s = mysqli_prepare(
                 $conn,
-                "UPDATE hr_letter_templates SET letter_type=?,name=?,subject=?,body_html=?,is_default=?,status=? WHERE id=? AND company_id=?"
+                "UPDATE hr_letter_templates SET letter_type=?,name=?,subject=?,body_html=?,is_default=?,status=? WHERE id=? AND company_id=? AND status>=0"
             );
             mysqli_stmt_bind_param(
                 $s,
@@ -117,6 +138,14 @@ try {
             $body === ""
         ) {
             throw new RuntimeException("Complete all required letter fields.");
+        }
+        $templateCheck = mysqli_prepare($conn, "SELECT id FROM hr_letter_templates WHERE id=? AND company_id=? AND letter_type=? AND status=1");
+        mysqli_stmt_bind_param($templateCheck, "iis", $templateId, $companyId, $type);
+        mysqli_stmt_execute($templateCheck);
+        $validTemplate = mysqli_fetch_assoc(mysqli_stmt_get_result($templateCheck));
+        mysqli_stmt_close($templateCheck);
+        if (!$validTemplate) {
+            throw new RuntimeException("Please select an active template for this letter type.");
         }
         $s = mysqli_prepare(
             $conn,
@@ -312,7 +341,7 @@ try {
     $_SESSION["letter_error"] = $e->getMessage();
     header(
         "Location: " .
-            ($action === "save_template"
+            (in_array($action, ["save_template", "delete_template"], true)
                 ? "hrLetterTemplates.php"
                 : "hrLetters.php")
     );

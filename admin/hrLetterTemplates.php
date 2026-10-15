@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = "hr_letters";
 $active_submenu = "letter_templates";
 include "header.php";
@@ -14,7 +14,7 @@ $edit = null;
 if ($editId) {
     $stmt = mysqli_prepare(
         $conn,
-        "SELECT * FROM hr_letter_templates WHERE id=? AND company_id=?"
+        "SELECT * FROM hr_letter_templates WHERE id=? AND company_id=? AND status>=0"
     );
     mysqli_stmt_bind_param($stmt, "ii", $editId, $companyId);
     mysqli_stmt_execute($stmt);
@@ -25,10 +25,11 @@ $list = mysqli_query(
     $conn,
     "SELECT * FROM hr_letter_templates WHERE company_id=" .
         (int) $companyId .
-        " ORDER BY status DESC,letter_type,name"
+        " AND status>=0 ORDER BY status DESC,letter_type,name"
 );
 $flash = $_SESSION["letter_flash"] ?? "";
-unset($_SESSION["letter_flash"]);
+$error = $_SESSION["letter_error"] ?? "";
+unset($_SESSION["letter_flash"], $_SESSION["letter_error"]);
 $presets = oecrm_letter_presets();
 ?>
 <div id="page-wrapper" class="compact-admin-page letter-admin-page"><?php if (
@@ -36,6 +37,7 @@ $presets = oecrm_letter_presets();
 ): ?><div class="alert alert-success"><?php echo oecrm_h(
     $flash
 ); ?></div><?php endif; ?>
+<?php if ($error): ?><div class="alert alert-danger"><?php echo oecrm_h($error); ?></div><?php endif; ?>
 <div class="letter-layout"><div class="panel panel-default"><div class="panel-heading"><?php echo $edit
     ? "Edit"
     : "New"; ?> Letter Template</div><div class="panel-body">
@@ -85,7 +87,16 @@ $key
     ? "Active"
     : "Inactive"; ?></span></td><td><a class="icon-action" href="hrLetterTemplates.php?edit=<?php echo (int) $row[
     "id"
-]; ?>" title="Edit"><i class="fa fa-pencil"></i></a></td></tr><?php endwhile; ?></tbody></table></div></div>
+]; ?>" title="Edit"><i class="fa fa-pencil"></i></a>
+<?php if (oecrm_can($conn, "hr_letter_templates", "edit")): ?>
+    <form method="post" action="hrLetterAction.php" style="display:inline-block;margin:0;" data-confirm="<?php echo oecrm_h('Delete template "' . $row["name"] . '"? Existing letters will be kept.'); ?>">
+        <?php echo oecrm_csrf_field(); ?>
+        <input type="hidden" name="action" value="delete_template">
+        <input type="hidden" name="id" value="<?php echo (int) $row["id"]; ?>">
+        <button type="submit" class="icon-action danger" title="Delete Template" aria-label="<?php echo oecrm_h('Delete template ' . $row["name"]); ?>"><i class="fa fa-trash-o"></i></button>
+    </form>
+<?php endif; ?>
+</td></tr><?php endwhile; ?></tbody></table></div></div>
 </div></div></div>
 <script>
 (function(){var presets=<?php echo json_encode(

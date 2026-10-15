@@ -90,6 +90,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             oecrm_bank_details_flash("danger", "Opening balance must be a valid amount with up to 12 whole digits and 2 decimal places.");
             oecrm_bank_details_redirect($id);
         }
+        if (!$isEdit && (float) $openingBalance < 0) {
+            oecrm_bank_details_flash("danger", "Opening balance cannot be negative when adding a bank.");
+            oecrm_bank_details_redirect();
+        }
         $bankDetails = [
             "bank_name" => $bankName,
             "account_number" => $accountNumber,
@@ -252,7 +256,7 @@ $bankRows = mysqli_query($conn, oecrm_expense_bank_list_sql());
                         <div class="col-lg-3">
                             <label for="opening_balance">Opening Balance</label>
                             <div class="form-group">
-                                <input type="number" class="form-control" id="opening_balance" name="opening_balance" value="<?php echo oecrm_h($bank["opening_balance"]); ?>" step="0.01" min="-999999999999.99" max="999999999999.99" required>
+                                <input type="number" class="form-control" id="opening_balance" name="opening_balance" value="<?php echo oecrm_h($bank["opening_balance"]); ?>" step="0.01" min="<?php echo $editId > 0 ? '-999999999999.99' : '0'; ?>" max="999999999999.99" required>
                             </div>
                         </div>
                         <div class="col-lg-12" align="right">
