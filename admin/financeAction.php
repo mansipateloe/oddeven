@@ -11,6 +11,8 @@ $action = $_POST['action'] ?? '';
 $id = (int)($_POST['id'] ?? 0);
 
 if ($action === 'invoice') {
+    require_once __DIR__ . '/../invoiceNumbering.php';
+    oecrm_invoice_numbering_schema($conn);
     oecrm_require_permission($conn, 'finance', $id ? 'edit' : 'create');
     $number = trim($_POST['invoice_number']);
     $client = (int)$_POST['client_id'];
@@ -44,6 +46,12 @@ if ($action === 'invoice') {
     $notes = trim($_POST['notes']);
     $frequency = $_POST['recurring_frequency'] ?? 'none';
     $next = $frequency === 'none' ? null : date('Y-m-d', strtotime($date.' +'.($frequency === 'monthly' ? '1 month' : ($frequency === 'quarterly' ? '3 months' : '1 year'))));
+    mysqli_begin_transaction($conn);
+    try {
+        if ((int) ($_POST['invoice_company_id'] ?? 0) !== $companyId) {
+            throw new InvalidArgumentException('The active company changed. Reload the invoice form before saving.');
+        }
+        if (!$id) $number = oecrm_invoice_number_allocate($conn, $companyId);
     if ($id) {
         $s = mysqli_prepare($conn, 'UPDATE finance_invoices SET client_id=?,invoice_number=?,invoice_type=?,invoice_date=?,due_date=?,currency_code=?,subtotal=?,tax_amount=?,total_amount=?,status=?,recurring_frequency=?,next_invoice_date=?,notes=? WHERE id=? AND company_id=?');
         mysqli_stmt_bind_param($s, 'isssssdddssssii', $client,$number,$type,$date,$due,$currency,$subtotal,$tax,$total,$status,$frequency,$next,$notes,$id,$companyId);
@@ -60,6 +68,14 @@ if ($action === 'invoice') {
         mysqli_stmt_execute($itemStmt);
     }
     mysqli_stmt_close($itemStmt);
+    mysqli_commit($conn);
+    } catch (Throwable $e) {
+        mysqli_rollback($conn);
+        error_log('Numbered invoice save failed: ' . $e->getMessage());
+        $_SESSION['invoice_number_error'] = $e instanceof InvalidArgumentException ? $e->getMessage() : 'Invoice could not be saved. Please try again.';
+        header('Location:invoiceEditor.php' . ($id ? '?id=' . (int) $id : ''));
+        exit;
+    }
 } elseif ($action === 'payment') {
     oecrm_require_permission($conn, 'finance', 'edit');
     $date = $_POST['payment_date'];

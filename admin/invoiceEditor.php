@@ -9,11 +9,12 @@ $company = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM companies WHERE
 $isGstCompany = ($company['company_type'] ?? '') === 'india_gst';
 $defaultInvoiceType = $isGstCompany ? 'gst' : 'international';
 $defaultCurrency = $company['currency_code'] ?? ($isGstCompany ? 'INR' : 'USD');
-$prefixResult = mysqli_fetch_assoc(mysqli_query($conn, "SELECT setting_value FROM app_settings WHERE company_id=$companyId AND setting_key='invoice_prefix' LIMIT 1"));
-$invoicePrefix = $prefixResult['setting_value'] ?? ($isGstCompany ? 'INV' : 'INT');
+require_once __DIR__ . '/../invoiceNumbering.php';
+oecrm_invoice_numbering_schema($conn);
+$invoiceSequence = $id ? null : oecrm_invoice_sequence_preview($conn, $companyId);
 $clients = mysqli_query($conn, 'SELECT id,display_name FROM clients WHERE company_id='.$companyId.' AND status IN ("active","prospect") ORDER BY display_name');
 $invoice = [
-    'client_id'=>'','invoice_number'=>$invoicePrefix.'-'.date('Ymd-His'),'invoice_type'=>$defaultInvoiceType,
+    'client_id'=>'','invoice_number'=>($invoiceSequence['next_invoice_number'] ?? ''),'invoice_type'=>$defaultInvoiceType,
     'invoice_date'=>date('Y-m-d'),'due_date'=>date('Y-m-d',strtotime('+15 days')),
     'currency_code'=>$defaultCurrency,'status'=>'draft','recurring_frequency'=>'none','notes'=>''
 ];
@@ -27,6 +28,7 @@ if ($id) {
 if (!$items) $items[] = ['description'=>'Professional services','quantity'=>1,'rate'=>0,'tax_percent'=>$isGstCompany?18:0];
 ?>
 <div id="page-wrapper" class="compact-admin-page resource-form-page">
+  <?php if (!empty($_SESSION['invoice_number_error'])): ?><div class="alert alert-danger"><?php echo oecrm_h($_SESSION['invoice_number_error']); unset($_SESSION['invoice_number_error']); ?></div><?php endif; ?>
   <div class="foundation-titlebar">
     <a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a>
     <h2><?php echo $id ? 'Invoice '.oecrm_h($invoice['invoice_number']) : 'New Invoice'; ?></h2>
@@ -37,8 +39,9 @@ if (!$items) $items[] = ['description'=>'Professional services','quantity'=>1,'r
         <?php echo oecrm_csrf_field(); ?>
         <input type="hidden" name="action" value="invoice">
         <input type="hidden" name="id" value="<?php echo $id; ?>">
+        <input type="hidden" name="invoice_company_id" value="<?php echo (int) $companyId; ?>">
         <div class="resource-form">
-          <div class="form-group"><label>Invoice Number</label><input class="form-control" name="invoice_number" value="<?php echo oecrm_h($invoice['invoice_number']); ?>" required></div>
+          <div class="form-group"><label>Invoice Number</label><input class="form-control" name="invoice_number" <?php echo $id ? '' : 'readonly'; ?> value="<?php echo oecrm_h($invoice['invoice_number']); ?>" required></div>
           <div class="form-group"><label>Client</label><select class="form-control" name="client_id" required><option value="">Select client</option><?php while($c=mysqli_fetch_assoc($clients)): ?><option value="<?php echo $c['id']; ?>" <?php echo $invoice['client_id']==$c['id']?'selected':''; ?>><?php echo oecrm_h($c['display_name']); ?></option><?php endwhile; ?></select></div>
           <div class="form-group"><label>Invoice Type</label><input class="form-control" value="<?php echo $isGstCompany?'GST Invoice (18%)':'International Invoice'; ?>" readonly><input type="hidden" name="invoice_type" value="<?php echo $defaultInvoiceType; ?>"></div>
           <div class="form-group"><label>Invoice Date</label><input class="form-control" type="date" name="invoice_date" value="<?php echo $invoice['invoice_date']; ?>" required></div>

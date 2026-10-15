@@ -9,6 +9,8 @@
 	}
 
 	require_once __DIR__ . '/../invoiceStatus.php';
+    require_once __DIR__ . '/../invoiceNumbering.php';
+    oecrm_invoice_numbering_schema($conn);
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'cancel_invoice') {
         $id = (int) ($_POST['id'] ?? 0);
         $returnPage = ($_POST['return_page'] ?? '') === 'editInvoice.php' && $id > 0
@@ -32,37 +34,19 @@
         exit;
     }
 if(isset($_POST['addInvoice'])){
-		$invoice_date = mysqli_real_escape_string($conn, $_POST['invoice_date']);
-		$project_Id = mysqli_real_escape_string($conn, $_POST['project_Id']);
-		$person_name = mysqli_real_escape_string($conn, $_POST['person_name']);
-		$invoice_no = mysqli_real_escape_string($conn, $_POST['invoice_no']);
-		$perticulars = $_POST['perticulars'];
-		$amounts = $_POST['amounts'];
-		$bank_ids=$_POST['bank_id'];
-		$country_ids=$_POST['country_id'];
-		$total_amount = 0;
-
-		for ($i=0; $i < count($amounts); $i++) {
-			$total_amount += $amounts[$i] ?: "0";
-		}
-
-		$order_qry = "INSERT INTO invoiceTbl (invoice_date, project_Id, person_name, total_amount,invoice_no) VALUES ('$invoice_date', '$project_Id', '$person_name', '$total_amount', '$invoice_no')";
-        if (mysqli_query($conn,$order_qry)){
-            $invoice_id = mysqli_insert_id($conn);
-
-            for ($i=0; $i < count($perticulars); $i++) {
-				$item = $perticulars[$i] ?: "";
-				$amount = $amounts[$i] ?: "0";
-				$bank_id = $bank_ids[$i] ?: "0";
-				$country_id = $country_ids[$i] ?: "0";
-
-				$order_detail_qry = "INSERT INTO invoice_details (invoice_id, perticular, amount, bank_id, country_id) VALUES ('$invoice_id', '$item', '$amount','$bank_id','$country_id')";
-		        mysqli_query($conn,$order_detail_qry);
-			}
-        }else{
+        try {
+            $companyId = oecrm_current_company_id($conn);
+            if ((int) ($_POST['invoice_company_id'] ?? 0) !== $companyId) {
+                throw new InvalidArgumentException('The active company changed. Reload the invoice form before saving.');
+            }
+            $created = oecrm_create_numbered_legacy_invoice($conn, $companyId, $_POST);
+            $_SESSION['invoice_flash'] = ['type' => 'success', 'message' => 'Invoice ' . $created['number'] . ' created successfully.'];
+        } catch (Throwable $e) {
+            error_log('Invoice creation failed: ' . $e->getMessage());
+            $_SESSION['invoice_flash'] = ['type' => 'warning', 'message' => $e instanceof InvalidArgumentException ? $e->getMessage() : 'Invoice could not be saved. Its number has not been consumed.'];
         }
         header('Location:addInvoice.php');
-	}elseif(isset($_POST['updateInvoice'])){
+        exit;}elseif(isset($_POST['updateInvoice'])){
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
         mysqli_begin_transaction($conn);
         try {

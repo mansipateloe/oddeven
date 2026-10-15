@@ -1,5 +1,10 @@
 <?php include 'header.php';
-require_once __DIR__ . '/../invoiceStatus.php'; ?>
+require_once __DIR__ . '/../invoiceStatus.php';
+require_once __DIR__ . '/../invoiceNumbering.php';
+oecrm_invoice_numbering_schema($conn);
+$invoiceCompanyId = oecrm_current_company_id($conn);
+$invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
+?>
         <div id="page-wrapper">
             <?php oecrm_legacy_invoice_flash(); ?>
             <div class="row">
@@ -22,11 +27,12 @@ require_once __DIR__ . '/../invoiceStatus.php'; ?>
                         	<div>
                                 <form role="form" method="POST" action="invoices.php">
                                     <?php echo oecrm_csrf_field(); ?>
+                                    <input type="hidden" name="invoice_company_id" value="<?php echo (int) $invoiceCompanyId; ?>">
                                     <div class="row">
                                         <div class="col-lg-3">
                                             <div class="form-group">
                                                 <label>Invoice No :</label>
-                                                <input type="text" class="form-control" placeholder="Invoice No." name="invoice_no" required>
+                                                <input type="text" class="form-control" placeholder="Invoice No." name="invoice_no" value="<?php echo oecrm_h($invoiceSequence['next_invoice_number']); ?>" readonly required>
                                             </div>
                                         </div>
                                         <div class="col-lg-3">
@@ -41,7 +47,7 @@ require_once __DIR__ . '/../invoiceStatus.php'; ?>
                                                 <select name="project_Id" id="project_Id" required onchange="getPerson(this.value)" class="form-control">
                                                     <option value="">Select Project Name</option>
                                                     <?php
-                                                        $qryProject = "SELECT * FROM projectstbl where status IN ('pending','inprogress') order by id desc";
+                                                        $qryProject = "SELECT * FROM projectstbl where company_id=$invoiceCompanyId AND status IN ('pending','inprogress') order by id desc";
                                                         $resultProject = mysqli_query($conn,$qryProject);
                                                         if($resultProject->num_rows > 0){
                                                             while($resProject = $resultProject->fetch_assoc()){
@@ -162,7 +168,7 @@ require_once __DIR__ . '/../invoiceStatus.php'; ?>
                                                 $amounts = 0;
                                                 $invoice_qry = "SELECT invoicetbl.*, projectstbl.projectName FROM invoicetbl LEFT JOIN projectstbl ON projectstbl.id = invoicetbl.project_Id
 
-                                                    ORDER BY invoicetbl.invoice_id DESC";
+                                                    WHERE COALESCE(invoicetbl.company_id,projectstbl.company_id)=$invoiceCompanyId ORDER BY invoicetbl.invoice_id DESC";
                                                 $invoice_result = mysqli_query($conn,$invoice_qry);
                                                 if($invoice_result->num_rows > 0){
                                                     while($invoice_row = $invoice_result->fetch_assoc()){

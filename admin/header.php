@@ -245,6 +245,7 @@
             admin_sidebar_parent('Settings', 'fa-cogs', [
               ['href'=>'companies.php','label'=>'Companies','icon'=>'fa-building','show'=>oecrm_can($conn,'companies','view'),'pages'=>['companies.php']],
               ['href'=>'all_user_roles.php','label'=>'Roles','icon'=>'fa-user-secret','show'=>oecrm_can($conn,'roles','view')||check_is_access_new('employee')==1,'pages'=>['all_user_roles.php','add_user_roles.php']],
+              ['href'=>'globalSettings.php','label'=>'Global Settings','icon'=>'fa-sliders','show'=>oecrm_can($conn,'settings','view')||oecrm_can($conn,'settings','edit'),'pages'=>['globalSettings.php']],
               ['href'=>'role_permissions.php','label'=>'Permissions','icon'=>'fa-key','show'=>oecrm_can($conn,'roles','manage_permissions'),'pages'=>['role_permissions.php']],
               ['href'=>'audit_logs.php','label'=>'Activity Logs','icon'=>'fa-shield','show'=>oecrm_can($conn,'activity_audit','view')||oecrm_can($conn,'audit','view'),'pages'=>['audit_logs.php']],
               ['href'=>'manageEmployeeLoginLog.php','label'=>'Employee Login Logs','icon'=>'fa-sign-in','show'=>check_is_access_new('settings')==1,'pages'=>['manageEmployeeLoginLog.php']],
