@@ -523,7 +523,16 @@ document.addEventListener('DOMContentLoaded', function () {
             var alertBox = document.createElement('div');
             alertBox.className = 'alert ' + (payload.ok ? 'alert-success' : 'alert-danger');
             alertBox.textContent = payload.data.message || (payload.ok ? 'Saved successfully.' : 'Save failed.');
-            if (flashHost) flashHost.insertBefore(alertBox, flashHost.firstChild);
+            alertBox.setAttribute('role', payload.ok ? 'status' : 'alert');
+            alertBox.setAttribute('tabindex', '-1');
+            if (flashHost) {
+                flashHost.insertBefore(alertBox, flashHost.firstChild);
+                window.requestAnimationFrame(function () {
+                    alertBox.focus({preventScroll: true});
+                    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    alertBox.scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block: 'center'});
+                });
+            }
             if (payload.ok && payload.data.id) {
                 form.querySelector('input[name="id"]').value = payload.data.id;
                 if (window.history && window.history.replaceState) {

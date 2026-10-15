@@ -2,41 +2,13 @@
 
 include 'header.php';
 
-if (isset($_POST['addLeadSource'])) {
-    oecrm_require_csrf();
-    oecrm_require_permission($conn, 'clients', 'create');
-
-    $name = trim($_POST['name'] ?? '');
-    if ($name === '') {
-        $_SESSION['lead_source_flash'] = 'Lead source name is required.';
-        $_SESSION['lead_source_flash_type'] = 'error';
-        header('Location: manageLeadSource.php');
-        exit;
-    }
-
-    $name = mysqli_real_escape_string($conn, $name);
-
-    $qry = "INSERT INTO `lead_source_tbl`(`id`, `name`) VALUES (NULL, '$name')";
-    if (mysqli_query($conn, $qry)) {
-        $_SESSION['lead_source_flash'] = 'Lead source added successfully.';
-        $_SESSION['lead_source_flash_type'] = 'success';
-        header('Location: manageLeadSource.php');
-        exit;
-    }
-
-    $_SESSION['lead_source_flash'] = 'Lead source could not be saved.';
-    $_SESSION['lead_source_flash_type'] = 'error';
-    header('Location: manageLeadSource.php');
-    exit;
-}
-
 $leadSourceFlash = $_SESSION['lead_source_flash'] ?? '';
 $leadSourceFlashType = $_SESSION['lead_source_flash_type'] ?? 'info';
 unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
 ?>
 <div id="page-wrapper" class="compact-admin-page">
     <?php if ($leadSourceFlash): ?>
-        <div class="alert alert-<?php echo $leadSourceFlashType === 'success' ? 'success' : ($leadSourceFlashType === 'warning' ? 'warning' : ($leadSourceFlashType === 'error' ? 'danger' : 'info')); ?>" style="margin-top: 20px; margin-bottom: 0;">
+        <div class="alert alert-<?php echo $leadSourceFlashType === 'success' ? 'success' : ($leadSourceFlashType === 'warning' ? 'warning' : ($leadSourceFlashType === 'error' ? 'danger' : 'info')); ?>" role="status" style="margin-top: 20px; margin-bottom: 0;">
             <?php echo oecrm_h($leadSourceFlash); ?>
         </div>
     <?php endif; ?>
@@ -132,7 +104,6 @@ unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
         line-height: 1.3;
     }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 (function () {
     var form = document.getElementById('leadSourceForm');
@@ -179,13 +150,6 @@ unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
     });
 })();
 
-<?php if ($leadSourceFlash): ?>
-Swal.fire({
-    title: '<?php echo $leadSourceFlashType === 'success' ? 'Success' : ($leadSourceFlashType === 'warning' ? 'Warning' : 'Error'); ?>',
-    text: '<?php echo addslashes($leadSourceFlash); ?>',
-    icon: '<?php echo $leadSourceFlashType === 'success' ? 'success' : ($leadSourceFlashType === 'warning' ? 'warning' : 'error'); ?>',
-    confirmButtonText: 'OK'
-});
-<?php endif; ?>
+
 </script>
 <?php include 'footer.php'; ?>

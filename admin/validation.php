@@ -1124,64 +1124,43 @@ if (isset($_POST['addLeaveType'])) {
 }
 
 if (isset($_POST['addLeadSource'])) {
-
     oecrm_require_csrf();
+    $message = '';
+    $type = 'error';
     if (
         !oecrm_can($conn, 'clients', 'create')
         && !oecrm_can($conn, 'clients', 'edit')
         && !oecrm_legacy_can($conn, 'add_lead')
         && !oecrm_legacy_can($conn, 'view_lead')
     ) {
-        $_SESSION['lead_source_flash'] = 'You do not have permission to add lead sources.';
-        header('Location:manageLeadSource.php');
-        exit;
-    }
-    $name = trim($_POST['name'] ?? '');
-    if ($name === '') {
-        $_SESSION['lead_source_flash'] = 'Lead source name is required.';
-        header('Location:manageLeadSource.php');
-        exit;
-    }
-
-    $check = mysqli_prepare($conn, 'SELECT id FROM lead_source_tbl WHERE LOWER(name)=LOWER(?) LIMIT 1');
-    mysqli_stmt_bind_param($check, 's', $name);
-    mysqli_stmt_execute($check);
-    $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
-    mysqli_stmt_close($check);
-    if ($exists) {
-        $_SESSION['lead_source_flash'] = 'Lead source already exists.';
-        header('Location:manageLeadSource.php');
-        exit;
-    }
-
-    $name = mysqli_real_escape_string($conn, $name);
-
-    $check = mysqli_prepare($conn, 'SELECT id FROM lead_source_tbl WHERE LOWER(name)=LOWER(?) LIMIT 1');
-    mysqli_stmt_bind_param($check, 's', $name);
-    mysqli_stmt_execute($check);
-    $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
-    mysqli_stmt_close($check);
-    if ($exists) {
-        $_SESSION['lead_source_flash'] = 'Lead source already exists.';
-        header('Location:manageLeadSource.php');
-        exit;
-    }
-    $qry = "INSERT INTO `lead_source_tbl`(`id`, `name`) VALUES (NULL,'$name')";
-
-    if (mysqli_query($conn, $qry)) {
-        header('Location:manageLeadSource.php');
-        exit;
-
+        $message = 'You do not have permission to add lead sources.';
     } else {
-        $_SESSION['lead_source_flash'] = 'Lead source could not be saved.';
-        header('Location:manageLeadSource.php');
-        exit;
-
+        $name = trim($_POST['name'] ?? '');
+        if ($name === '') {
+            $message = 'Lead source name is required.';
+        } else {
+            $check = mysqli_prepare($conn, 'SELECT id FROM lead_source_tbl WHERE LOWER(TRIM(name))=LOWER(?) LIMIT 1');
+            mysqli_stmt_bind_param($check, 's', $name);
+            mysqli_stmt_execute($check);
+            $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
+            mysqli_stmt_close($check);
+            if ($exists) {
+                $message = 'Lead source already exists.';
+            } else {
+                $insert = mysqli_prepare($conn, 'INSERT INTO lead_source_tbl (name) VALUES (?)');
+                mysqli_stmt_bind_param($insert, 's', $name);
+                $saved = mysqli_stmt_execute($insert);
+                mysqli_stmt_close($insert);
+                $message = $saved ? 'Lead source added successfully.' : 'Lead source could not be saved.';
+                $type = $saved ? 'success' : 'error';
+            }
+        }
     }
-
+    $_SESSION['lead_source_flash'] = $message;
+    $_SESSION['lead_source_flash_type'] = $type;
+    header('Location:manageLeadSource.php');
+    exit;
 }
-
-
 
 if (isset($_POST['addFollowupType'])) {
     oecrm_require_csrf();

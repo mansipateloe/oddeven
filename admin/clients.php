@@ -53,6 +53,25 @@ $stats = mysqli_fetch_assoc(
 $flash = $_SESSION["client_flash"] ?? "";
 unset($_SESSION["client_flash"]);
 ?>
+<style>
+.client-page .client-filters {
+    display: grid;
+    grid-template-columns: minmax(0, 360px) minmax(160px, 190px) max-content;
+    align-items: center;
+    gap: 10px;
+}
+.client-page .client-filters .form-control {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    height: 40px;
+}
+.client-page .client-filters select { color: #344054; background-color: #fff; }
+.client-page .client-filters > .btn { min-height: 40px; }
+@media (max-width: 700px) {
+    .client-page .client-filters { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
 <div id="page-wrapper" class="compact-admin-page client-page">
   <?php if ($flash): ?>
     <div class="alert alert-success"><?php echo oecrm_h($flash); ?></div>
@@ -103,9 +122,9 @@ unset($_SESSION["client_flash"]);
           class="form-control"
           name="q"
           value="<?php echo oecrm_h($q); ?>"
-          placeholder="Search client, code or email"
+          placeholder="Search client, code or email" aria-label="Search clients"
         >
-        <select class="form-control" name="status">
+        <select class="form-control" name="status" aria-label="Filter by client status" data-oecrm-native="1">
           <option value="">All statuses</option>
           <?php foreach (
               ["active", "prospect", "on_hold", "inactive", "closed"]
