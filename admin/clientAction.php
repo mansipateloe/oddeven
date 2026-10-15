@@ -128,6 +128,62 @@ function oecrm_bind_param_values(mysqli_stmt $stmt, array $values): void
     call_user_func_array([$stmt, 'bind_param'], array_merge([$types], $refs));
 }
 
+function oecrm_delete_client_document(mysqli $conn, int $clientId, int $documentId, int $companyId): bool
+{
+    if ($documentId <= 0) {
+        throw new RuntimeException('Please select a valid document.');
+    }
+
+    mysqli_begin_transaction($conn);
+    try {
+        $stmt = mysqli_prepare($conn, 'SELECT d.* FROM client_documents d JOIN clients c ON c.id=d.client_id WHERE d.id=? AND d.client_id=? AND c.company_id=? FOR UPDATE');
+        mysqli_stmt_bind_param($stmt, 'iii', $documentId, $clientId, $companyId);
+        mysqli_stmt_execute($stmt);
+        $document = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+        mysqli_stmt_close($stmt);
+        if (!$document) {
+            throw new RuntimeException('Document not found for this client.');
+        }
+
+        $storedName = (string) $document['stored_name'];
+        if ($storedName === '' || $storedName === '.' || $storedName === '..' || strpbrk($storedName, "/\\\0") !== false) {
+            throw new RuntimeException('Invalid stored document path.');
+        }
+        $root = realpath(__DIR__ . '/../storage/client_documents');
+        $path = $root ? $root . DIRECTORY_SEPARATOR . $storedName : null;
+        if ($path && (file_exists($path) || is_link($path))) {
+            $resolved = realpath($path);
+            if (!$resolved || dirname($resolved) !== $root || !is_file($resolved) || is_link($path)) {
+                throw new RuntimeException('Invalid stored document path.');
+            }
+        }
+
+        $stmt = mysqli_prepare($conn, 'DELETE FROM client_documents WHERE id=? AND client_id=?');
+        mysqli_stmt_bind_param($stmt, 'ii', $documentId, $clientId);
+        mysqli_stmt_execute($stmt);
+        if (mysqli_stmt_affected_rows($stmt) !== 1) {
+            throw new RuntimeException('Document could not be deleted. Please reload and try again.');
+        }
+        mysqli_stmt_close($stmt);
+        mysqli_commit($conn);
+    } catch (Throwable $exception) {
+        mysqli_rollback($conn);
+        throw $exception;
+    }
+
+    // Remove the file only after the database deletion has succeeded.
+    $fileRemoved = !$path || !is_file($path) || @unlink($path);
+    if (!$fileRemoved) {
+        error_log('Client document file cleanup failed for document ID ' . $documentId);
+    }
+    try {
+        oecrm_audit($conn, 'client_documents', 'delete', 'client_document', $documentId, 'Client document deleted', $document, ['client_id' => $clientId, 'file_removed' => $fileRemoved]);
+    } catch (Throwable $exception) {
+        error_log('Client document deletion audit failed for document ID ' . $documentId);
+    }
+    return $fileRemoved;
+}
+
 try {
     if ($action === 'archive_client') {
         $clientId = (int) ($_POST['client_id'] ?? 0);
@@ -312,6 +368,18 @@ try {
 
     if (!$check) {
         throw new RuntimeException('Client not found.');
+    }
+
+    if ($action === 'delete_document') {
+        oecrm_require_permission($conn, 'clients', 'edit');
+        $fileRemoved = oecrm_delete_client_document($conn, $clientId, (int) ($_POST['document_id'] ?? 0), $companyId);
+        if ($fileRemoved) {
+            $_SESSION['client_flash'] = 'Document deleted successfully.';
+        } else {
+            $_SESSION['client_error'] = 'Document removed from the client list, but the stored file could not be deleted. Please ask your administrator to check storage permissions.';
+        }
+        header('Location: clientProfile.php?id=' . $clientId);
+        exit;
     }
 
     if ($action === 'contact') {

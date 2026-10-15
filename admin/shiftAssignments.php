@@ -42,12 +42,12 @@ $history = mysqli_query(
     $error
 ); ?></div><?php endif; ?><div class="panel panel-default"><div class="panel-heading">Assign Employee Shift</div>
 <div class="panel-body"><form method="post" action="shiftAction.php" class="shift-assignment-form"><?php echo oecrm_csrf_field(); ?>
-<input type="hidden" name="action" value="assign"><input type="hidden" name="return_page" value="shiftAssignments.php"><div class="form-group"><label>Employee</label>
-<select class="" name="employee_id" required><option value="">Select employee</option><?php while (
+<input type="hidden" name="action" value="assign"><input type="hidden" name="return_page" value="shiftAssignments.php"><div class="form-group"><label for="shiftEmployeeSelect">Employee</label><input type="search" class="form-control shift-option-search" data-filter-select="shiftEmployeeSelect" placeholder="Search by employee name or code..." aria-label="Search employee by name or code" aria-controls="shiftEmployeeSelect" autocomplete="off">
+<select id="shiftEmployeeSelect" class="form-control" name="employee_id" data-oecrm-native="1" aria-describedby="shiftEmployeeSelect-status" required><option value="">Select employee</option><?php while (
     $e = mysqli_fetch_assoc($employees)
 ): ?><option value="<?php echo (int) $e["id"]; ?>"><?php echo oecrm_h(
     $e["employeeCode"] . " - " . $e["name"]
-); ?></option><?php endwhile; ?></select></div><div class="form-group"><label>Shift</label><select class="" name="shift_id" required><option value="">Select shift</option><?php while (
+); ?></option><?php endwhile; ?></select><small id="shiftEmployeeSelect-status" class="shift-search-status" role="status"></small></div><div class="form-group"><label for="shiftSelect">Shift</label><input type="search" class="form-control shift-option-search" data-filter-select="shiftSelect" placeholder="Search by shift name or time..." aria-label="Search shift by name or time" aria-controls="shiftSelect" autocomplete="off"><select id="shiftSelect" class="form-control" name="shift_id" data-oecrm-native="1" aria-describedby="shiftSelect-status" required><option value="">Select shift</option><?php while (
     $s = mysqli_fetch_assoc($shifts)
 ): ?><option value="<?php echo (int) $s["id"]; ?>"><?php echo oecrm_h(
     $s["name"] .
@@ -56,7 +56,7 @@ $history = mysqli_query(
         " - " .
         substr($s["end_time"], 0, 5) .
         ")"
-); ?></option><?php endwhile; ?></select></div><div class="form-group"><label>Effective From</label><input type="date" class="form-control" name="effective_from" required value="<?php echo date(
+); ?></option><?php endwhile; ?></select><small id="shiftSelect-status" class="shift-search-status" role="status"></small></div><div class="form-group"><label>Effective From</label><input type="date" class="form-control" name="effective_from" required value="<?php echo date(
     "Y-m-d"
 ); ?>"></div><div class="form-group"><label>Reason</label><input class="form-control" name="reason" placeholder="Assignment/change reason"></div><button class="btn btn-primary"><i class="fa fa-random"></i> Assign Shift</button></form></div></div>
 <div class="panel panel-default"><div class="panel-heading">Current Employee Shifts</div><div class="panel-body table-responsive"><table class="table foundation-table"><thead><tr><th>Employee</th><th>Current Shift</th><th>Time</th><th>Effective From</th></tr></thead><tbody><?php while (
@@ -87,4 +87,4 @@ while ($h = mysqli_fetch_assoc($history)): ?><tr><td><?php echo oecrm_h(
 ); ?></td><td><?php echo oecrm_h(
     $h["new_shift"]
 ); ?></td><td><?php echo oecrm_h($h["reason"]); ?></td></tr><?php endwhile;
-?></tbody></table></div></div></div><?php include "footer.php"; ?>
+?></tbody></table></div></div></div><?php include __DIR__ . "/shiftAssignmentSearch.php"; include "footer.php"; ?>

@@ -47,7 +47,7 @@ $history = mysqli_query(
       <form method="post" action="shiftAction.php" class="shift-assignment-form"><?php echo oecrm_csrf_field(); ?><input
           type="hidden" name="action" value="assign">
         <input type="hidden" name="return_page" value="activeShiftAssignments.php">
-        <div class="form-group"><label>Employee</label><input type="search" class="form-control shift-option-search" data-filter-select="shiftEmployeeSelect" placeholder="Search employee..." autocomplete="off"><select id="shiftEmployeeSelect" class="form-control" name="employee_id" required>
+        <div class="form-group"><label for="shiftEmployeeSelect">Employee</label><input type="search" class="form-control shift-option-search" data-filter-select="shiftEmployeeSelect" placeholder="Search by employee name or code..." aria-label="Search employee by name or code" aria-controls="shiftEmployeeSelect" autocomplete="off"><select id="shiftEmployeeSelect" class="form-control" name="employee_id" data-oecrm-native="1" aria-describedby="shiftEmployeeSelect-status" required>
             <option value="">Select active employee</option><?php while (
                 $employee = mysqli_fetch_assoc($employees)
             ): ?><option value="<?php echo (int) $employee[
@@ -55,8 +55,8 @@ $history = mysqli_query(
 ]; ?>"><?php echo oecrm_h(
     $employee["employeeCode"] . " - " . $employee["name"]
 ); ?></option><?php endwhile; ?>
-          </select></div>
-        <div class="form-group"><label>Shift</label><input type="search" class="form-control shift-option-search" data-filter-select="shiftSelect" placeholder="Search shift..." autocomplete="off"><select id="shiftSelect" class="form-control" name="shift_id" required>
+          </select><small id="shiftEmployeeSelect-status" class="shift-search-status" role="status"></small></div>
+        <div class="form-group"><label for="shiftSelect">Shift</label><input type="search" class="form-control shift-option-search" data-filter-select="shiftSelect" placeholder="Search by shift name or time..." aria-label="Search shift by name or time" aria-controls="shiftSelect" autocomplete="off"><select id="shiftSelect" class="form-control" name="shift_id" data-oecrm-native="1" aria-describedby="shiftSelect-status" required>
             <option value="">Select shift</option><?php while (
                 $shift = mysqli_fetch_assoc($shifts)
             ): ?><option value="<?php echo (int) $shift[
@@ -69,7 +69,7 @@ $history = mysqli_query(
         substr($shift["end_time"], 0, 5) .
         ")"
 ); ?></option><?php endwhile; ?>
-          </select></div>
+          </select><small id="shiftSelect-status" class="shift-search-status" role="status"></small></div>
         <div class="form-group"><label>Effective From</label><input type="date" class="form-control"
             name="effective_from" required value="<?php echo date(
                 "Y-m-d"
@@ -134,26 +134,5 @@ $history = mysqli_query(
     </div>
   </div>
 </div>
-<script>
-(function () {
-    document.querySelectorAll('.shift-option-search').forEach(function (search) {
-        var select = document.getElementById(search.getAttribute('data-filter-select'));
-        if (!select) return;
-
-        var options = Array.prototype.slice.call(select.options);
-        search.addEventListener('input', function () {
-            var term = search.value.trim().toLocaleLowerCase();
-            options.forEach(function (option, index) {
-                if (index === 0) return;
-                var matches = option.textContent.toLocaleLowerCase().indexOf(term) !== -1;
-                option.hidden = !matches;
-                option.disabled = !matches;
-            });
-            if (select.selectedOptions.length && select.selectedOptions[0].disabled) {
-                select.value = '';
-            }
-        });
-    });
-}());
-</script>
+<?php include __DIR__ . "/shiftAssignmentSearch.php"; ?>
 <?php include "footer.php"; ?>

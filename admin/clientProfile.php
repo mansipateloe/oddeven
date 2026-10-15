@@ -96,6 +96,12 @@ $flash = $_SESSION["client_flash"] ?? "";
 $error = $_SESSION["client_error"] ?? "";
 unset($_SESSION["client_flash"], $_SESSION["client_error"]);
 ?>
+<style>
+.client-profile-page .client-document-list > .client-document-item { padding: 12px 0; }
+.client-profile-page .client-document-list a { position: static; overflow-wrap: anywhere; }
+.client-profile-page .client-document-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+.client-profile-page .client-document-actions form { display: inline-flex; margin: 0; }
+</style>
 <div id="page-wrapper" class="compact-admin-page client-profile-page">
     <?php if ($flash): ?><div class="alert alert-success"><?php echo oecrm_h(
     $flash
@@ -315,22 +321,28 @@ $value
                 <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-files-o"></i> Documents</div><div class="panel-body"><form method="post" action="clientAction.php" enctype="multipart/form-data" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="document"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><select class="form-control" name="document_type"><?php foreach (
     ["contract", "nda", "tax", "proposal", "other"]
     as $value
-): ?><option><?php echo $value; ?></option><?php endforeach; ?></select><input class="form-control" name="title" placeholder="Document title" required><input type="file" class="form-control" name="document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required><button class="btn btn-default btn-block"><i class="fa fa-upload"></i> Upload Document</button></form><div class="client-mini-list"><?php while (
-    $item = mysqli_fetch_assoc($documents)
-): ?><div><?php $isImage = preg_match(
-    '/\.(jpe?g|png|gif|webp)$/i',
-    $item["original_name"] ?? $item["stored_name"]
-); ?><strong><a href="clientDocument.php?id=<?php echo (int) $item[
-    "id"
-]; ?>" target="_blank" rel="noopener"><?php echo oecrm_h(
-    $item["title"]
-); ?></a></strong><small><?php echo ucfirst(
-    $item["document_type"]
-); ?></small><a href="clientDocument.php?id=<?php echo (int) $item[
-    "id"
-]; ?>" target="_blank" rel="noopener" title="Open in new tab"><i class="fa fa-external-link"></i></a><a href="clientDocument.php?id=<?php echo (int) $item[
-    "id"
-]; ?>&download=1" title="Download"><i class="fa fa-download"></i></a></div><?php endwhile; ?></div></div></div>
+): ?><option><?php echo $value; ?></option><?php endforeach; ?></select><input class="form-control" name="title" placeholder="Document title" required><input type="file" class="form-control" name="document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required><button class="btn btn-default btn-block"><i class="fa fa-upload"></i> Upload Document</button></form><div class="client-mini-list client-document-list">
+    <?php $canDeleteDocuments = oecrm_can($conn, 'clients', 'edit'); ?>
+    <?php while ($item = mysqli_fetch_assoc($documents)): ?>
+        <div class="client-document-item">
+            <strong><a href="clientDocument.php?id=<?php echo (int) $item['id']; ?>" target="_blank" rel="noopener"><?php echo oecrm_h($item['title']); ?></a></strong>
+            <small><?php echo oecrm_h(ucfirst($item['document_type'])); ?></small>
+            <div class="client-document-actions">
+                <a class="btn btn-default btn-xs" href="clientDocument.php?id=<?php echo (int) $item['id']; ?>" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Open</a>
+                <a class="btn btn-default btn-xs" href="clientDocument.php?id=<?php echo (int) $item['id']; ?>&download=1"><i class="fa fa-download"></i> Download</a>
+                <?php if ($canDeleteDocuments): ?>
+                    <form method="post" action="clientAction.php" data-confirm="<?php echo oecrm_h('Delete document "' . $item['title'] . '"? This will permanently delete the uploaded file.'); ?>">
+                        <?php echo oecrm_csrf_field(); ?>
+                        <input type="hidden" name="action" value="delete_document">
+                        <input type="hidden" name="client_id" value="<?php echo (int) $id; ?>">
+                        <input type="hidden" name="document_id" value="<?php echo (int) $item['id']; ?>">
+                        <button type="submit" class="btn btn-danger btn-xs"><i class="fa fa-trash-o"></i> Delete</button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </div>
+    <?php endwhile; ?>
+</div></div></div>
                 <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-suitcase"></i> Linked Projects</div><div class="panel-body client-mini-list"><?php while (
                     $item = mysqli_fetch_assoc($projects)
                 ): ?><div><strong><?php echo oecrm_h(

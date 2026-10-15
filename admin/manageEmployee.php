@@ -1,4 +1,4 @@
-﻿ a<?php
+<?php
 require_once __DIR__ . '/../dbconnect.php';
 require_once __DIR__ . "/../security.php";
 require_once __DIR__ . "/../foundation.php";
@@ -58,6 +58,21 @@ mysqli_stmt_execute($stmt);
 $employees = mysqli_stmt_get_result($stmt);
 ?>
 
+<style>
+#employeeTable .employee-status-cell{vertical-align:middle}
+#employeeTable .employee-status-controls{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:112px}
+#employeeTable .employee-status-badge{display:inline-flex;align-items:center;gap:7px;min-width:85px;padding:5px 10px;border-radius:20px;font-size:12px;font-weight:700;line-height:18px;white-space:nowrap}
+#employeeTable .employee-status-badge i{font-size:7px}
+#employeeTable .employee-status-badge.is-active{background:#e8f6ee;color:#1b7445}
+#employeeTable .employee-status-badge.is-inactive{background:#f1f3f6;color:#596579}
+#employeeTable .employee-status-form{display:block;margin:0}
+#employeeTable .employee-status-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:108px;min-height:32px;padding:5px 10px;border:1px solid;border-radius:7px;background:#fff;font-size:12px;font-weight:600;line-height:20px;white-space:nowrap;cursor:pointer}
+#employeeTable .employee-status-action.is-deactivate{border-color:#f1c4c9;color:#b83744}
+#employeeTable .employee-status-action.is-deactivate:hover{background:#fff0f1;border-color:#dc9da5}
+#employeeTable .employee-status-action.is-activate{border-color:#b9deca;color:#1b7445}
+#employeeTable .employee-status-action.is-activate:hover{background:#e8f6ee;border-color:#88c5a5}
+#employeeTable .employee-status-action:focus-visible{outline:2px solid #696cff;outline-offset:2px}
+</style>
 <div id="page-wrapper" class="compact-admin-page">
     <?php if (!empty($_SESSION["employee_flash"])): ?>
         <div class="alert alert-success"><?php echo oecrm_h(
@@ -123,34 +138,26 @@ $employees = mysqli_stmt_get_result($stmt);
                                 <?php endif; ?>
                             </td>
                           
-                            <td>
-                                <span class="label <?php echo (int) $employee[
-                                    "status"
-                                ] === 0
-                                    ? "label-success"
-                                    : "label-default"; ?>">
-                                    <?php echo (int) $employee["status"] === 0
-                                        ? "Active"
-                                        : "Inactive"; ?>
-                                </span>
-                                <form method="post" class="employee-status-form" action="manageEmployee.php">
-                                    <?php echo oecrm_csrf_field(); ?>
-                                    <?php if (
-                                        (int) $employee["status"] === 0
-                                    ): ?>
-                                        <button type="submit" name="deactivebtn" value="<?php echo (int) $employee[
-                                            "id"
-                                        ]; ?>" class="btn btn-xs btn-default" title="Deactivate">
-                                            <i class="fa fa-ban"></i>
+                            <td class="employee-status-cell">
+                                <?php $isActive = (int) $employee['status'] === 0; ?>
+                                <div class="employee-status-controls">
+                                    <span class="employee-status-badge <?php echo $isActive ? 'is-active' : 'is-inactive'; ?>">
+                                        <i class="fa fa-circle" aria-hidden="true"></i>
+                                        <?php echo $isActive ? 'Active' : 'Inactive'; ?>
+                                    </span>
+                                    <form method="post" class="employee-status-form" action="manageEmployee.php">
+                                        <?php echo oecrm_csrf_field(); ?>
+                                        <button type="submit"
+                                            name="<?php echo $isActive ? 'deactivebtn' : 'activebtn'; ?>"
+                                            value="<?php echo (int) $employee['id']; ?>"
+                                            class="employee-status-action <?php echo $isActive ? 'is-deactivate' : 'is-activate'; ?>"
+                                            title="<?php echo $isActive ? 'Deactivate Employee' : 'Activate Employee'; ?>"
+                                            aria-label="<?php echo oecrm_h(($isActive ? 'Deactivate ' : 'Activate ') . $employee['name']); ?>">
+                                            <i class="fa <?php echo $isActive ? 'fa-ban' : 'fa-check'; ?>" aria-hidden="true"></i>
+                                            <?php echo $isActive ? 'Deactivate' : 'Activate'; ?>
                                         </button>
-                                    <?php else: ?>
-                                        <button type="submit" name="activebtn" value="<?php echo (int) $employee[
-                                            "id"
-                                        ]; ?>" class="btn btn-xs btn-success" title="Activate">
-                                            <i class="fa fa-check"></i>
-                                        </button>
-                                    <?php endif; ?>
-                                </form>
+                                    </form>
+                                </div>
                             </td>
                             <td class="employee-actions">
                                 <a class="icon-action" href="employeeProfile.php?id=<?php echo (int) $employee[

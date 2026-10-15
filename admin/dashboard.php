@@ -1,7 +1,38 @@
 <?php include 'header.php'; ?>
+<style>
+/* Keep dashboard card gutters independent of the shared Bootstrap spacing. */
+.admin-portal .preadmin-dashboard-page > .row { margin: 0 !important; }
+.admin-portal .preadmin-dashboard-page .dashboard-content {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+}
+.admin-portal .dashboard-content > .analytics-summary,
+.admin-portal .dashboard-content > .birthday-admin-alert,
+.admin-portal .dashboard-content > .bank_details,
+.admin-portal .dashboard-content > .row {
+    margin: 0 !important;
+}
+.admin-portal .dashboard-content > .row > .col-lg-12,
+.admin-portal .dashboard-content > .bank_details > .row > .col-lg-12 {
+    padding: 0 !important;
+}
+.admin-portal .dashboard-content > .bank_details > .row { margin: 0 !important; }
+.admin-portal .dashboard-content .panel { margin-bottom: 0 !important; }
+.admin-portal .dashboard-content .analytics-summary-row,
+.admin-portal .dashboard-content .finance-summary-grid { gap: 18px !important; }
+.admin-portal .dashboard-content .analytics-summary-row > [class*="col-"] {
+    min-width: 0;
+    margin-bottom: 0;
+}
+.admin-portal .dashboard-content .analytics-card { height: 100%; }
+.admin-portal .dashboard-content .finance-summary-grid { margin-bottom: 0; }
+.admin-portal .dashboard-content .finance-account-list { margin-top: 18px; }
+</style>
     <div id="page-wrapper" class="preadmin-dashboard-page">
         <div class="row">
-            <div class="col-lg-12">
+            <div class="col-lg-12 dashboard-content">
                 <?php
                     require_once __DIR__ . '/../birthdays.php';
                     $companyId = oecrm_current_company_id($conn);
@@ -32,7 +63,7 @@
                     </div>
                 <?php endif; ?>
                 <div class="topboxes analytics-summary">
-                    <div class="">
+                    <div class="analytics-summary-row">
                         <div class="col-lg-3 col-md-4 col-sm-6">
                             <a href="viewProject.php" class="analytics-card analytics-card-primary">
                                 <span class="analytics-icon"><i class="fa fa-folder-open-o"></i></span>
@@ -320,7 +351,7 @@
                     </div>
                 </div>
             </div>
-        </div>        <br>
+        </div>
         <!-- leave -->
         <?php
             $pendingLeaveCount = admin_dashboard_count($conn, "SELECT COUNT(*) AS total FROM leave_master lm LEFT JOIN employeestbl e ON e.id = lm.emp_id WHERE lm.is_approved = 0 AND e.company_id = " . (int) $companyId);
@@ -407,7 +438,6 @@
             </div>
         </div>
         <!-- end -->
-        <br>
         <div class="bank_details material-list-section">
             <div class="row">
                 <div class="col-lg-12">
@@ -461,7 +491,11 @@
                     </div>
                 </div>
             </div>
-        </div>    <script src="../vendor/jquery/jquery.min.js"></script>
+        </div>
+            </div>
+        </div>
+    </div>
+    <script src="../vendor/jquery/jquery.min.js"></script>
     <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
     <script src="../vendor/metisMenu/metisMenu.min.js"></script>
     <script src="../vendor/datatables/js/jquery.dataTables.min.js"></script>
