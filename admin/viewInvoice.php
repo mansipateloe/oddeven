@@ -1,6 +1,8 @@
 <?php
     include 'header.php';
 require_once __DIR__ . '/../invoiceStatus.php';
+require_once __DIR__ . '/../invoiceTax.php';
+oecrm_invoice_tax_schema($conn);
 ?>
     <style type="text/css">
         @media print {
@@ -165,6 +167,15 @@ require_once __DIR__ . '/../invoiceStatus.php';
                                             </div>
                                             <div class="col-md-6 text-right">
                                                 <div class="float-right">
+                                                    <?php if (($invoice_row['tax_mode'] ?? 'none') !== 'none'): ?>
+                                                        <p>Subtotal: <?php echo number_format((float) $invoice_row['subtotal_amount'], 2); ?></p>
+                                                        <?php foreach (['cgst', 'sgst', 'igst'] as $taxType): ?>
+                                                            <?php if ((float) $invoice_row[$taxType . '_percent'] > 0): ?>
+                                                                <p><?php echo strtoupper($taxType); ?> (<?php echo number_format((float) $invoice_row[$taxType . '_percent'], 2); ?>%):
+                                                                    <?php echo number_format((float) $invoice_row[$taxType . '_amount'], 2); ?></p>
+                                                            <?php endif; ?>
+                                                        <?php endforeach; ?>
+                                                    <?php endif; ?>
                                                     <h5>Total: <i class="mdi mdi-currency-inr"></i><?php echo number_format($invoice_row['total_amount'],2) ?></h5>
                                                 </div>
                                                 <div class="clearfix"></div>

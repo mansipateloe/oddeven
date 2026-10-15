@@ -21,6 +21,8 @@ function oecrm_invoice_numbering_schema($conn)
             }
         }
         mysqli_free_result($columns);
+        require_once __DIR__ . '/invoiceTax.php';
+        oecrm_invoice_tax_schema($conn);
         $ready = true;
     } catch (Throwable $e) {
         error_log('Invoice numbering initialization failed: ' . $e->getMessage());
@@ -182,6 +184,8 @@ function oecrm_create_numbered_legacy_invoice($conn, $companyId, $input)
     mysqli_stmt_close($stmt);
     if (!$validProject) throw new InvalidArgumentException('Please select a project belonging to the active company.');
 
+    $client = oecrm_invoice_project_client($conn, $project, $companyId);
+    $tax = oecrm_invoice_tax_calculate($total, $input, $client['is_indian_client']);
     mysqli_begin_transaction($conn);
     try {
         $number = oecrm_invoice_number_allocate($conn, $companyId);
@@ -196,6 +200,7 @@ function oecrm_create_numbered_legacy_invoice($conn, $companyId, $input)
             mysqli_stmt_execute($stmt);
         }
         mysqli_stmt_close($stmt);
+        oecrm_invoice_tax_save($conn, $id, $tax);
         mysqli_commit($conn);
         return ['id' => $id, 'number' => $number];
     } catch (Throwable $e) {

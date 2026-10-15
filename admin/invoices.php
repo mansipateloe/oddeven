@@ -86,6 +86,9 @@ if(isset($_POST['addInvoice'])){
 			}
         }else{
         }
+        $client = oecrm_invoice_project_client($conn, (int) $project_Id, oecrm_current_company_id($conn));
+        $tax = oecrm_invoice_tax_calculate($total_amount, $_POST, $client['is_indian_client']);
+        oecrm_invoice_tax_save($conn, $id, $tax);
         mysqli_commit($conn);
         header('Location:editInvoice.php?edit='.$id);
         exit;

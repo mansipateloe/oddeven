@@ -44,7 +44,7 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                         <div class="col-lg-3">
                                             <div class="form-group">
                                                 <label>Project Name :</label>
-                                                <select name="project_Id" id="project_Id" required onchange="getPerson(this.value)" class="form-control">
+                                                <select name="project_Id" id="project_Id" required  class="form-control">
                                                     <option value="">Select Project Name</option>
                                                     <?php
                                                         $qryProject = "SELECT * FROM projectstbl where company_id=$invoiceCompanyId AND status IN ('pending','inprogress') order by id desc";
@@ -114,7 +114,7 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                             <div class="col-lg-3">
                                                 <div class="form-group">
                                                     <label>Amount :</label>
-                                                    <input type="number" class="form-control" min="0" placeholder="Amount" name="amounts[]" required>
+                                                    <input type="number" class="form-control" min="0" step="0.01" placeholder="Amount" name="amounts[]" required>
                                                 </div>
                                             </div>
 
@@ -126,6 +126,7 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                             </div>
                                         </div>
                                     </div>
+                                    <?php oecrm_invoice_tax_fields(); ?>
                                     <div class="row">
                                         <div class="col-lg-6">
                                             <div class="form-group">
@@ -346,7 +347,7 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                                             }
                                                         }
 
-             ?></select></div></div><div class="col-lg-3"><div class="form-group"><label>Amount :</label><input type="number" class="form-control" min="0" placeholder="Amount" name="amounts[]" required></div></div><div class="col-lg-2"><div class="form-group"><label></label><button type="button" class="remove btn btn-sm btn-danger"><i class="fa fa-minus"></i></button></div></div></div>');
+             ?></select></div></div><div class="col-lg-3"><div class="form-group"><label>Amount :</label><input type="number" class="form-control" min="0" step="0.01" placeholder="Amount" name="amounts[]" required></div></div><div class="col-lg-2"><div class="form-group"><label></label><button type="button" class="remove btn btn-sm btn-danger"><i class="fa fa-minus"></i></button></div></div></div>');
         });
 
         $("body").on("click",".remove",function(){
@@ -385,4 +386,5 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
         });
     }
 </script>
+<script src="../js/oecrm-invoice-tax.js?v=20261015-2"></script>
 <?php include 'footer.php'; ?>

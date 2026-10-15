@@ -1,6 +1,8 @@
 <?php
     include 'header.php';
 require_once __DIR__ . '/../invoiceStatus.php';
+require_once __DIR__ . '/../invoiceTax.php';
+oecrm_invoice_tax_schema($conn);
 ?>
         <div id="page-wrapper">
             <?php oecrm_legacy_invoice_flash(); ?>
@@ -45,7 +47,7 @@ require_once __DIR__ . '/../invoiceStatus.php';
                                                         <div class="col-lg-3">
                                                             <div class="form-group">
                                                                 <label>Project Name :</label>
-                                                                <select name="project_Id" id="project_Id" onchange="getPerson(this.value)" required class="form-control">
+                                                                <select name="project_Id" id="project_Id"  required class="form-control">
                                                                     <option value="">Select Project Name</option>
                                                                     <?php
                                                                         $qryProject = "SELECT * FROM projectstbl where status = 'inprogress'";
@@ -130,7 +132,7 @@ require_once __DIR__ . '/../invoiceStatus.php';
                                                                         <div class="col-lg-3">
                                                                             <div class="form-group">
                                                                                 <label>Amount :</label>
-                                                                                <input type="number" class="form-control" min="0" placeholder="Amount" name="amounts[]" value="<?php echo $details_row['amount'] ?>" required>
+                                                                                <input type="number" class="form-control" min="0" step="0.01" placeholder="Amount" name="amounts[]" value="<?php echo $details_row['amount'] ?>" required>
                                                                             </div>
                                                                         </div>
                                                                         <?php
@@ -161,7 +163,8 @@ require_once __DIR__ . '/../invoiceStatus.php';
                                                             }
                                                         ?>
                                                     </div>
-                                                    <div class="row">
+                                                    <?php oecrm_invoice_tax_fields($edit_invoice); ?>
+                                    <div class="row">
                                                         <div class="col-lg-6">
                                                             <div class="form-group">
                                                                 <input type="submit" class="btn btn-primary viewreport" name="updateInvoice" value="Update Invoice">
@@ -252,7 +255,7 @@ require_once __DIR__ . '/../invoiceStatus.php';
     $(document).ready(function(){
         /*
         $("#add_more").click(function(){
-            $("#perticulars_div").append('<div class="perticulars"><div class="col-lg-6"><div class="form-group"><label>Perticular :</label><input type="text" class="form-control" placeholder="Perticular" name="perticulars[]" required></div></div><div class="col-lg-4"><div class="form-group"><label>Amount :</label><input type="number" class="form-control" min="0" placeholder="Amount" name="amounts[]" required></div></div><div class="col-lg-2"><div class="form-group"><label></label><button type="button" class="remove btn btn-sm btn-danger"><i class="fa fa-minus"></i></button></div></div></div>');
+            $("#perticulars_div").append('<div class="perticulars"><div class="col-lg-6"><div class="form-group"><label>Perticular :</label><input type="text" class="form-control" placeholder="Perticular" name="perticulars[]" required></div></div><div class="col-lg-4"><div class="form-group"><label>Amount :</label><input type="number" class="form-control" min="0" step="0.01" placeholder="Amount" name="amounts[]" required></div></div><div class="col-lg-2"><div class="form-group"><label></label><button type="button" class="remove btn btn-sm btn-danger"><i class="fa fa-minus"></i></button></div></div></div>');
         });
         */
         $("#add_more").click(function(){
@@ -266,7 +269,7 @@ require_once __DIR__ . '/../invoiceStatus.php';
                                                             }
                                                         }
 
-             ?></select></div></div><div class="col-lg-3"><div class="form-group"><label>Amount :</label><input type="number" class="form-control" min="0" placeholder="Amount" name="amounts[]" required></div></div><div class="col-lg-2"><div class="form-group"><label></label><button type="button" class="remove btn btn-sm btn-danger"><i class="fa fa-minus"></i></button></div></div></div>');
+             ?></select></div></div><div class="col-lg-3"><div class="form-group"><label>Amount :</label><input type="number" class="form-control" min="0" step="0.01" placeholder="Amount" name="amounts[]" required></div></div><div class="col-lg-2"><div class="form-group"><label></label><button type="button" class="remove btn btn-sm btn-danger"><i class="fa fa-minus"></i></button></div></div></div>');
         });
         $("body").on("click",".remove",function(){
             $(this).parents(".perticulars").remove();
@@ -304,4 +307,5 @@ require_once __DIR__ . '/../invoiceStatus.php';
         });
     }
 </script>
+<script src="../js/oecrm-invoice-tax.js?v=20261015-2"></script>
 <?php include 'footer.php'; ?>

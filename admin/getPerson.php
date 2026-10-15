@@ -1,22 +1,22 @@
 <?php
-    require_once __DIR__ . '/../dbconnect.php';
-    require_once __DIR__ . '/../security.php';
-    require_once __DIR__ . '/../foundation.php';
-    oecrm_require_admin_login();
-    oecrm_require_permission($conn, 'projects', 'view');
-    $proj_id = oecrm_int_param($_POST, 'proj_id');
-    $data = new stdclass();
-
-    if (isset($_POST['proj_id'])) {
-        $project_sql = "select * from projectstbl where id = $proj_id limit 1" ;
-
-        $project_result = mysqli_query($conn, $project_sql);
-
-        if (mysqli_num_rows($project_result) > 0) {
-            $project_row = mysqli_fetch_assoc($project_result);
-            $data->customerName = $project_row['customerName'];
-        }
-        
-    }
-    echo json_encode(array("data"=>$data));
-?>
+require_once __DIR__ . '/../dbconnect.php';
+require_once __DIR__ . '/../security.php';
+require_once __DIR__ . '/../foundation.php';
+require_once __DIR__ . '/../invoiceTax.php';
+oecrm_require_admin_login();
+if (!oecrm_can($conn, 'projects', 'view') && !oecrm_can($conn, 'finance', 'view') && !oecrm_can($conn, 'finance', 'create') && !oecrm_can($conn, 'finance', 'edit')) {
+    http_response_code(403);
+    exit;
+}
+header('Content-Type: application/json; charset=utf-8');
+try {
+    $client = oecrm_invoice_project_client($conn, (int) ($_POST['proj_id'] ?? 0), oecrm_current_company_id($conn));
+    echo json_encode(['data' => [
+        'customerName' => $client['display_name'] ?: $client['customerName'],
+        'client_country' => $client['country'],
+        'is_indian_client' => $client['is_indian_client'],
+    ]]);
+} catch (InvalidArgumentException $e) {
+    http_response_code(404);
+    echo json_encode(['error' => $e->getMessage()]);
+}
