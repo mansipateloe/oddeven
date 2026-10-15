@@ -1,4 +1,16 @@
-<?php include 'header.php'; ?>
+<?php
+require_once __DIR__ . '/../dbconnect.php';
+require_once __DIR__ . '/../security.php';
+require_once __DIR__ . '/../foundation.php';
+oecrm_require_admin_login();
+if (!oecrm_can($conn, 'finance', 'create') && !oecrm_legacy_can($conn, 'expense')) {
+    http_response_code(403);
+    exit('You do not have permission to manage expenses.');
+}
+require_once __DIR__ . '/../expenseBanks.php';
+oecrm_expense_bank_schema($conn);
+include 'header.php';
+?>
 <div id="page-wrapper">
     <div class="row">
         <br>
@@ -9,6 +21,7 @@
                 <?php endif; ?>
                 <form role="form" method="POST">
                     <?php echo oecrm_csrf_field(); ?>
+                    <?php oecrm_expense_bank_field($conn); ?>
                     <div class="row">
                         <div class="col-lg-6">
                             <div class="form-group">
@@ -39,7 +52,7 @@
                         <div class="col-lg-6">
                             <div class="form-group">
                                 <label>Amount :</label>
-                                <input type="number" step="0.01" min="0" class="form-control" placeholder="Amount" name="amount" required>
+                                <input type="number" step="0.01" min="0.01" max="999999999999.99" class="form-control" placeholder="Amount" name="amount" required>
                             </div>
                         </div>
                     </div>

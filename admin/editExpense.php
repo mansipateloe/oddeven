@@ -1,4 +1,16 @@
-<?php include 'header.php'; ?>
+<?php
+require_once __DIR__ . '/../dbconnect.php';
+require_once __DIR__ . '/../security.php';
+require_once __DIR__ . '/../foundation.php';
+oecrm_require_admin_login();
+if (!oecrm_can($conn, 'finance', 'edit') && !oecrm_legacy_can($conn, 'expense')) {
+    http_response_code(403);
+    exit('You do not have permission to manage expenses.');
+}
+require_once __DIR__ . '/../expenseBanks.php';
+oecrm_expense_bank_schema($conn);
+include 'header.php';
+?>
 <?php
 $id = (int) ($_GET['edit'] ?? 0);
 $stmt = mysqli_prepare($conn, 'SELECT * FROM expense WHERE expense_id=? LIMIT 1');
@@ -24,6 +36,7 @@ if (!$rowView) {
                     <div class="dataTablesbox2">
                         <form role="form" method="POST">
                             <?php echo oecrm_csrf_field(); ?>
+                            <?php oecrm_expense_bank_field($conn, (int) ($rowView['bank_id'] ?? 0)); ?>
                             <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
                             <div class="row">
                                 <div class="col-lg-6"><div class="form-group"><label>Date :</label><input type="date" class="form-control" name="expensedate" value="<?php echo oecrm_h($rowView['expensedate']); ?>" required></div></div>
@@ -45,7 +58,7 @@ if (!$rowView) {
                                     </div>
                                 </div>
                             </div>
-                            <div class="row"><div class="col-lg-6"><div class="form-group"><label>Amount :</label><input type="number" step="0.01" min="0" class="form-control" value="<?php echo oecrm_h($rowView['amount']); ?>" placeholder="Amount" name="amount" required></div></div></div>
+                            <div class="row"><div class="col-lg-6"><div class="form-group"><label>Amount :</label><input type="number" step="0.01" min="0.01" max="999999999999.99" class="form-control" value="<?php echo oecrm_h($rowView['amount']); ?>" placeholder="Amount" name="amount" required></div></div></div>
                             <div class="row"><div class="col-lg-6"><div class="form-group"><label>Description :</label><textarea class="form-control" placeholder="Description" rows="5" name="description" required><?php echo oecrm_h($rowView['description']); ?></textarea></div></div></div>
                             <div class="row"><div class="col-lg-6"><div class="form-group"><input type="submit" class="btn btn-primary viewreport" name="updateExpense" value="Update Expense"> <a class="btn btn-danger cancel_btn" href="viewexpense.php">Cancel</a></div></div></div>
                         </form>

@@ -49,6 +49,10 @@ function oecrm_bank_details_require($conn, $action = "view")
     }
 }
 
+oecrm_bank_details_require($conn, "view");
+require_once __DIR__ . "/../expenseBanks.php";
+oecrm_expense_bank_schema($conn);
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     oecrm_require_csrf();
     $action = (string) ($_POST["action"] ?? "");
@@ -68,9 +72,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             oecrm_bank_details_redirect($id);
         }
 
+        $accountNumber = trim((string) ($_POST["account_number"] ?? ""));
+        $ifscCode = strtoupper(trim((string) ($_POST["ifsc_code"] ?? "")));
+        $openingBalance = trim((string) ($_POST["opening_balance"] ?? "0"));
+        if ($openingBalance === "") {
+            $openingBalance = "0";
+        }
+        if ($accountNumber !== "" && !preg_match('/^[0-9]{1,50}$/D', $accountNumber)) {
+            oecrm_bank_details_flash("danger", "Account number must contain only digits (maximum 50).");
+            oecrm_bank_details_redirect($id);
+        }
+        if ($ifscCode !== "" && !preg_match('/^[A-Z]{4}0[A-Z0-9]{6}$/D', $ifscCode)) {
+            oecrm_bank_details_flash("danger", "Enter a valid 11-character IFSC code, for example SBIN0001234.");
+            oecrm_bank_details_redirect($id);
+        }
+        if (!preg_match('/^-?[0-9]{1,12}(\.[0-9]{1,2})?$/D', $openingBalance)) {
+            oecrm_bank_details_flash("danger", "Opening balance must be a valid amount with up to 12 whole digits and 2 decimal places.");
+            oecrm_bank_details_redirect($id);
+        }
+        $bankDetails = [
+            "bank_name" => $bankName,
+            "account_number" => $accountNumber,
+            "ifsc_code" => $ifscCode,
+            "opening_balance" => $openingBalance,
+        ];
+
         $old = null;
         if ($isEdit) {
-            $oldStmt = mysqli_prepare($conn, "SELECT bank_id,bank_name FROM bank_details WHERE bank_id=? LIMIT 1");
+            $oldStmt = mysqli_prepare($conn, "SELECT bank_id,bank_name,account_number,ifsc_code,opening_balance FROM bank_details WHERE bank_id=? LIMIT 1");
             mysqli_stmt_bind_param($oldStmt, "i", $id);
             mysqli_stmt_execute($oldStmt);
             $old = mysqli_fetch_assoc(mysqli_stmt_get_result($oldStmt));
@@ -100,21 +129,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         if ($isEdit) {
-            $stmt = mysqli_prepare($conn, "UPDATE bank_details SET bank_name=? WHERE bank_id=?");
-            mysqli_stmt_bind_param($stmt, "si", $bankName, $id);
+            $stmt = mysqli_prepare($conn, "UPDATE bank_details SET bank_name=?,account_number=?,ifsc_code=?,opening_balance=? WHERE bank_id=?");
+            mysqli_stmt_bind_param($stmt, "ssssi", $bankName, $accountNumber, $ifscCode, $openingBalance, $id);
             $saved = mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
             if (!$saved) {
                 oecrm_bank_details_flash("danger", "Bank record could not be updated.");
                 oecrm_bank_details_redirect($id);
             }
-            oecrm_audit($conn, "finance", "edit", "bank_details", $id, "Bank details updated", $old, ["bank_name" => $bankName]);
+            oecrm_audit($conn, "finance", "edit", "bank_details", $id, "Bank details updated", $old, $bankDetails);
             oecrm_bank_details_flash("success", "Bank record updated successfully.");
             oecrm_bank_details_redirect();
         }
 
-        $stmt = mysqli_prepare($conn, "INSERT INTO bank_details(bank_name) VALUES(?)");
-        mysqli_stmt_bind_param($stmt, "s", $bankName);
+        $stmt = mysqli_prepare($conn, "INSERT INTO bank_details(bank_name,account_number,ifsc_code,opening_balance) VALUES(?,?,?,?)");
+        mysqli_stmt_bind_param($stmt, "ssss", $bankName, $accountNumber, $ifscCode, $openingBalance);
         $saved = mysqli_stmt_execute($stmt);
         $newId = (int) mysqli_insert_id($conn);
         mysqli_stmt_close($stmt);
@@ -123,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             oecrm_bank_details_redirect();
         }
 
-        oecrm_audit($conn, "finance", "create", "bank_details", $newId, "Bank details created", null, ["bank_name" => $bankName]);
+        oecrm_audit($conn, "finance", "create", "bank_details", $newId, "Bank details created", null, $bankDetails);
         oecrm_bank_details_flash("success", "Bank record added successfully.");
         oecrm_bank_details_redirect();
     }
@@ -136,7 +165,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             oecrm_bank_details_redirect();
         }
 
-        $oldStmt = mysqli_prepare($conn, "SELECT bank_id,bank_name FROM bank_details WHERE bank_id=? LIMIT 1");
+        $oldStmt = mysqli_prepare($conn, "SELECT bank_id,bank_name,account_number,ifsc_code,opening_balance FROM bank_details WHERE bank_id=? LIMIT 1");
         mysqli_stmt_bind_param($oldStmt, "i", $id);
         mysqli_stmt_execute($oldStmt);
         $old = mysqli_fetch_assoc(mysqli_stmt_get_result($oldStmt));
@@ -146,14 +175,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             oecrm_bank_details_redirect();
         }
 
-        $deleteStmt = mysqli_prepare($conn, "DELETE FROM bank_details WHERE bank_id=?");
+        $deleteStmt = mysqli_prepare($conn, "DELETE FROM bank_details WHERE bank_id=? AND NOT EXISTS (SELECT 1 FROM expense WHERE expense.bank_id=bank_details.bank_id)");
         mysqli_stmt_bind_param($deleteStmt, "i", $id);
         $deleted = mysqli_stmt_execute($deleteStmt);
         $affected = mysqli_stmt_affected_rows($deleteStmt);
         mysqli_stmt_close($deleteStmt);
 
         if (!$deleted || $affected < 1) {
-            oecrm_bank_details_flash("danger", "Bank record could not be deleted.");
+            oecrm_bank_details_flash("danger", "Bank could not be deleted. Banks linked to expenses must be kept for balance history.");
             oecrm_bank_details_redirect();
         }
 
@@ -165,10 +194,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 oecrm_bank_details_require($conn, "view");
 $editId = (int) ($_GET["edit"] ?? 0);
-$bank = ["bank_id" => 0, "bank_name" => ""];
+$bank = ["bank_id" => 0, "bank_name" => "", "account_number" => "", "ifsc_code" => "", "opening_balance" => "0.00"];
 if ($editId > 0) {
     oecrm_bank_details_require($conn, "edit");
-    $editStmt = mysqli_prepare($conn, "SELECT bank_id,bank_name FROM bank_details WHERE bank_id=? LIMIT 1");
+    $editStmt = mysqli_prepare($conn, "SELECT bank_id,bank_name,account_number,ifsc_code,opening_balance FROM bank_details WHERE bank_id=? LIMIT 1");
     mysqli_stmt_bind_param($editStmt, "i", $editId);
     mysqli_stmt_execute($editStmt);
     $bank = mysqli_fetch_assoc(mysqli_stmt_get_result($editStmt));
@@ -183,7 +212,7 @@ $flash = $_SESSION["bank_details_flash"] ?? null;
 unset($_SESSION["bank_details_flash"]);
 
 include "header.php";
-$bankRows = mysqli_query($conn, "SELECT bank_id,bank_name FROM bank_details ORDER BY bank_name");
+$bankRows = mysqli_query($conn, oecrm_expense_bank_list_sql());
 ?>
 <div id="page-wrapper" class="compact-admin-page">
     <?php if (!empty($flash["message"])): ?>
@@ -197,7 +226,7 @@ $bankRows = mysqli_query($conn, "SELECT bank_id,bank_name FROM bank_details ORDE
         <div class="col-lg-12">
             <h4>Manage Bank Details</h4>
             <div class="dataTablesbox2 dataTablesbox">
-                <form role="form" method="POST" action="addBankDetails.php" novalidate>
+                <form role="form" method="POST" action="addBankDetails.php">
                     <?php echo oecrm_csrf_field(); ?>
                     <input type="hidden" name="action" value="save_bank_details">
                     <input type="hidden" name="id" value="<?php echo (int) $bank["bank_id"]; ?>">
@@ -208,7 +237,25 @@ $bankRows = mysqli_query($conn, "SELECT bank_id,bank_name FROM bank_details ORDE
                                 <input type="text" class="form-control" name="bank_name" value="<?php echo oecrm_h($bank["bank_name"]); ?>" required maxlength="255">
                             </div>
                         </div>
-                        <div class="col-lg-3" align="right">
+                        <div class="col-lg-3">
+                            <label for="account_number">Bank Account Number</label>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="account_number" name="account_number" value="<?php echo oecrm_h($bank["account_number"]); ?>" maxlength="50" inputmode="numeric" pattern="[0-9]{1,50}" title="Enter up to 50 digits">
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="ifsc_code">IFSC Code</label>
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="ifsc_code" name="ifsc_code" value="<?php echo oecrm_h($bank["ifsc_code"]); ?>" maxlength="11" pattern="[A-Za-z]{4}0[A-Za-z0-9]{6}" title="Enter a valid 11-character IFSC code" placeholder="SBIN0001234" style="text-transform:uppercase;">
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <label for="opening_balance">Opening Balance</label>
+                            <div class="form-group">
+                                <input type="number" class="form-control" id="opening_balance" name="opening_balance" value="<?php echo oecrm_h($bank["opening_balance"]); ?>" step="0.01" min="-999999999999.99" max="999999999999.99" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-12" align="right">
                             <label>&nbsp;</label>
                             <div class="form-group">
                                 <button type="submit" class="btn btn-primary viewreport"><i class="fa fa-save"></i> <?php echo $editId > 0 ? "Update" : "Add"; ?></button>
@@ -235,6 +282,10 @@ $bankRows = mysqli_query($conn, "SELECT bank_id,bank_name FROM bank_details ORDE
                         <thead>
                             <tr>
                                 <th>Name</th>
+                                <th>Account Number</th>
+                                <th>IFSC Code</th>
+                                <th class="text-right">Opening Balance</th>
+                                <th class="text-right">Current Balance</th>
                                 <th class="text-center">Action</th>
                             </tr>
                         </thead>
@@ -243,6 +294,10 @@ $bankRows = mysqli_query($conn, "SELECT bank_id,bank_name FROM bank_details ORDE
                                 <?php while ($row = mysqli_fetch_assoc($bankRows)): ?>
                                     <tr>
                                         <td><?php echo oecrm_h($row["bank_name"]); ?></td>
+                                        <td><?php echo oecrm_h($row["account_number"]); ?></td>
+                                        <td><?php echo oecrm_h($row["ifsc_code"]); ?></td>
+                                        <td class="text-right"><?php echo number_format((float) $row["opening_balance"], 2); ?></td>
+                                        <td class="text-right"><?php echo number_format((float) $row["current_balance"], 2); ?></td>
                                         <td class="center text-center">
                                             <?php if (oecrm_bank_details_can_manage($conn, "edit")): ?>
                                                 <a class="oecrm-action-btn" href="addBankDetails.php?edit=<?php echo (int) $row["bank_id"]; ?>" title="Edit"><i class="fa fa-pencil"></i></a>
@@ -259,7 +314,7 @@ $bankRows = mysqli_query($conn, "SELECT bank_id,bank_name FROM bank_details ORDE
                                     </tr>
                                 <?php endwhile; ?>
                             <?php else: ?>
-                                <tr><td colspan="2" class="text-center">No bank records found.</td></tr>
+                                <tr><td colspan="6" class="text-center">No bank records found.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>

@@ -1,4 +1,4 @@
-﻿<?php require_once __DIR__ . '/../security.php';
+<?php require_once __DIR__ . '/../security.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();
 }
@@ -869,101 +869,44 @@ if (isset($_POST['updateDeposit'])) {
 
 <?php
 
-if (isset($_POST['addExpense'])) {
-    if (!oecrm_can($conn, 'finance', 'create') && !oecrm_legacy_can($conn, 'expense')) {
+if (isset($_POST['addExpense']) || isset($_POST['updateExpense'])) {
+    $isEdit = isset($_POST['updateExpense']);
+    if (!oecrm_can($conn, 'finance', $isEdit ? 'edit' : 'create') && !oecrm_legacy_can($conn, 'expense')) {
         http_response_code(403);
-        exit('You do not have permission to add expenses.');
+        exit('You do not have permission to manage expenses.');
     }
-
-    $expensedate = trim((string) ($_POST['expensedate'] ?? ''));
-    $expenseCategory = (int) ($_POST['expenseCategory'] ?? 0);
-    $amount = trim((string) ($_POST['amount'] ?? ''));
-    $description = trim((string) ($_POST['description'] ?? ''));
-
-    if ($expensedate === '' || $expenseCategory <= 0 || $amount === '' || $description === '' || !is_numeric($amount)) {
-        $_SESSION['expense_flash'] = 'Date, category, valid amount and description are required.';
-        header('Location:viewexpense.php');
-        exit;
+    require_once __DIR__ . '/../expenseBanks.php';
+    oecrm_expense_bank_schema($conn);
+    $id = $isEdit ? (int) ($_POST['id'] ?? $_GET['edit'] ?? 0) : 0;
+    $redirect = $isEdit && $id > 0 ? 'editExpense.php?edit=' . $id : 'viewexpense.php';
+    try {
+        if ($isEdit && $id <= 0) {
+            throw new InvalidArgumentException('Invalid expense selected.');
+        }
+        oecrm_save_bank_expense(
+            $conn,
+            $id,
+            (int) ($_POST['expenseCategory'] ?? $_POST['expenceCategory'] ?? $_POST['expencecategory'] ?? 0),
+            trim((string) ($_POST['expensedate'] ?? '')),
+            trim((string) ($_POST['amount'] ?? '')),
+            trim((string) ($_POST['description'] ?? '')),
+            (int) ($_POST['bank_id'] ?? 0)
+        );
+        $_SESSION['expense_flash'] = 'Expense saved. The selected bank balance has been updated.';
+        $redirect = 'viewexpense.php';
+    } catch (InvalidArgumentException $e) {
+        $_SESSION['expense_flash'] = $e->getMessage();
+    } catch (Throwable $e) {
+        error_log('Bank expense save failed: ' . $e->getMessage());
+        $_SESSION['expense_flash'] = 'Expense could not be saved. No bank balance was changed.';
     }
-
-    $categoryStmt = mysqli_prepare($conn, 'SELECT category_id FROM expencecategory WHERE category_id=? LIMIT 1');
-    mysqli_stmt_bind_param($categoryStmt, 'i', $expenseCategory);
-    mysqli_stmt_execute($categoryStmt);
-    $validCategory = mysqli_fetch_assoc(mysqli_stmt_get_result($categoryStmt));
-    mysqli_stmt_close($categoryStmt);
-
-    if (!$validCategory) {
-        $_SESSION['expense_flash'] = 'Please select a valid expense category.';
-        header('Location:viewexpense.php');
-        exit;
-    }
-
-    $stmt = mysqli_prepare($conn, 'INSERT INTO expense (expenseCategory, expensedate, amount, description) VALUES (?, ?, ?, ?)');
-    mysqli_stmt_bind_param($stmt, 'isss', $expenseCategory, $expensedate, $amount, $description);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
-
-    header('location:viewexpense.php');
+    header('Location:' . $redirect);
     exit;
 }
 
 ?>
 
-
-
 <?php
-
-if (isset($_POST['updateExpense'])) {
-    if (!oecrm_can($conn, 'finance', 'edit') && !oecrm_legacy_can($conn, 'expense')) {
-        http_response_code(403);
-        exit('You do not have permission to update expenses.');
-    }
-
-    $id = (int) ($_POST['id'] ?? $_GET['edit'] ?? 0);
-    $expensedate = trim((string) ($_POST['expensedate'] ?? ''));
-    $expenseCategory = (int) ($_POST['expenseCategory'] ?? $_POST['expenceCategory'] ?? $_POST['expencecategory'] ?? 0);
-    $amount = trim((string) ($_POST['amount'] ?? ''));
-    $description = trim((string) ($_POST['description'] ?? ''));
-
-    if ($id <= 0 || $expensedate === '' || $expenseCategory <= 0 || $amount === '' || $description === '' || !is_numeric($amount)) {
-        $_SESSION['expense_flash'] = 'Date, category, valid amount and description are required.';
-        header('Location:' . ($id > 0 ? 'editExpense.php?edit=' . $id : 'viewexpense.php'));
-        exit;
-    }
-
-    $categoryStmt = mysqli_prepare($conn, 'SELECT category_id FROM expencecategory WHERE category_id=? LIMIT 1');
-    mysqli_stmt_bind_param($categoryStmt, 'i', $expenseCategory);
-    mysqli_stmt_execute($categoryStmt);
-    $validCategory = mysqli_fetch_assoc(mysqli_stmt_get_result($categoryStmt));
-    mysqli_stmt_close($categoryStmt);
-
-    if (!$validCategory) {
-        $_SESSION['expense_flash'] = 'Please select a valid expense category.';
-        header('Location:editExpense.php?edit=' . $id);
-        exit;
-    }
-
-    $stmt = mysqli_prepare($conn, 'UPDATE expense SET expenseCategory=?, expensedate=?, amount=?, description=? WHERE expense_id=?');
-    mysqli_stmt_bind_param($stmt, 'isssi', $expenseCategory, $expensedate, $amount, $description, $id);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_close($stmt);
-
-    header('location:viewexpense.php');
-    exit;
-}
-
-
-
-?>
-
-
-
-
-
-
-
-<?php
-
 if (isset($_POST['updateEmployee'])) {
 
     $id = $_GET['edit'];
@@ -1610,23 +1553,13 @@ if (isset($_POST['updateBankDetails'])) {
 
 
 if (isset($_POST['deleteBankDetails'])) {
-    oecrm_require_csrf();
-    oecrm_require_permission($conn, 'finance', 'delete');
-    $id = (int)($_POST['deleteBankDetails'] ?? 0);
-    $row = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM bank_details WHERE bank_id=' . (int) $id));
-    if (!$row) {
-        http_response_code(404);
-        exit('Bank record not found.');
-    }
-    $deleteQry = "delete from bank_details where bank_id=$id";
-    mysqli_query($conn, $deleteQry);
-    $_SESSION['bank_details_flash'] = 'Bank deleted successfully.';
-    header("location: addBankDetails.php");
+    $_SESSION['bank_details_flash'] = [
+        'type' => 'warning',
+        'message' => 'Please use the delete button on the bank details page.',
+    ];
+    header('Location:addBankDetails.php');
     exit;
 }
-
-
-
 if (isset($_POST['addCountry'])) {
     oecrm_require_csrf();
     $country_code = trim((string) ($_POST['country_code'] ?? ''));
