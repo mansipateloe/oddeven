@@ -738,6 +738,11 @@ $deposit_date = date('d-m-Y');
 
 
 if (isset($_POST['addDeposit'])) {
+    oecrm_require_permission($conn, 'finance', 'create');
+    require_once __DIR__ . '/../invoiceStatus.php';
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    mysqli_begin_transaction($conn);
+    try {
 
     $deposit_date = $_POST['deposit_date'];
 
@@ -747,7 +752,8 @@ if (isset($_POST['addDeposit'])) {
 
     $description = $_POST['description'];
 
-    $invoice_id = $_POST['invoice_id'];
+    $invoice_id = (int) ($_POST['invoice_id'] ?? 0);
+    oecrm_legacy_invoice_payment_guard($conn, $invoice_id);
 
     $subject = $_POST['subject'];
 
@@ -777,7 +783,7 @@ if (isset($_POST['addDeposit'])) {
 
    $qryDeposit = "INSERT INTO deposit (deposit_date, account_Id, project_Id, subject, description, amount, invoice_id,tax_amount, approx_amount) VALUES ('$deposit_date', '$account_Id', '$project_Id', '$subject', '$description', '$amount', '$invoice_id', '$tax_amount', '$approx_amount')";
 
-   
+
 
     if (mysqli_query($conn, $qryDeposit)) {
 
@@ -797,7 +803,7 @@ if (isset($_POST['addDeposit'])) {
 
         }
 
-        $final_balance = $balance + $amount ; 
+        $final_balance = $balance + $amount ;
 
         $editAccount = "update account set balance='$final_balance' where account_id=" . $account_Id;
 
@@ -811,15 +817,32 @@ if (isset($_POST['addDeposit'])) {
 
 
 
+        mysqli_commit($conn);
         header('Location:addDeposit.php');
+        exit;
 
     }
 
+    } catch (Throwable $e) {
+        mysqli_rollback($conn);
+        error_log('Invoice deposit save failed: ' . $e->getMessage());
+        $_SESSION['invoice_flash'] = [
+            'type' => 'warning',
+            'message' => $e instanceof InvalidArgumentException ? $e->getMessage() : 'Deposit could not be saved. Please try again.',
+        ];
+        header('Location:addInvoice.php');
+        exit;
+    }
 }
 
 
 
 if (isset($_POST['updateDeposit'])) {
+    oecrm_require_permission($conn, 'finance', 'edit');
+    require_once __DIR__ . '/../invoiceStatus.php';
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+    mysqli_begin_transaction($conn);
+    try {
 
     $id = $_POST['id'];
 
@@ -831,7 +854,8 @@ if (isset($_POST['updateDeposit'])) {
 
     $description = $_POST['description'];
 
-    $invoice_id = $_POST['invoice_id'];
+    $invoice_id = (int) ($_POST['invoice_id'] ?? 0);
+    oecrm_legacy_invoice_payment_guard($conn, $invoice_id, false);
 
     $subject = $_POST['subject'];
 
@@ -859,10 +883,22 @@ if (isset($_POST['updateDeposit'])) {
 
     if (mysqli_query($conn, $editQryDeposit)) {
 
+        mysqli_commit($conn);
         header('Location:addDeposit.php');
+        exit;
 
     }
 
+    } catch (Throwable $e) {
+        mysqli_rollback($conn);
+        error_log('Invoice deposit save failed: ' . $e->getMessage());
+        $_SESSION['invoice_flash'] = [
+            'type' => 'warning',
+            'message' => $e instanceof InvalidArgumentException ? $e->getMessage() : 'Deposit could not be saved. Please try again.',
+        ];
+        header('Location:addInvoice.php');
+        exit;
+    }
 }
 
 ?>

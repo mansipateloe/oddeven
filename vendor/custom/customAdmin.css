@@ -3174,3 +3174,13 @@ body #page-wrapper{margin:0!important;padding:10px 15px 28px!important}body foot
 .admin-portal .sidebar-user-toggle span:first-child{display:flex!important;align-items:center!important;gap:8px!important;font-weight:800!important;color:#202124!important}
 .admin-portal .sidebar-user-toggle img{width:30px!important;height:30px!important}
 .admin-portal .sidebar-user-menu>.nav-second-level{margin:0!important;padding:0 8px 8px!important;border-left:0!important}
+
+/* Invoice cancellation uses a text button rather than a fixed-width icon square. */
+.admin-portal .table td:last-child form > .btn.btn-xs.invoice-cancel-btn{
+    width:auto!important;
+    min-width:120px!important;
+    padding:0 10px!important;
+    gap:6px;
+    white-space:nowrap!important;
+    flex-shrink:0;
+}

@@ -8,7 +8,7 @@
     $data = array();
 
     if (isset($_POST['proj_id'])) {
-        $project_sql = "select invoice_id from invoiceTbl where project_Id = $proj_id ORDER BY invoice_date DESC" ;
+        $project_sql = "select invoice_id from invoiceTbl where project_Id = $proj_id AND status=1 ORDER BY invoice_date DESC" ;
 
         $project_result = mysqli_query($conn, $project_sql);
         while($project_row = mysqli_fetch_assoc($project_result)){

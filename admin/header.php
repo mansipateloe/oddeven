@@ -1,4 +1,4 @@
-﻿<?php require_once __DIR__ . '/../dbconnect.php'; ?>
+<?php require_once __DIR__ . '/../dbconnect.php'; ?>
 <?php require_once __DIR__ . '/../security.php'; ?>
 <?php require_once __DIR__ . '/../foundation.php'; ?>
 <?php oecrm_require_admin_login(); ?>
@@ -21,7 +21,7 @@
   <link href="../vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
   <link href="../vendor/datatables-plugins/dataTables.bootstrap.css" rel="stylesheet">
   <link href="../vendor/datatables-responsive/dataTables.responsive.css" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="../vendor/custom/customAdmin.css?v=20260627-1">
+  <link rel="stylesheet" type="text/css" href="../vendor/custom/customAdmin.css?v=20261015-1">
   <script defer src="../js/oecrm-date-format.js?v=20261013-1"></script>
   <!-- <style>
         .nav-second-level {

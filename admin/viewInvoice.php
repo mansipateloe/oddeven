@@ -1,6 +1,7 @@
 <?php
     include 'header.php';
-?> 
+require_once __DIR__ . '/../invoiceStatus.php';
+?>
     <style type="text/css">
         @media print {
             @page {
@@ -13,22 +14,23 @@
                 display: none !important;
             }
             footer{
-                display: none !important;   
+                display: none !important;
             }
             .firsttd{
                 width : 40%;
             }
             .secondtd{
-                width : 50%;   
+                width : 50%;
                 text-align: right!important;
             }
         }
     </style>
         <div id="page-wrapper">
+            <?php oecrm_legacy_invoice_flash(); ?>
             <div class="row">
                 <?php
                     if(isset($_GET['id'])){
-                        $id = $_GET['id'];
+                        $id = (int) $_GET['id'];
                         $invoice_qry = "SELECT invoiceTbl.*, projectstbl.projectName FROM invoiceTbl left join projectstbl on projectstbl.id = invoiceTbl.project_Id WHERE invoiceTbl.invoice_id = '$id' limit 1";
 
 
@@ -43,7 +45,7 @@
                                         Invoice Detail
                                     </div>
                                     <div class="panel-body">
-                                                
+
                                         <div class="col-lg-12">
                                             <!-- <table>
                                                 <tr>
@@ -51,7 +53,7 @@
                                                     <td class="secondtd" >
                                                         <h4>Invoice : <?php echo $id ?></h4>
                                                         <h4>Invoice No : <?php echo $invoice_row['invoice_no']; ?></h4>
-                                                        
+
                                                         <p class="text-muted"><strong>Invoice Date : <?php echo $invoice_og_date->format('d-m-Y') ?></strong></p>
                                                         <address>
                                                             122, Shree Ugati Corporate Park<br>
@@ -68,6 +70,7 @@
                                             <div class="col-sm-6">
                                                 <div class="float-right" style="text-align: right;">
                                                     <h4 class="m-0 d-print-none">Invoice : <?php echo $id ?></h4>
+                                                    <p>Status: <?php echo oecrm_legacy_invoice_status_badge($invoice_row); ?></p>
                                                     <div class="">
                                                         <p class="text-muted"><strong>Invoice Date : <?php echo $invoice_og_date->format('d-m-Y') ?></strong></p>
                                                         <address>
@@ -102,7 +105,7 @@
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            <?php 
+                                                            <?php
                                                             $details_qry = "SELECT * FROM invoice_details where invoice_id = '$id'";
                                                             $details_result = mysqli_query($conn,$details_qry);
                                                             if($details_result->num_rows > 0){
@@ -139,7 +142,7 @@
                                                                         <!-- <td><?php echo $currancy_name ?></td> -->
                                                                         <td><i class="mdi mdi-currency-inr"></i><?php echo $currancy_name." ".number_format($details_row['amount'],2); ?></td>
                                                                     </tr>
-                                                                    <?php 
+                                                                    <?php
                                                                 }
                                                             }
                                                             ?>
@@ -172,13 +175,13 @@
                                                 <a href="javascript:window.print()" class="printbtn btn btn-primary waves-effect waves-light"><i class="mdi mdi-printer mr-1"></i> Print</a>
                                             </div>
                                         </div>
-                                                        
-                                                    
+
+
                                     </div>
                                 </div>
                             </div>
                             <?php
-                            
+
                         }
                     }
                 ?>
