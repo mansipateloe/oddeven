@@ -1,8 +1,63 @@
 <?php
+// Windows MySQL ignores table-name case; Linux deployments may distinguish it.
+function oecrm_invoice_actual_table($conn)
+{
+    static $name = null;
+    if ($name !== null) return $name;
+    $result = mysqli_query($conn, 'SHOW TABLES');
+    $match = null;
+    while ($row = mysqli_fetch_row($result)) {
+        if ($row[0] === 'invoiceTbl') {
+            $match = $row[0];
+            break;
+        }
+        if (strcasecmp($row[0], 'invoiceTbl') === 0) $match = $row[0];
+    }
+    mysqli_free_result($result);
+    if ($match === null) throw new RuntimeException('Invoice source table was not found.', 1146);
+    return $name = $match;
+}
+
+function oecrm_invoice_schema_sql($conn, $sql)
+{
+    $pattern = '/(?<![a-z0-9_])(?:(?<![a-z0-9_])' . chr(96) . ')?invoicetbl' . chr(96) . '?(?![a-z0-9_])/i';
+    if (!preg_match($pattern, $sql)) return $sql;
+    $table = chr(96) . str_replace(chr(96), chr(96) . chr(96), oecrm_invoice_actual_table($conn)) . chr(96);
+    return preg_replace($pattern, $table, $sql);
+}
+
+function oecrm_invoice_schema_query($conn, $sql)
+{
+    return mysqli_query($conn, oecrm_invoice_schema_sql($conn, $sql));
+}
+
+function oecrm_invoice_schema_prepare($conn, $sql)
+{
+    return mysqli_prepare($conn, oecrm_invoice_schema_sql($conn, $sql));
+}
+
+function oecrm_invoice_schema_error($context, $step, $e)
+{
+    error_log($context . ' failed at ' . $step . ': ' . $e->getMessage());
+    $code = (int) $e->getCode();
+    if (in_array($code, [1044, 1142, 1143, 1227], true)) {
+        $detail = 'The database user does not have permission for this operation.';
+    } elseif ($code === 1146) {
+        $detail = 'A required table was not found in the selected database.';
+    } elseif ($code === 1064 || $code === 1067 || $code === 1293) {
+        $detail = 'The production database rejected the schema definition.';
+    } else {
+        $detail = 'Please check the PHP error log for the underlying error.';
+    }
+    http_response_code(500);
+    exit(htmlspecialchars($context . ' failed at ' . $step . ' (error ' . $code . '). ' . $detail, ENT_QUOTES, 'UTF-8'));
+}
+
 function oecrm_invoice_tax_schema($conn)
 {
     static $ready = false;
     if ($ready) return;
+    $step = 'reading invoice tax columns';
     try {
         $definitions = [
             'subtotal_amount' => 'DECIMAL(14,2) NULL DEFAULT NULL',
@@ -14,14 +69,15 @@ function oecrm_invoice_tax_schema($conn)
             'sgst_amount' => 'DECIMAL(14,2) NOT NULL DEFAULT 0',
             'igst_amount' => 'DECIMAL(14,2) NOT NULL DEFAULT 0',
         ];
-        $columns = mysqli_query($conn, 'SHOW COLUMNS FROM invoiceTbl');
+        $columns = oecrm_invoice_schema_query($conn, 'SHOW COLUMNS FROM invoiceTbl');
         $existing = [];
         while ($column = mysqli_fetch_assoc($columns)) $existing[$column['Field']] = true;
         mysqli_free_result($columns);
         foreach ($definitions as $name => $definition) {
             if (isset($existing[$name])) continue;
+            $step = 'adding invoice column ' . $name;
             try {
-                if (!mysqli_query($conn, "ALTER TABLE invoiceTbl ADD COLUMN $name $definition") && mysqli_errno($conn) !== 1060) {
+                if (!oecrm_invoice_schema_query($conn, "ALTER TABLE invoiceTbl ADD COLUMN $name $definition") && mysqli_errno($conn) !== 1060) {
                     throw new RuntimeException(mysqli_error($conn));
                 }
             } catch (mysqli_sql_exception $e) {
@@ -30,15 +86,13 @@ function oecrm_invoice_tax_schema($conn)
         }
         $ready = true;
     } catch (Throwable $e) {
-        error_log('Invoice tax schema update failed: ' . $e->getMessage());
-        http_response_code(500);
-        exit('Invoice tax fields could not be initialized. Please check database ALTER permission and reload.');
+        oecrm_invoice_schema_error('Invoice tax initialization', $step, $e);
     }
 }
 
 function oecrm_invoice_project_client($conn, $projectId, $companyId)
 {
-    $stmt = mysqli_prepare($conn, 'SELECT p.id,p.customerName,c.display_name,c.country
+    $stmt = oecrm_invoice_schema_prepare($conn, 'SELECT p.id,p.customerName,c.display_name,c.country
         FROM projectstbl p LEFT JOIN clients c ON c.id=p.client_id AND c.company_id=p.company_id
         WHERE p.id=? AND p.company_id=? LIMIT 1');
     mysqli_stmt_bind_param($stmt, 'ii', $projectId, $companyId);
@@ -82,7 +136,7 @@ function oecrm_invoice_tax_calculate($subtotal, $input, $isIndianClient)
 
 function oecrm_invoice_tax_save($conn, $id, $tax)
 {
-    $stmt = mysqli_prepare($conn, 'UPDATE invoiceTbl SET subtotal_amount=?,tax_mode=?,cgst_percent=?,sgst_percent=?,igst_percent=?,cgst_amount=?,sgst_amount=?,igst_amount=?,total_amount=? WHERE invoice_id=?');
+    $stmt = oecrm_invoice_schema_prepare($conn, 'UPDATE invoiceTbl SET subtotal_amount=?,tax_mode=?,cgst_percent=?,sgst_percent=?,igst_percent=?,cgst_amount=?,sgst_amount=?,igst_amount=?,total_amount=? WHERE invoice_id=?');
     mysqli_stmt_bind_param($stmt, 'dsdddddddi', $tax['subtotal_amount'], $tax['tax_mode'], $tax['cgst_percent'], $tax['sgst_percent'], $tax['igst_percent'], $tax['cgst_amount'], $tax['sgst_amount'], $tax['igst_amount'], $tax['total_amount'], $id);
     if (!mysqli_stmt_execute($stmt)) throw new RuntimeException(mysqli_stmt_error($stmt));
     mysqli_stmt_close($stmt);
