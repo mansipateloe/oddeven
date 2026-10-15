@@ -15,7 +15,7 @@ $stmt = mysqli_prepare($conn, 'SELECT DISTINCT t.*,ta.is_primary,e.designation,p
     JOIN employeestbl e ON e.id=ta.employee_id
     JOIN projectstbl p ON p.id=CAST(t.projectId AS UNSIGNED)
     LEFT JOIN clients c ON c.id=p.client_id
-    WHERE ta.employee_id=?
+    WHERE t.status <> "cancel" AND ta.employee_id=?
     ORDER BY FIELD(t.status,"open","in_progress","in_review","to_be_tested","staging_server","production","on_hold","completed","closed","cancelled"),t.expectedDate,t.id DESC');
 mysqli_stmt_bind_param($stmt, 'i', $employeeId);
 mysqli_stmt_execute($stmt);

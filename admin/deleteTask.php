@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../dbconnect.php';
 require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../foundation.php';
@@ -21,7 +21,8 @@ mysqli_stmt_execute($stmt);
 mysqli_stmt_close($stmt);
 
 oecrm_audit($conn, 'tasks', 'archive', 'task', $id, 'Task archived', $task, ['status'=>'cancel']);
-$_SESSION['project_flash'] = 'Task archived successfully. Timesheet history was preserved.';
+$_SESSION['project_flash'] = 'Task deleted successfully. Timesheet history was preserved.';
+$projectId = $projectId ? (int) $task['projectId'] : 0;
 header('Location:' . ($projectId ? 'projectBoard.php?id=' . $projectId : 'viewTask.php'));
 exit;
 ?>

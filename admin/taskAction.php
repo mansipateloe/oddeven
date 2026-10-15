@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../dbconnect.php';
 require_once __DIR__ . '/../security.php';
 require_once __DIR__ . '/../foundation.php';
@@ -148,6 +148,7 @@ try {
         oecrm_audit($conn, 'tasks', 'create', 'task', $id, 'Task created', null, ['project_id' => $projectId, 'task_title' => $title]);
         mysqli_commit($conn);
         $transactionStarted = false;
+        unset($_SESSION['task_form'], $_SESSION['task_error']);
         $_SESSION['project_flash'] = 'Task created successfully.' . $deadlineMessage;
         header('Location: projectBoard.php?id=' . $projectId);
         exit;
@@ -156,7 +157,7 @@ try {
     if ($action === 'update_task') {
         mysqli_begin_transaction($conn);
         $transactionStarted = true;
-        $old = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM tasktbl WHERE id=' . (int) $id . ' AND company_id=' . (int) $companyId));
+        $old = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM tasktbl WHERE status <> "cancel" AND id=' . (int) $id . ' AND company_id=' . (int) $companyId));
         if (!$old) {
             throw new RuntimeException('Task not found.');
         }
@@ -174,6 +175,7 @@ try {
         oecrm_audit($conn, 'tasks', 'update', 'task', $id, 'Task updated', $old, ['project_id' => $projectId, 'task_title' => $title]);
         mysqli_commit($conn);
         $transactionStarted = false;
+        unset($_SESSION['task_form'], $_SESSION['task_error']);
         $_SESSION['project_flash'] = 'Task updated successfully.' . $deadlineMessage;
         header('Location: projectBoard.php?id=' . $projectId);
         exit;
@@ -183,6 +185,16 @@ try {
 } catch (Throwable $exception) {
     if ($transactionStarted) {
         mysqli_rollback($conn);
+    }
+    $_SESSION['task_form'] = [
+        'company_id' => (int) $companyId,
+        'project_id' => (int) ($_POST['project_id'] ?? 0),
+        'id' => (int) ($_POST['id'] ?? 0),
+    ];
+    foreach (['task_title', 'developer_id', 'priority', 'status', 'assign_date', 'expected_date', 'estimated_hours', 'task_details'] as $field) {
+        if (isset($_POST[$field]) && is_scalar($_POST[$field])) {
+            $_SESSION['task_form'][$field] = (string) $_POST[$field];
+        }
     }
     $_SESSION['task_error'] = $exception->getMessage();
     $redirectProject = (int) ($_POST['project_id'] ?? 0);

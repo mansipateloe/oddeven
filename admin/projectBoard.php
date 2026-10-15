@@ -25,7 +25,7 @@ $tasks = mysqli_query($conn, 'SELECT t.*,
     (SELECT GROUP_CONCAT(e1.name ORDER BY ta1.is_primary DESC,e1.name SEPARATOR ", ") FROM task_assignees ta1 JOIN employeestbl e1 ON e1.id=ta1.employee_id WHERE ta1.task_id=t.id AND ta1.is_primary=1) task_owners,
     (SELECT GROUP_CONCAT(e2.name ORDER BY e2.name SEPARATOR ", ") FROM task_assignees ta2 JOIN employeestbl e2 ON e2.id=ta2.employee_id WHERE ta2.task_id=t.id AND ta2.is_primary=0) qa_members,
     (SELECT GROUP_CONCAT(CONCAT(a.id, ":", a.original_name) ORDER BY a.id SEPARATOR "||") FROM task_attachments a WHERE a.task_id=t.id) attachment_list
-    FROM tasktbl t WHERE CAST(t.projectId AS UNSIGNED)=' . (int) $id . ' AND t.company_id=' . (int) $companyId . ' ORDER BY FIELD(t.status,"open","in_progress","in_review","to_be_tested","staging_server","production","on_hold","completed","closed","cancelled"),t.expectedDate');
+    FROM tasktbl t WHERE t.status <> "cancel" AND CAST(t.projectId AS UNSIGNED)=' . (int) $id . ' AND t.company_id=' . (int) $companyId . ' ORDER BY FIELD(t.status,"open","in_progress","in_review","to_be_tested","staging_server","production","on_hold","completed","closed","cancelled"),t.expectedDate');
 $teamCount = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT COUNT(*) total FROM project_team_members tm JOIN employeestbl e ON e.id=tm.employee_id WHERE tm.project_id=' . (int) $id . ' AND tm.left_at IS NULL AND e.status=0'));
 $teamMembers = mysqli_query($conn, 'SELECT e.employeeCode,e.name,e.designation FROM project_team_members tm JOIN employeestbl e ON e.id=tm.employee_id WHERE tm.project_id=' . (int) $id . ' AND tm.left_at IS NULL AND e.status=0 ORDER BY e.name');
 $milestones = mysqli_query($conn, 'SELECT * FROM project_milestones WHERE project_id=' . (int) $id . ' ORDER BY due_date');
@@ -70,11 +70,11 @@ unset($_SESSION['project_flash']);
                                 <td>
                                     <button type="button" class="icon-action js-admin-task-detail" title="View" data-title="<?php echo oecrm_h($task['taskTitle'] ?: $task['task_details']); ?>" data-project="<?php echo oecrm_h($project['projectName']); ?>" data-client="<?php echo oecrm_h($project['client_name'] ?: $project['customerName']); ?>" data-owner="<?php echo oecrm_h($task['task_owners'] ?: '-'); ?>" data-qa="<?php echo oecrm_h($task['qa_members'] ?: 'No QA assigned.'); ?>" data-start="<?php echo oecrm_h($task['assignDate']); ?>" data-due="<?php echo oecrm_h($task['expectedDate']); ?>" data-priority="<?php echo oecrm_h(ucfirst($task['priority'])); ?>" data-status="<?php echo oecrm_h(ucwords(str_replace('_', ' ', $task['status']))); ?>" data-estimated="<?php echo number_format((float)$task['estimated_hours'], 2); ?> hrs" data-description="<?php echo oecrm_h($task['task_details'] ?: 'No description added.'); ?>" data-attachments="<?php echo oecrm_h($task['attachment_list'] ?: ''); ?>"><i class="fa fa-eye"></i></button>
                                     <a class="btn btn-xs btn-info" title="Edit" href="taskEditor.php?id=<?php echo (int) $task['id']; ?>"><i class="fa fa-pencil"></i></a>
-                                    <form method="post" action="deleteTask.php" style="display:inline;">
+                                    <form method="post" action="deleteTask.php" style="display:inline;" data-confirm="Delete this task? Timesheet history will be preserved.">
                                         <?php echo oecrm_csrf_field(); ?>
                                         <input type="hidden" name="delete" value="<?php echo (int) $task['id']; ?>">
                                         <input type="hidden" name="project_id" value="<?php echo (int) $id; ?>">
-                                        <button type="submit" class="btn btn-xs btn-danger" title="Delete" data-confirm="Delete this task?"><i class="fa fa-trash"></i></button>
+                                        <button type="submit" class="btn btn-xs btn-danger" title="Delete"><i class="fa fa-trash"></i></button>
                                     </form>
                                 </td>
                             </tr>

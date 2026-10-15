@@ -7,7 +7,7 @@ $companyId = oecrm_current_company_id($conn);
 $projectId = (int) ($_GET['project_id'] ?? 0);
 $projects = mysqli_query($conn, 'SELECT id,projectName FROM projectstbl WHERE company_id=' . $companyId . ' ORDER BY projectName');
 $where = $projectId ? ' AND CAST(t.projectId AS UNSIGNED)=' . $projectId : '';
-$tasks = mysqli_query($conn, 'SELECT t.*,GROUP_CONCAT(DISTINCT e.name ORDER BY ta.is_primary DESC,e.name SEPARATOR ", ") employee_name FROM tasktbl t LEFT JOIN task_assignees ta ON ta.task_id=t.id LEFT JOIN employeestbl e ON e.id=ta.employee_id WHERE t.company_id=' . $companyId . $where . ' GROUP BY t.id ORDER BY t.expectedDate');
+$tasks = mysqli_query($conn, 'SELECT t.*,GROUP_CONCAT(DISTINCT e.name ORDER BY ta.is_primary DESC,e.name SEPARATOR ", ") employee_name FROM tasktbl t LEFT JOIN task_assignees ta ON ta.task_id=t.id LEFT JOIN employeestbl e ON e.id=ta.employee_id WHERE t.status <> "cancel" AND t.company_id=' . $companyId . $where . ' GROUP BY t.id ORDER BY t.expectedDate');
 $sprintOptions = [];
 if ($projectId) {
     $sq = mysqli_query($conn, 'SELECT id,name FROM project_sprints WHERE project_id=' . $projectId . ' AND status IN ("planned","active") ORDER BY start_date');

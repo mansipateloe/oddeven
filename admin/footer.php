@@ -49,7 +49,6 @@
 			'expenseEditor.php':'finance.php',
 			'subscriptionEditor.php':'subscriptions.php',
 			'resourceAllocation.php':'resources.php',
-			'projectEditor.php':'projectWorkspace.php',
 			'taskEditor.php':'viewTask.php',
 			'invoiceEditor.php':'finance.php',
 			'clientProfile.php':'clients.php'

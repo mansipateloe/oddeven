@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = 'projects';
 include 'header.php';
 require_once __DIR__ . '/../foundation.php';
@@ -11,7 +11,7 @@ oecrm_require_permission($conn, 'projects', 'edit');
 $task = null;
 $selectedAssignee = 0;
 if ($id) {
-    $stmt = mysqli_prepare($conn, 'SELECT * FROM tasktbl WHERE id=? AND company_id=?');
+    $stmt = mysqli_prepare($conn, 'SELECT * FROM tasktbl WHERE id=? AND company_id=? AND status <> "cancel"');
     mysqli_stmt_bind_param($stmt, 'ii', $id, $companyId);
     mysqli_stmt_execute($stmt);
     $task = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
@@ -59,8 +59,19 @@ $taskStatuses = [
     'production' => 'Production',
     'closed' => 'Closed',
 ];
+$oldForm = $_SESSION['task_form'] ?? [];
+if (!is_array($oldForm)
+    || (int) ($oldForm['company_id'] ?? 0) !== (int) $companyId
+    || (int) ($oldForm['project_id'] ?? 0) !== (int) $projectId
+    || (int) ($oldForm['id'] ?? 0) !== $id) {
+    $oldForm = [];
+}
 $error = $_SESSION['task_error'] ?? '';
-unset($_SESSION['task_error']);
+unset($_SESSION['task_error'], $_SESSION['task_form']);
+$formValue = static function ($key, $default = '') use ($oldForm) {
+    return array_key_exists($key, $oldForm) ? $oldForm[$key] : $default;
+};
+$selectedAssignee = (int) $formValue('developer_id', $selectedAssignee);
 $attachments = [];
 if ($id) {
     $attachmentResult = mysqli_query($conn, 'SELECT id,original_name,file_size,created_at FROM task_attachments WHERE task_id=' . (int) $id . ' ORDER BY id DESC');
@@ -120,7 +131,7 @@ if ($id) {
                 <input type="hidden" name="action" value="<?php echo $id ? 'update_task' : 'create_task'; ?>">
                 <input type="hidden" name="id" value="<?php echo $id; ?>">
                 <input type="hidden" name="project_id" value="<?php echo (int) $projectId; ?>">
-                <div class="form-group"><label>Task Title</label><input class="form-control" name="task_title" value="<?php echo oecrm_h($task['taskTitle'] ?? ''); ?>"></div>
+                <div class="form-group"><label>Task Title</label><input class="form-control" name="task_title" value="<?php echo oecrm_h($formValue('task_title', $task['taskTitle'] ?? '')); ?>"></div>
                 <div class="form-group">
                     <label>Assign To</label>
                     <select class="form-control" name="developer_id">
@@ -141,15 +152,15 @@ if ($id) {
                     </div>
                     <small>QA is selected from the project team first; otherwise active QA employees from the same company are assigned.</small>
                 </div>
-                <div class="form-group"><label>Priority</label><select class="form-control" name="priority"><?php foreach (['low', 'medium', 'high', 'critical'] as $value): ?><option value="<?php echo $value; ?>" <?php echo ($task['priority'] ?? 'medium') === $value ? 'selected' : ''; ?>><?php echo ucfirst($value); ?></option><?php endforeach; ?></select></div>
-                <div class="form-group"><label>Status</label><select class="form-control" name="status"><?php foreach ($taskStatuses as $value => $label): ?><option value="<?php echo $value; ?>" <?php echo ($task['status'] ?? 'open') === $value ? 'selected' : ''; ?>><?php echo $label; ?></option><?php endforeach; ?></select></div>
-                <div class="form-group"><label>Assign Date</label><input class="form-control" type="date" name="assign_date" value="<?php echo oecrm_h($task['assignDate'] ?? date('Y-m-d')); ?>"></div>
-                <div class="form-group"><label>Expected Date</label><input class="form-control" type="date" name="expected_date" value="<?php echo oecrm_h($task['expectedDate'] ?? ''); ?>"></div>
-                <div class="form-group"><label>Estimated Hours</label><input class="form-control" type="number" min="0" step=".25" name="estimated_hours" value="<?php echo oecrm_h($task['estimated_hours'] ?? '0'); ?>"></div>
+                <div class="form-group"><label>Priority</label><select class="form-control" name="priority"><?php foreach (['low', 'medium', 'high', 'critical'] as $value): ?><option value="<?php echo $value; ?>" <?php echo $formValue('priority', $task['priority'] ?? 'medium') === $value ? 'selected' : ''; ?>><?php echo ucfirst($value); ?></option><?php endforeach; ?></select></div>
+                <div class="form-group"><label>Status</label><select class="form-control" name="status"><?php foreach ($taskStatuses as $value => $label): ?><option value="<?php echo $value; ?>" <?php echo $formValue('status', $task['status'] ?? 'open') === $value ? 'selected' : ''; ?>><?php echo $label; ?></option><?php endforeach; ?></select></div>
+                <div class="form-group"><label>Assign Date</label><input class="form-control" type="date" name="assign_date" value="<?php echo oecrm_h($formValue('assign_date', $task['assignDate'] ?? date('Y-m-d'))); ?>"></div>
+                <div class="form-group"><label>Expected Date</label><input class="form-control" type="date" name="expected_date" value="<?php echo oecrm_h($formValue('expected_date', $task['expectedDate'] ?? '')); ?>"></div>
+                <div class="form-group"><label>Estimated Hours</label><input class="form-control" type="number" min="0" step=".25" name="estimated_hours" value="<?php echo oecrm_h($formValue('estimated_hours', $task['estimated_hours'] ?? '0')); ?>"></div>
                 <div class="form-group">
                     <label>Attachment</label>
                     <input class="form-control" type="file" name="task_attachment" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.txt">
-                    <small class="text-muted">Optional. Allowed: PDF, Word, Excel, image, TXT. Max 10MB.</small>
+                    <small class="text-muted">Optional. Allowed: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG, JPEG, TXT. Max 10MB. If an upload fails, choose the file again; your other entries are kept.</small>
                 </div>
                 <?php if (!empty($attachments)): ?>
                     <div class="form-group resource-notes">
@@ -161,7 +172,7 @@ if ($id) {
                         </div>
                     </div>
                 <?php endif; ?>
-                <div class="form-group resource-notes"><label>Description</label><textarea class="form-control" name="task_details" rows="4"><?php echo oecrm_h($task['task_details'] ?? ''); ?></textarea></div>
+                <div class="form-group resource-notes"><label>Description</label><textarea class="form-control" name="task_details" rows="4"><?php echo oecrm_h($formValue('task_details', $task['task_details'] ?? '')); ?></textarea></div>
                 <div class="resource-actions">
                     <button class="btn btn-primary"><i class="fa fa-save"></i> <?php echo $id ? 'Update Task' : 'Create Task'; ?></button>
                     <a href="viewTask.php" class="btn btn-default">Cancel</a>
@@ -210,6 +221,25 @@ if ($id) {
         });
     });
 
+    var attachment = form.querySelector('input[name="task_attachment"]');
+    function validateAttachment() {
+        if (!attachment) return true;
+        clearField(attachment);
+        var file = attachment.files && attachment.files[0];
+        if (!file) return true;
+        var extension = file.name.split('.').pop().toLowerCase();
+        if (['pdf', 'doc', 'docx', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'txt'].indexOf(extension) === -1) {
+            markField(attachment, 'Unsupported file type. Choose PDF, Word, Excel, PNG, JPG or TXT. Your other entries have been kept.');
+            return false;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            markField(attachment, 'File must be 10MB or smaller. Your other entries have been kept.');
+            return false;
+        }
+        return true;
+    }
+    if (attachment) attachment.addEventListener('change', validateAttachment);
+
     form.addEventListener('submit', function (event) {
         var valid = true;
         requiredFields.forEach(function (field) {
@@ -221,6 +251,7 @@ if ($id) {
             }
         });
 
+        if (!validateAttachment()) valid = false;
         if (!valid) {
             event.preventDefault();
             var firstInvalid = form.querySelector('.is-invalid');
