@@ -29,6 +29,21 @@ function oecrm_apply_security_headers()
     }
 }
 
+function oecrm_apply_security_headerswith_token()
+{
+    if (headers_sent()) {
+        return false;
+    }
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: DENY');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+    header('Cross-Origin-Opener-Policy: same-origin');
+    if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+    }
+}
+
 function oecrm_destroy_session()
 {
     $_SESSION = [];
