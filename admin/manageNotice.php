@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = "notices";
 $active_submenu = "manage_notices";
 include "header.php";

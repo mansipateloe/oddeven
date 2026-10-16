@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../security.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();

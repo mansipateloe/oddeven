@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 function oecrm_ensure_employee_continuation_tables(mysqli $conn): void
 {

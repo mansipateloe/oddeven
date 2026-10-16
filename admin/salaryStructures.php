@@ -78,7 +78,7 @@ $list = mysqli_query(
 ]; ?>"><header><div><strong><?php echo oecrm_h(
     $s["name"]
 ); ?></strong><small><?php echo oecrm_h(
-    $s["employeeCode"] . " � " . $s["designation"]
+    $s["employeeCode"] . " - " . $s["designation"]
 ); ?></small></div><span>?<?php echo number_format(
     $s["gross_salary"],
     0

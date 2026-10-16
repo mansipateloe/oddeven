@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS clients (
+CREATE TABLE IF NOT EXISTS clients (
  id BIGINT NOT NULL AUTO_INCREMENT, company_id INT NOT NULL, client_code VARCHAR(30) NOT NULL, legal_name VARCHAR(180) NOT NULL, display_name VARCHAR(180) NOT NULL,
  client_type ENUM('company','individual') NOT NULL DEFAULT 'company', status ENUM('prospect','active','inactive','on_hold','closed') NOT NULL DEFAULT 'active',
  industry VARCHAR(120) DEFAULT NULL, website VARCHAR(255) DEFAULT NULL, email VARCHAR(180) DEFAULT NULL, phone VARCHAR(40) DEFAULT NULL,

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu='attendance';$active_submenu='shifts';include 'header.php';require_once __DIR__.'/../foundation.php';oecrm_require_permission($conn,'shifts','view');
 $message=$_SESSION['shift_flash']??'';unset($_SESSION['shift_flash']);$edit=null;
 if(!empty($_GET['edit'])){$id=(int)$_GET['edit'];$stmt=mysqli_prepare($conn,'SELECT * FROM shifts WHERE id=?');mysqli_stmt_bind_param($stmt,'i',$id);mysqli_stmt_execute($stmt);$edit=mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));mysqli_stmt_close($stmt);}

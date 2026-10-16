@@ -71,8 +71,8 @@ $history = mysqli_query(
     ? oecrm_h(
         substr($r["start_time"], 0, 5) . " - " . substr($r["end_time"], 0, 5)
     )
-    : "�"; ?></td><td><?php echo oecrm_h(
-    $r["effective_from"] ?: "�"
+    : "-"; ?></td><td><?php echo oecrm_h(
+    $r["effective_from"] ?: "-"
 ); ?></td></tr><?php endwhile; ?></tbody></table></div></div>
 <div class="panel panel-default"><div class="panel-heading">Shift Change History</div><div class="panel-body table-responsive"><table class="table foundation-table"><thead><tr><th>Date</th><th>Employee</th><th>Previous Shift</th><th>New Shift</th><th>Reason</th></tr></thead><tbody><?php
 if (

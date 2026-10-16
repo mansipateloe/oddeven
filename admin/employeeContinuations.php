@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = 'employee';
 $active_submenu = 'employee_continuations';
 include 'header.php';

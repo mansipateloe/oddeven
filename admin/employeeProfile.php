@@ -116,7 +116,7 @@ $formatLeaveCount = static function ($value) {
 ); ?></div><div class="employee-identity"><h2><?php echo oecrm_h(
     $employee["name"]
 ); ?></h2><p><?php echo oecrm_h(
-    $employee["employeeCode"] . " � " . $employee["designation"]
+    $employee["employeeCode"] . " - " . $employee["designation"]
 ); ?></p><div><span><?php echo oecrm_h(
     $employee["company_name"] ?: "Unassigned company"
 ); ?></span><span><?php echo oecrm_h(
@@ -219,7 +219,7 @@ while ($r = mysqli_fetch_assoc($contracts)): ?><tr><td><?php echo oecrm_h(
 ); ?></td><td><?php echo oecrm_h(
     ucwords($r["contract_type"])
 ); ?></td><td><?php echo oecrm_h(
-    ($r["start_date"] ?: "�") . " to " . ($r["end_date"] ?: "Open")
+    ($r["start_date"] ?: "-") . " to " . ($r["end_date"] ?: "Open")
 ); ?></td><td><span class="status-pill active"><?php echo oecrm_h(
     ucwords($r["status"])
 ); ?></span></td></tr><?php endwhile;

@@ -74,7 +74,7 @@ $comp = mysqli_fetch_assoc(
 ); ?></strong><span><?php echo number_format(
     $b["used"],
     1
-); ?> used � <?php echo number_format(
+); ?> used - <?php echo number_format(
      $b["pending"],
      1
  ); ?> pending</span></div><?php endwhile; ?><div class="comp-off-balance"><small>Comp-Off</small><strong><?php echo number_format(

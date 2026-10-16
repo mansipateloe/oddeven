@@ -1,4 +1,4 @@
-﻿<?php include 'header.php'; $flash = $_SESSION['lead_flash'] ?? ''; unset($_SESSION['lead_flash']); ?>
+<?php include 'header.php'; $flash = $_SESSION['lead_flash'] ?? ''; unset($_SESSION['lead_flash']); ?>
 <?php
 $flashType = $_SESSION['lead_flash_type'] ?? 'info';
 $leadForm = $_SESSION['lead_form'] ?? [];

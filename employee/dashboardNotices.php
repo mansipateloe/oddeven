@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . "/../notices.php";
 $dashboardNotices = oecrm_employee_notices($conn, (int) $employeeId, 8);
 $dashboardNoticeRows = [];

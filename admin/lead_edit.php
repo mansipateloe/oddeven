@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = 'lead';
 $active_submenu = 'view_lead';
 include 'header.php';

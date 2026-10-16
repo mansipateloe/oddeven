@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $active_menu = 'attendance';
 include 'header.php';
 require_once __DIR__ . '/../foundation.php';

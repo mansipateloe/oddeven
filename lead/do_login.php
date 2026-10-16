@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 @ob_start();
 require_once("process/config.php");
 require_once __DIR__ . '/../security.php';

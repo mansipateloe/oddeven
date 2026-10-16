@@ -1,4 +1,4 @@
-﻿<?php $active_menu = "payroll";
+<?php $active_menu = "payroll";
 include "header.php";
 require_once __DIR__ . "/../foundation.php";
 oecrm_require_permission($conn, "payroll", "view");

@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS notices (
+CREATE TABLE IF NOT EXISTS notices (
  id BIGINT NOT NULL AUTO_INCREMENT, company_id INT NOT NULL, notice_type ENUM('company','hr','policy','holiday') NOT NULL DEFAULT 'company',
  title VARCHAR(180) NOT NULL, body_html MEDIUMTEXT NOT NULL, priority ENUM('low','normal','high','urgent') NOT NULL DEFAULT 'normal',
  audience_type ENUM('all','department','employee') NOT NULL DEFAULT 'all', publish_at DATETIME NOT NULL, expires_at DATETIME DEFAULT NULL,
