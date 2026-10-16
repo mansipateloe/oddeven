@@ -9,6 +9,7 @@ if (!oecrm_can($conn, 'finance', 'view') && !oecrm_legacy_can($conn, 'expense'))
 }
 require_once __DIR__ . '/../expenseBanks.php';
 oecrm_expense_bank_schema($conn);
+$canDeleteExpense = oecrm_can($conn, 'finance', 'delete');
 include 'header.php';
 ?>
 <div id="page-wrapper">
@@ -18,7 +19,7 @@ include 'header.php';
                 <div class="panel-heading">Add Expense</div>
                 <div class="panel-body">
                     <?php if (!empty($_SESSION['expense_flash'])): ?>
-                        <div class="alert alert-warning"><?php echo oecrm_h($_SESSION['expense_flash']); unset($_SESSION['expense_flash']); ?></div>
+                        <div class="alert alert-<?php echo in_array($_SESSION['expense_flash_type'] ?? '', ['success', 'warning', 'danger'], true) ? $_SESSION['expense_flash_type'] : 'warning'; ?>" role="status"><?php echo oecrm_h($_SESSION['expense_flash']); unset($_SESSION['expense_flash'], $_SESSION['expense_flash_type']); ?></div>
                     <?php endif; ?>
                     <style>
                         .expense-date-field {
@@ -79,7 +80,16 @@ include 'header.php';
                                     echo '<td>' . oecrm_h($row['category_name'] ?: 'Unknown category') . '</td>';
                                     echo '<td>' . oecrm_h($row['amount']) . '</td>';
                                     echo '<td>' . oecrm_h($row['bank_name'] ?? 'Unassigned') . '</td>';
-                                    echo '<td><a class="oecrm-action-btn" href="editExpense.php?edit=' . (int) $row['expense_id'] . '" title="Edit"><i class="fa fa-pencil"></i></a></td>';
+                                    echo '<td><div style="display:flex;align-items:center;gap:8px;"><a class="oecrm-action-btn" href="editExpense.php?edit=' . (int) $row['expense_id'] . '" title="Edit" aria-label="Edit expense"><i class="fa fa-pencil"></i></a>';
+                                    if ($canDeleteExpense) {
+                                        $confirmation = !empty($row['bank_id'])
+                                            ? 'Delete this expense? Its amount will be restored to the linked bank balance.'
+                                            : 'Delete this expense? This cannot be undone.';
+                                        echo '<form method="post" action="deleteExpense.php" style="display:inline-flex;margin:0;" data-confirm="' . oecrm_h($confirmation) . '">' . oecrm_csrf_field();
+                                        echo '<input type="hidden" name="expense_id" value="' . (int) $row['expense_id'] . '">';
+                                        echo '<button type="submit" class="btn btn-xs btn-danger" title="Delete expense" aria-label="Delete expense"><i class="fa fa-trash-o"></i></button></form>';
+                                    }
+                                    echo '</div></td>';
                                     echo '</tr>';
                                 }
                             } else {

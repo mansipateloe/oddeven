@@ -137,3 +137,33 @@ function oecrm_save_bank_expense($conn, $id, $category, $date, $amount, $descrip
         throw $e;
     }
 }
+
+// Balance is derived from expense rows, so removal restores it without another credit.
+function oecrm_delete_bank_expense($conn, $id)
+{
+    if ($id <= 0) {
+        throw new InvalidArgumentException('Please select a valid expense.');
+    }
+    mysqli_begin_transaction($conn);
+    try {
+        $stmt = mysqli_prepare($conn, 'SELECT * FROM expense WHERE expense_id=? FOR UPDATE');
+        mysqli_stmt_bind_param($stmt, 'i', $id);
+        mysqli_stmt_execute($stmt);
+        $expense = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+        mysqli_stmt_close($stmt);
+        if (!$expense) {
+            throw new InvalidArgumentException('Expense not found. It may already have been deleted.');
+        }
+        $stmt = mysqli_prepare($conn, 'DELETE FROM expense WHERE expense_id=?');
+        mysqli_stmt_bind_param($stmt, 'i', $id);
+        if (!mysqli_stmt_execute($stmt) || mysqli_stmt_affected_rows($stmt) !== 1) {
+            throw new RuntimeException('Expense could not be deleted.');
+        }
+        mysqli_stmt_close($stmt);
+        mysqli_commit($conn);
+        return $expense;
+    } catch (Throwable $exception) {
+        mysqli_rollback($conn);
+        throw $exception;
+    }
+}

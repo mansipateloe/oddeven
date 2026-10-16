@@ -124,7 +124,11 @@ try {
     $actorId = (int) $_SESSION['adminId'];
 
     $project = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT * FROM projectstbl WHERE id=' . (int) $projectId . ' AND company_id=' . (int) $companyId));
-    $assignee = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT e.id FROM project_team_members tm JOIN employeestbl e ON e.id=tm.employee_id WHERE tm.project_id=' . (int) $projectId . ' AND tm.employee_id=' . (int) $developerId . ' AND tm.left_at IS NULL AND e.status=0 LIMIT 1'));
+    // Match the editor: use the team, or active company employees when no active team exists.
+    $assignee = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT e.id FROM employeestbl e WHERE e.id=' . (int) $developerId . ' AND e.status=0 AND (
+        EXISTS (SELECT 1 FROM project_team_members tm WHERE tm.project_id=' . (int) $projectId . ' AND tm.employee_id=e.id AND tm.left_at IS NULL)
+        OR (e.company_id=' . (int) $companyId . ' AND NOT EXISTS (SELECT 1 FROM project_team_members tm JOIN employeestbl member ON member.id=tm.employee_id WHERE tm.project_id=' . (int) $projectId . ' AND tm.left_at IS NULL AND member.status=0))
+    ) LIMIT 1'));
     if (!$project || !$assignee || $title === '') {
         throw new RuntimeException('Project, assignee and task title are required.');
     }

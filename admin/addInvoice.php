@@ -66,66 +66,7 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                         </div>
 
                                     </div>
-                                    <div class="row" id="perticulars_div">
-                                        <div class="perticulars">
-                                            <div class="col-lg-3">
-                                                <div class="form-group">
-                                                    <label>Perticular :</label>
-                                                    <input type="text" class="form-control" placeholder="Perticular" name="perticulars[]" required>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-lg-2">
-                                                <div class="form-group">
-                                                    <label>Bank Account :</label>
-                                                    <select name="bank_id[]" id="bank_id" required class="form-control">
-                                                        <option value="">Select Bank</option>
-                                                        <?php
-                                                            $qryProject = "SELECT * FROM account order by account_id desc";
-                                                            $resultProject = mysqli_query($conn,$qryProject);
-                                                            if($resultProject->num_rows > 0){
-                                                                while($resProject = $resultProject->fetch_assoc()){
-                                                                    echo "<option value='".$resProject['account_id']."'>".$resProject['account_name']."</option>";
-                                                                }
-                                                            }
-                                                        ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-lg-2">
-                                                <div class="form-group">
-                                                    <label>Currency code :</label>
-                                                    <select name="country_id[]" id="country_id" required  class="form-control">
-                                                        <option value="">Select Code</option>
-                                                        <?php
-                                                            $qryProject = "SELECT * FROM country order by country_id desc";
-                                                            $resultProject = mysqli_query($conn,$qryProject);
-                                                            if($resultProject->num_rows > 0){
-                                                                while($resProject = $resultProject->fetch_assoc()){
-                                                                    echo "<option value='".$resProject['country_id']."'>".$resProject['country_symbols'].' '.$resProject['country_code']."</option>";
-                                                                }
-                                                            }
-                                                        ?>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-lg-3">
-                                                <div class="form-group">
-                                                    <label>Amount :</label>
-                                                    <input type="number" class="form-control" min="0" step="0.01" placeholder="Amount" name="amounts[]" required>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-lg-2">
-                                                <div class="form-group">
-                                                    <label></label>
-                                                    <button type="button" id="add_more" class="btn btn-sm btn-success"><i class="fa fa-plus"></i></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <?php include __DIR__ . '/invoiceLineItems.php'; ?>
                                     <?php oecrm_invoice_tax_fields(); ?>
                                     <div class="row">
                                         <div class="col-lg-6">
@@ -225,28 +166,7 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
 <?php
 
 ?>
-<script type="text/javascript">
 
-    $(document).ready(function(){
-        $("#add_more").click(function(){
-            $("#perticulars_div").append('<div class="perticulars"><div class="col-lg-3"><div class="form-group"><label>Perticular :</label><input type="text" class="form-control" placeholder="Perticular" name="perticulars[]" required></div></div><div class="col-lg-2"><div class="form-group"><label>Bank Account :</label><select name="bank_id[]" id="bank_id" required  class="form-control"><option value="">Select Bank</option> <?php $qryProject = "SELECT * FROM account ORDER BY account_id DESC";$resultProject = mysqli_query($conn, $qryProject);$bankOptions = '';if ($resultProject->num_rows > 0) {while ($resProject = $resultProject->fetch_assoc()) { echo '<option value="' . $resProject['account_id'] . '">' . $resProject['account_name'] . '</option>';} } ?></select></div></div><div class="col-lg-2"><div class="form-group"><label>Currency code :</label><select name="country_id[]" id="country_id" required  class="form-control"><option value="">Select Code</option><?php
-                 $qryProject = "SELECT * FROM country order by country_id desc";
-                                                        $resultProject = mysqli_query($conn,$qryProject);
-                                                        if($resultProject->num_rows > 0){
-                                                            while($resProject = $resultProject->fetch_assoc()){
-
-                                                                echo '<option value="' . $resProject['country_id'] . '">' . $resProject['country_symbols'].''. $resProject['country_code'].'</option>';
-                                                            }
-                                                        }
-
-             ?></select></div></div><div class="col-lg-3"><div class="form-group"><label>Amount :</label><input type="number" class="form-control" min="0" step="0.01" placeholder="Amount" name="amounts[]" required></div></div><div class="col-lg-2"><div class="form-group"><label></label><button type="button" class="remove btn btn-sm btn-danger"><i class="fa fa-minus"></i></button></div></div></div>');
-        });
-
-        $("body").on("click",".remove",function(){
-            $(this).parents(".perticulars").remove();
-        });
-    });
-</script>
 <script src="../vendor/jquery/jquery.min.js"></script>
 <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
 <script src="../vendor/metisMenu/metisMenu.min.js"></script>

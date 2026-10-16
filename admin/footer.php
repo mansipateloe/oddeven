@@ -23,7 +23,7 @@
 	<script>if(!jQuery.fn.metisMenu)document.write('<script src="../vendor/metisMenu/metisMenu.min.js"><\/script>');</script>
 	<script>if(!jQuery.fn.DataTable)document.write('<script src="../vendor/datatables/js/jquery.dataTables.min.js"><\/script><script src="../vendor/datatables-plugins/dataTables.bootstrap.min.js"><\/script><script src="../vendor/datatables-responsive/dataTables.responsive.js"><\/script>');</script>
 	<script src="../js/oecrm-dialogs.js"></script>
-	<script src="../js/oecrm-ui.js?v=20261015-2"></script>
+	<script src="../js/oecrm-ui.js?v=20261015-3"></script>
 	<script>
 	(function(){
 		function digitsOnlyInput(input){

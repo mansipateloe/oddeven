@@ -14,6 +14,16 @@ function oecrm_professional_tax_flash($type, $message)
 
 function oecrm_professional_tax_redirect($editId = 0)
 {
+    if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && in_array($_POST['action'] ?? '', ['add_professional_tax', 'update_professional_tax'], true)) {
+        if (($_SESSION['professional_tax_flash']['type'] ?? '') === 'success') {
+            unset($_SESSION['professional_tax_form']);
+        } else {
+            $_SESSION['professional_tax_form'] = ['id' => (int) $editId, 'company_id' => oecrm_current_company_id($GLOBALS['conn'])];
+            foreach (['startingAmount', 'endingAmount', 'professionalTax'] as $field) {
+                $_SESSION['professional_tax_form'][$field] = is_scalar($_POST[$field] ?? null) ? (string) $_POST[$field] : '';
+            }
+        }
+    }
     header('Location: manageProfessionalTax.php' . ($editId > 0 ? '?edit=' . (int) $editId : ''));
     exit;
 }
@@ -42,8 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
 
     if ($action === 'add_professional_tax' || $action === 'update_professional_tax') {
-        oecrm_professional_tax_require($conn, 'edit');
+        try {
         $isEdit = $action === 'update_professional_tax';
+        oecrm_professional_tax_require($conn, $isEdit ? 'edit' : 'create');
         $id = $isEdit ? (int) ($_POST['id'] ?? 0) : 0;
         if ($isEdit && $id <= 0) {
             oecrm_professional_tax_flash('danger', 'Invalid Professional Tax record selected.');
@@ -63,12 +74,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $values = [];
         foreach (['startingAmount', 'endingAmount', 'professionalTax'] as $key) {
-            $value = filter_var(trim((string) ($_POST[$key] ?? '')), FILTER_VALIDATE_INT, ['options' => ['min_range' => 0, 'max_range' => 2147483647]]);
-            if ($value === false) {
+            $raw = trim((string) ($_POST[$key] ?? ''));
+            $value = preg_match('/^[0-9]+$/D', $raw) ? (float) $raw : -1;
+            if ($value < 0 || $value > 2147483647) {
                 oecrm_professional_tax_flash('danger', 'From, To and Tax must be non-negative whole amounts within the supported range.');
                 oecrm_professional_tax_redirect($id);
             }
-            $values[$key] = $value;
+            $values[$key] = (int) $value;
         }
         $startingAmount = $values['startingAmount'];
         $endingAmount = $values['endingAmount'];
@@ -101,9 +113,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             oecrm_professional_tax_flash('danger', 'Professional Tax could not be saved.');
             oecrm_professional_tax_redirect($isEdit ? $id : 0);
         }
+        try {
         oecrm_audit($conn, 'payroll', $isEdit ? 'edit' : 'create', 'professional_tax', $id, $isEdit ? 'Professional tax slab updated' : 'Professional tax slab created', $old, $values);
+        } catch (Throwable $auditError) { error_log('Professional tax audit failed: ' . $auditError->getMessage()); }
         oecrm_professional_tax_flash('success', $isEdit ? 'Professional Tax record updated successfully.' : 'Professional Tax record added successfully.');
         oecrm_professional_tax_redirect();
+        } catch (Throwable $saveError) {
+            error_log('Professional tax save failed: ' . $saveError->getMessage());
+            oecrm_professional_tax_flash('danger', 'Professional Tax could not be saved. Your entered values have been kept.');
+            oecrm_professional_tax_redirect(!empty($isEdit) ? (int) ($_POST['id'] ?? 0) : 0);
+        }
     }
     if ($action === 'delete_professional_tax') {
         oecrm_professional_tax_require($conn, 'edit');
@@ -156,6 +175,13 @@ if ($editId > 0) {
         oecrm_professional_tax_redirect();
     }
 }
+$taxDraft = $_SESSION['professional_tax_form'] ?? [];
+if ((int) ($taxDraft['id'] ?? -1) === $editId && (int) ($taxDraft['company_id'] ?? 0) === oecrm_current_company_id($conn)) {
+    foreach (['startingAmount', 'endingAmount', 'professionalTax'] as $field) {
+        $taxRecord[$field] = $taxDraft[$field] ?? $taxRecord[$field];
+    }
+}
+unset($_SESSION['professional_tax_form']);
 $professionalTaxFlash = $_SESSION['professional_tax_flash'] ?? null;
 unset($_SESSION['professional_tax_flash']);
 include 'header.php';

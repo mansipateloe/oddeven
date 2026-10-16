@@ -239,13 +239,36 @@ function oecrm_letter_reference($conn, $companyId, $type)
 
 function oecrm_letter_print_styles()
 {
-  
-    return date_default_timezone_set('Asia/Kolkata');
-
-  return "<style>* {box-sizing:border-box} body{marging:0; background:#eef1f6; color:#293044; font-family:Arial, sans-serif} .toolbar{max-width:900px; margin:18px auto; display:flex; gap:8px; justify-content:flex-end} .toolbar a, .toolbar button{border:0; background:#635bff; color:#fff; padding:10px 15px; border-radius:5px; text-decoration:none; cursor:pointer} .letter{width:210mm; min-height:297mm; margin:0 auto 24px; background:#fff; padding:22mm 20mm; box-shadow:0 8px 30px rgba(35,42,63,.12)} .letter-head{display:flex; justify-content:space-between; border-bottom:2px solid #635bff; padding-bottom:18px; margin-bottom:30px} .letter-head h1{font-size:21px;margin:0} .letter-meta{text-align:right;font-size:12px;color:#697089} .letter-body{font-size:14px; line-height:1.75} .letter-body h2{font-size:20px} .letter-footer{margin-top:55px;border-top:1px solid #ddd;padding-top:16px;font-size:12px;color:#697089} @media print {body{background:#fff}.toolbar{display:none}.letter{margin:0;box-shadow:none;width:auto;min-height:auto;padding:15mm}}</style>";   
-  return "<style>*{box-sizing:border-box}body{margin:0;background:#eef1f6;color:#293044;font-family:Arial,sans-serif}.toolbar{max-width:900px;margin:18px auto;display:flex;gap:8px;justify-content:flex-end}.toolbar a,.toolbar button{border:0;background:#635bff;color:#fff;padding:10px 15px;border-radius:5px;text-decoration:none;cursor:pointer}.letter{width:210mm;min-height:297mm;margin:0 auto 24px;background:#fff;padding:22mm 20mm;box-shadow:0 8px 30px rgba(35,42,63,.12)}.letter-head{display:flex;justify-content:space-between;border-bottom:2px solid #635bff;padding-bottom:18px;margin-bottom:30px}.letter-head h1{font-size:21px;margin:0}.letter-meta{text-align:right;font-size:12px;color:#697089}.letter-body{font-size:14px;line-height:1.75}.letter-body h2{font-size:20px}.letter-footer{margin-top:55px;border-top:1px solid #ddd;padding-top:16px;font-size:12px;color:#697089}@media print{body{background:#fff}.toolbar{display:none}.letter{margin:0;box-shadow:none;width:auto;min-height:auto;padding:15mm}}</style>";
+    return <<<'HTML'
+<style>
+@page { size: A4; margin: 18mm 17mm; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #eef1f6; color: #202939; font-family: Arial, sans-serif; }
+.toolbar { max-width: 210mm; margin: 18px auto; padding: 0 12px; display: flex; gap: 10px; justify-content: flex-end; }
+.toolbar a, .toolbar button { border: 0; background: #344054; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; font: inherit; cursor: pointer; }
+.letter { width: 210mm; min-height: 297mm; margin: 0 auto 24px; padding: 20mm 17mm; background: #fff; box-shadow: 0 8px 30px rgba(35,42,63,.12); }
+.letter-head { display: grid; grid-template-columns: minmax(0,1fr) 52mm; gap: 8mm; border-bottom: 2px solid #344054; padding-bottom: 6mm; margin-bottom: 8mm; break-inside: avoid; }
+.letter-head h1 { margin: 0 0 3mm; font-size: 18pt; line-height: 1.3; color: #182230; }
+.letter-head > div { min-width: 0; font-size: 10pt; line-height: 1.6; overflow-wrap: anywhere; }
+.letter-meta { text-align: right; color: #475467; }
+.letter-meta strong { color: #202939; }
+.letter-body { font-size: 11pt; line-height: 1.7; overflow-wrap: anywhere; }
+.letter-body h2 { font-size: 14pt; line-height: 1.45; margin: 0 0 6mm; color: #182230; }
+.letter-body h3 { font-size: 12pt; margin: 6mm 0 3mm; }
+.letter-body p { margin: 0 0 4mm; orphans: 3; widows: 3; }
+.letter-body ul, .letter-body ol { margin: 0 0 4mm; padding-left: 7mm; }
+.letter-body li { padding-left: 1mm; margin-bottom: 2mm; }
+.letter-body table { width: 100%; border-collapse: collapse; margin: 5mm 0; table-layout: fixed; }
+.letter-body th, .letter-body td { padding: 3mm; border: 1px solid #d0d5dd; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.letter-body th { background: #f2f4f7; }
+.letter-body tr, .letter-body .signature { break-inside: avoid; }
+.letter-body img { max-width: 100%; height: auto; }
+.letter-footer { margin-top: 10mm; border-top: 1px solid #d0d5dd; padding-top: 4mm; font-size: 9pt; line-height: 1.6; color: #667085; break-inside: avoid; overflow-wrap: anywhere; }
+@media screen and (max-width: 820px) { .letter { width: calc(100% - 24px); min-height: auto; padding: 24px; } .letter-head { grid-template-columns: 1fr; gap: 16px; } .letter-meta { text-align: left; } }
+@media print { html, body { margin: 0; background: #fff; } .toolbar { display: none !important; } .letter { margin: 0; padding: 0; width: auto; min-height: 0; box-shadow: none; } .letter-head { grid-template-columns: minmax(0,1fr) 52mm; } .letter-meta { text-align: right; } a { color: inherit; text-decoration: none; } }
+</style>
+HTML;
 }
-
 // status=-1 marks deleted templates. Keep the row so letter references and the
 // seeder's record of intentionally removed defaults remain intact.
 function oecrm_delete_letter_template($conn, $companyId, $id)

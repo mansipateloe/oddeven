@@ -8,7 +8,7 @@ unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
 ?>
 <div id="page-wrapper" class="compact-admin-page">
     <?php if ($leadSourceFlash): ?>
-        <div class="alert alert-<?php echo $leadSourceFlashType === 'success' ? 'success' : ($leadSourceFlashType === 'warning' ? 'warning' : ($leadSourceFlashType === 'error' ? 'danger' : 'info')); ?>" role="status" style="margin-top: 20px; margin-bottom: 0;">
+        <div class="alert alert-<?php echo $leadSourceFlashType === 'success' ? 'success' : ($leadSourceFlashType === 'warning' ? 'warning' : ($leadSourceFlashType === 'error' ? 'danger' : 'info')); ?>" data-master-feedback role="status" style="margin-top: 20px; margin-bottom: 0;">
             <?php echo oecrm_h($leadSourceFlash); ?>
         </div>
     <?php endif; ?>
@@ -152,4 +152,5 @@ unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
 
 
 </script>
+<script src="../js/oecrm-master-feedback.js?v=20261015-1"></script>
 <?php include 'footer.php'; ?>

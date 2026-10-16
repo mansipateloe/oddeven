@@ -181,6 +181,7 @@ function oecrm_invoice_number_allocate($conn, $companyId)
 // Legacy invoice header, line items and sequence commit together.
 function oecrm_create_numbered_legacy_invoice($conn, $companyId, $input)
 {
+    require_once __DIR__ . '/invoiceBanks.php';
     $date = trim((string) ($input['invoice_date'] ?? ''));
     $person = trim((string) ($input['person_name'] ?? ''));
     $project = (int) ($input['project_Id'] ?? 0);
@@ -193,9 +194,9 @@ function oecrm_create_numbered_legacy_invoice($conn, $companyId, $input)
     foreach (($input['perticulars'] ?? []) as $index => $description) {
         $description = trim((string) $description);
         $amount = trim((string) ($input['amounts'][$index] ?? ''));
-        $bank = (int) ($input['bank_id'][$index] ?? 0);
+        $bank = (string) ($input['bank_id'][$index] ?? '');
         $country = (int) ($input['country_id'][$index] ?? 0);
-        if ($description === '' || strlen($description) > 255 || !preg_match('/^[0-9]{1,12}(\.[0-9]{1,2})?$/D', $amount) || $bank <= 0 || $country <= 0) {
+        if ($description === '' || strlen($description) > 255 || !preg_match('/^[0-9]{1,12}(\.[0-9]{1,2})?$/D', $amount) || !preg_match('/^bank:[1-9][0-9]*$/D', $bank) || $country <= 0) {
             throw new InvalidArgumentException('Each invoice item needs a description, valid amount, bank account and currency.');
         }
         $items[] = [$description, $amount, $bank, $country];
@@ -221,6 +222,7 @@ function oecrm_create_numbered_legacy_invoice($conn, $companyId, $input)
         mysqli_stmt_close($stmt);
         $stmt = oecrm_invoice_schema_prepare($conn, 'INSERT INTO invoice_details(invoice_id,perticular,amount,bank_id,country_id) VALUES(?,?,?,?,?)');
         foreach ($items as $item) {
+            $item[2] = oecrm_invoice_bank_resolve($conn, $item[2]);
             mysqli_stmt_bind_param($stmt, 'issii', $id, $item[0], $item[1], $item[2], $item[3]);
             mysqli_stmt_execute($stmt);
         }

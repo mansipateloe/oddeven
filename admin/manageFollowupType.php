@@ -90,7 +90,7 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
 ?>
 <div id="page-wrapper" class="compact-admin-page">
     <?php if ($followupTypeFlash): ?>
-        <div class="alert alert-<?php echo $followupTypeFlashType === 'success' ? 'success' : ($followupTypeFlashType === 'warning' ? 'warning' : ($followupTypeFlashType === 'error' ? 'danger' : 'info')); ?>" style="margin-top: 20px; margin-bottom: 0;">
+        <div class="alert alert-<?php echo $followupTypeFlashType === 'success' ? 'success' : ($followupTypeFlashType === 'warning' ? 'warning' : ($followupTypeFlashType === 'error' ? 'danger' : 'info')); ?>" data-master-feedback role="status" style="margin-top: 20px; margin-bottom: 0;">
             <?php echo oecrm_h($followupTypeFlash); ?>
         </div>
     <?php endif; ?>
@@ -147,7 +147,7 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
                                                     echo "<tr class='gradeA even' role='row'>";
                                                     echo "<td class='sorting_1'>" . $row['id'] . "</td>";
                                                     echo "<td>" . $row['name'] . "</td>";
-                                                    echo '<td class="center" align="center"><form method="post" action="deleteFollowupType.php" style="display:inline;">' . oecrm_csrf_field() . '<input type="hidden" name="deleteFollowupType" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link delete-followup-type" data-confirm="Are you sure you want to delete this follow-up type?" style="padding:0;border:0;"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
+                                                    echo '<td class="center" align="center"><form method="post" action="deleteFollowupType.php" style="display:inline;" data-confirm="Delete this follow-up type?">' . oecrm_csrf_field() . '<input type="hidden" name="deleteFollowupType" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link delete-followup-type" style="padding:0;border:0;"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
                                                     echo "</tr>";
                                                 }
                                             } else {
@@ -178,7 +178,7 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
         line-height: 1.3;
     }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     (function () {
         var form = document.getElementById('followupTypeForm');
@@ -224,37 +224,6 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
         });
     })();
 
-    <?php if ($followupTypeFlash): ?>
-    Swal.fire({
-        title: '<?php echo $followupTypeFlashType === 'success' ? 'Success' : ($followupTypeFlashType === 'warning' ? 'Warning' : 'Error'); ?>',
-        text: '<?php echo addslashes($followupTypeFlash); ?>',
-        icon: '<?php echo $followupTypeFlashType === 'success' ? 'success' : ($followupTypeFlashType === 'warning' ? 'warning' : 'error'); ?>',
-        confirmButtonText: 'OK'
-    });
-    <?php endif; ?>
-
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.delete-followup-type').forEach(function (button) {
-            button.addEventListener('click', function (event) {
-                event.preventDefault();
-                var form = this.closest('form');
-
-                Swal.fire({
-                    title: 'Delete Followup Type?',
-                    text: button.getAttribute('data-confirm') || 'This action cannot be undone.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, delete it!',
-                    cancelButtonText: 'Cancel'
-                }).then(function (result) {
-                    if (result.isConfirmed) {
-                        form.submit();
-                    }
-                });
-            });
-        });
-    });
 </script>
+<script src="../js/oecrm-master-feedback.js?v=20261015-1"></script>
 <?php include 'footer.php'; ?>

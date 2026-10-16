@@ -146,12 +146,16 @@
         function render(filter) {
             optionsBox.innerHTML = '';
             var needle = (filter || '').toLowerCase();
-            if (select.dataset.searchPlaceholder) needle = needle.trim();
+            if (select.dataset.searchPlaceholder) needle = needle.trim().replace(/\s+/g, ' ');
             Array.prototype.forEach.call(select.options, function (option) {
                 if (option.hidden) return;
                 if (select.dataset.searchPlaceholder && option.value === '') return;
                 if (option.disabled && option.value === '') return;
-                if (needle && option.text.toLowerCase().indexOf(needle) === -1) return;
+                var optionText = option.text.toLowerCase().replace(/\s+/g, ' ').trim();
+                var matches = !needle || (select.dataset.searchPlaceholder
+                    ? needle.split(' ').every(function (word) { return optionText.indexOf(word) !== -1; })
+                    : optionText.indexOf(needle) !== -1);
+                if (!matches) return;
                 var row = document.createElement('button');
                 row.type = 'button';
                 row.className = 'oecrm-select-option' + (option.selected ? ' selected' : '');

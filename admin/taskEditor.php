@@ -41,7 +41,7 @@ if (!$project) {
 
 $team = mysqli_query($conn, 'SELECT e.id,e.employeeCode,e.name FROM project_team_members tm JOIN employeestbl e ON e.id=tm.employee_id WHERE tm.project_id=' . (int) $projectId . ' AND tm.left_at IS NULL AND e.status=0 ORDER BY e.name');
 if (mysqli_num_rows($team) === 0) {
-    $team = mysqli_query($conn, 'SELECT id,employeeCode,name FROM employeestbl WHERE status=0 ORDER BY name');
+    $team = mysqli_query($conn, 'SELECT id,employeeCode,name FROM employeestbl WHERE status=0 AND company_id=' . (int) $companyId . ' ORDER BY name');
 }
 $qaMembers = mysqli_query($conn, 'SELECT e.employeeCode,e.name FROM project_team_members tm JOIN employeestbl e ON e.id=tm.employee_id WHERE tm.project_id=' . (int) $projectId . ' AND tm.left_at IS NULL AND e.status=0 AND e.designation LIKE "%QA%" ORDER BY e.name');
 if (mysqli_num_rows($qaMembers) === 0) {
