@@ -1,5 +1,15 @@
 <?php
 require_once __DIR__ . '/invoiceTax.php';
+require_once __DIR__ . '/invoiceBanks.php';
+
+// Bank Details is the current bank list; account holds historical ledger balances.
+function oecrm_collection_bank_accounts($conn)
+{
+    return mysqli_query($conn, 'SELECT b.bank_id,b.bank_name AS account_name,m.setting_value AS account_id
+        FROM bank_details b LEFT JOIN app_settings m ON m.company_id=0
+        AND m.setting_key=CONCAT(\'invoice_bank_account_\',b.bank_id)
+        ORDER BY b.bank_name,b.bank_id');
+}
 
 function oecrm_collection_deposit($conn, $companyId, $id, $lock = false)
 {
@@ -16,8 +26,10 @@ function oecrm_collection_deposit($conn, $companyId, $id, $lock = false)
 
 function oecrm_collection_invoice_meta($conn, $invoice)
 {
-    $stmt = mysqli_prepare($conn, 'SELECT DISTINCT a.account_id,a.account_name FROM invoice_details d
-        JOIN account a ON a.account_id=d.bank_id WHERE d.invoice_id=? ORDER BY a.account_name');
+    $stmt = mysqli_prepare($conn, 'SELECT DISTINCT CONCAT(\'bank:\',b.bank_id) AS account_id,b.bank_name AS account_name FROM invoice_details d
+        JOIN app_settings m ON m.company_id=0 AND m.setting_value=CAST(d.bank_id AS CHAR)
+        JOIN bank_details b ON m.setting_key=CONCAT(\'invoice_bank_account_\',b.bank_id)
+        WHERE d.invoice_id=? ORDER BY b.bank_name');
     mysqli_stmt_bind_param($stmt, 'i', $invoice['invoice_id']);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
@@ -32,7 +44,7 @@ function oecrm_collection_invoice_meta($conn, $invoice)
         'total_amount' => number_format((float) $invoice['total_amount'], 2, '.', ''),
         'tax_amount' => number_format((float) ($invoice['cgst_amount'] ?? 0) + (float) ($invoice['sgst_amount'] ?? 0) + (float) ($invoice['igst_amount'] ?? 0), 2, '.', ''),
         'banks' => $banks,
-        'suggested_account_id' => count($banks) === 1 ? (int) $banks[0]['account_id'] : 0,
+        'suggested_account_id' => count($banks) === 1 ? $banks[0]['account_id'] : 0,
     ];
 }
 
@@ -60,9 +72,10 @@ function oecrm_save_collection($conn, $companyId, $input, $id = 0)
     $date = trim((string) ($input['deposit_date'] ?? ''));
     $parsed = DateTime::createFromFormat('!Y-m-d', $date);
     $invoiceId = (int) ($input['invoice_id'] ?? 0);
-    $accountId = (int) ($input['account_Id'] ?? 0);
+    $bankSelection = $input['account_Id'] ?? '';
+    $validBank = is_string($bankSelection) && preg_match('/^bank:([1-9][0-9]*)$/D', $bankSelection);
     $projectId = (int) ($input['project_Id'] ?? 0);
-    if (!$parsed || $parsed->format('Y-m-d') !== $date || $invoiceId <= 0 || $accountId <= 0 || $projectId <= 0) {
+    if (!$parsed || $parsed->format('Y-m-d') !== $date || $invoiceId <= 0 || !$validBank || $projectId <= 0) {
         throw new InvalidArgumentException('Select a valid date, project, invoice and receiving bank account.');
     }
     $description = trim((string) ($input['description'] ?? ''));
@@ -105,6 +118,8 @@ function oecrm_save_collection($conn, $companyId, $input, $id = 0)
         if ($old && (!is_numeric($old['amount']) || (float) $old['amount'] < 0)) {
             throw new InvalidArgumentException('The existing deposit amount is invalid and cannot be adjusted automatically.');
         }
+        // Resolve only a current Bank Details entry; retain legacy ledger IDs in deposits.
+        $accountId = oecrm_invoice_bank_resolve($conn, $bankSelection);
         $accountIds = array_unique([$accountId, $old ? (int) $old['account_Id'] : $accountId]);
         sort($accountIds, SORT_NUMERIC);
         foreach ($accountIds as $bankId) {

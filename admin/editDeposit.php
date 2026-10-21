@@ -15,7 +15,7 @@ try {
 }
 include 'header.php';
 $collectionProjects = mysqli_query($conn, 'SELECT id,projectName FROM projectstbl WHERE company_id=' . (int) $collectionCompanyId . ' ORDER BY projectName');
-$collectionAccounts = mysqli_query($conn, 'SELECT account_id,account_name FROM account ORDER BY account_name');
+$collectionAccounts = oecrm_collection_bank_accounts($conn);
 $flash = $_SESSION['deposit_flash'] ?? null;
 unset($_SESSION['deposit_flash']);
 ?>

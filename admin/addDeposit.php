@@ -12,7 +12,7 @@ if (!oecrm_can($conn, 'finance', 'view') && !oecrm_can($conn, 'finance', 'create
 $collectionCompanyId = oecrm_current_company_id($conn);
 include 'header.php';
 $collectionProjects = mysqli_query($conn, 'SELECT id,projectName FROM projectstbl WHERE company_id=' . (int) $collectionCompanyId . ' ORDER BY projectName');
-$collectionAccounts = mysqli_query($conn, 'SELECT account_id,account_name FROM account ORDER BY account_name');
+$collectionAccounts = oecrm_collection_bank_accounts($conn);
 $deposit = null;
 $requestedInvoice = (int) ($_GET['invoice_id'] ?? 0);
 if ($requestedInvoice > 0) {

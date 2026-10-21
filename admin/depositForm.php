@@ -26,7 +26,7 @@ $initialInvoices = !empty($deposit['project_Id']) ? oecrm_collection_invoice_opt
             <select id="collection-account" name="account_Id" class="form-control" required>
                 <option value="">Select Receiving Account</option>
                 <?php while ($account = mysqli_fetch_assoc($collectionAccounts)): ?>
-                    <option value="<?php echo (int) $account['account_id']; ?>" <?php echo (int) ($deposit['account_Id'] ?? 0) === (int) $account['account_id'] ? 'selected' : ''; ?>><?php echo oecrm_h($account['account_name']); ?></option>
+                    <option value="bank:<?php echo (int) $account['bank_id']; ?>" <?php echo !empty($account['account_id']) && (int) ($deposit['account_Id'] ?? 0) === (int) $account['account_id'] ? 'selected' : ''; ?>><?php echo oecrm_h($account['account_name']); ?></option>
                 <?php endwhile; ?>
             </select>
             <p class="help-block" id="collection-bank-hint">Select the bank account that receives this payment.</p>
