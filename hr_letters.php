@@ -248,6 +248,7 @@ body { margin: 0; background: #eef1f6; color: #202939; font-family: Arial, sans-
 .toolbar a, .toolbar button { border: 0; background: #344054; color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration: none; font: inherit; cursor: pointer; }
 .letter { width: 210mm; min-height: 297mm; margin: 0 auto 24px; padding: 20mm 17mm; background: #fff; box-shadow: 0 8px 30px rgba(35,42,63,.12); }
 .letter-head { display: grid; grid-template-columns: minmax(0,1fr) 52mm; gap: 8mm; border-bottom: 2px solid #344054; padding-bottom: 6mm; margin-bottom: 8mm; break-inside: avoid; }
+.letter-logo { display: block; width: auto; height: auto; max-width: 60mm; max-height: 22mm; margin-bottom: 4mm; object-fit: contain; }
 .letter-head h1 { margin: 0 0 3mm; font-size: 18pt; line-height: 1.3; color: #182230; }
 .letter-head > div { min-width: 0; font-size: 10pt; line-height: 1.6; overflow-wrap: anywhere; }
 .letter-meta { text-align: right; color: #475467; }

@@ -19,10 +19,19 @@ if (!$l) {
     http_response_code(404);
     exit("Letter not found.");
 }
+$logoPath = trim((string) ($l["logo_path"] ?? ""));
+$logoUrl = "img/logo.png";
+if ($logoPath !== "") {
+    // Company logo paths are relative to the application root unless absolute.
+    $logoUrl = preg_match('~^(?:https?://|/)~i', $logoPath)
+        ? $logoPath
+        : "../" . $logoPath;
+}
+
 oecrm_audit($conn, "hr_letters", "view", "hr_letter", $id, "HR letter viewed");
 ?><!doctype html><html><head><meta charset="utf-8"><title><?php echo oecrm_h(
     $l["reference_no"] . " - " . $l["employee_name"]
-); ?></title><?php echo oecrm_letter_print_styles(); ?></head><body><div class="toolbar"><a href="hrLetters.php">Back</a><button onclick="window.print()">Print / Save PDF</button></div><article class="letter"><header class="letter-head"><div><h1><?php echo oecrm_h(
+); ?></title><?php echo oecrm_letter_print_styles(); ?></head><body><div class="toolbar"><a href="hrLetters.php">Back</a><button onclick="window.print()">Print / Save PDF</button></div><article class="letter"><header class="letter-head"><div><img class="letter-logo" src="<?php echo oecrm_h($logoUrl); ?>" alt="<?php echo oecrm_h(($l["legal_name"] ?: $l["display_name"]) . " logo"); ?>"><h1><?php echo oecrm_h(
     $l["legal_name"] ?: $l["display_name"]
 ); ?></h1><div><?php echo nl2br(
     oecrm_h($l["company_address"])
