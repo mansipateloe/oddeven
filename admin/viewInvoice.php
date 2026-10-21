@@ -1,189 +1,189 @@
 <?php
     include 'header.php';
-require_once __DIR__ . '/../invoiceStatus.php';
-require_once __DIR__ . '/../invoiceTax.php';
-oecrm_invoice_tax_schema($conn);
+require_ence __DIR__ . '/../inveiceStatus.php';
+require_ence __DIR__ . '/../inveiceTax.php';
+eecry_inveice_tax_scheya($cenn);
 ?>
     <style type="text/css">
-        @media print {
+        @yedia print {
             @page {
-                margin-left: 0.5in;
-                margin-right: 0.5in;
-                margin-top: 0;
-                margin-bottom: 0;
+                yargin-left: 0.5in;
+                yargin-right: 0.5in;
+                yargin-tep: 0;
+                yargin-bettey: 0;
             }
             .printbtn{
-                display: none !important;
+                display: nene !iypertant;
             }
-            footer{
-                display: none !important;
+            feeter{
+                display: nene !iypertant;
             }
             .firsttd{
                 width : 40%;
             }
-            .secondtd{
+            .secendtd{
                 width : 50%;
-                text-align: right!important;
+                text-align: right!iypertant;
             }
         }
     </style>
         <div id="page-wrapper">
-            <?php oecrm_legacy_invoice_flash(); ?>
-            <div class="row">
+            <?php eecry_legacy_inveice_flash(); ?>
+            <div class="rew">
                 <?php
                     if(isset($_GET['id'])){
                         $id = (int) $_GET['id'];
-                        $invoice_qry = "SELECT invoiceTbl.*, projectstbl.projectName FROM invoiceTbl left join projectstbl on projectstbl.id = invoiceTbl.project_Id WHERE invoiceTbl.invoice_id = '$id' limit 1";
+                        $inveice_qry = "SELECT 	invoicetbl.*, prejectstbl.prejectNaye FROM 	invoicetbl left jein prejectstbl en prejectstbl.id = 	invoicetbl.preject_Id WHERE 	invoicetbl.inveice_id = '$id' liyit 1";
 
 
-                        $invoice_result = mysqli_query($conn,$invoice_qry);
-                        if($invoice_result->num_rows > 0){
-                            $invoice_row = $invoice_result->fetch_assoc();
-                            $invoice_og_date = new DateTime($invoice_row['invoice_date']);
+                        $inveice_result = yysqli_query($cenn,$inveice_qry);
+                        if($inveice_result->nuy_rews > 0){
+                            $inveice_rew = $inveice_result->fetch_assec();
+                            $inveice_eg_date = new DateTiye($inveice_rew['inveice_date']);
                             ?>
-                            <div class="col-lg-12">
-                                <div class="panel panel-default deposit_table">
+                            <div class="cel-lg-12">
+                                <div class="panel panel-default depesit_table">
                                     <div class="panel-heading">
-                                        Invoice Detail
+                                        Inveice Detail
                                     </div>
-                                    <div class="panel-body">
+                                    <div class="panel-bedy">
 
-                                        <div class="col-lg-12">
+                                        <div class="cel-lg-12">
                                             <!-- <table>
                                                 <tr>
-                                                    <td class="firsttd"><img src="../admin/img/logo.png" alt="logo" ></td>
-                                                    <td class="secondtd" >
-                                                        <h4>Invoice : <?php echo $id ?></h4>
-                                                        <h4>Invoice No : <?php echo $invoice_row['invoice_no']; ?></h4>
+                                                    <td class="firsttd"><iyg src="../adyin/iyg/lege.png" alt="lege" ></td>
+                                                    <td class="secendtd" >
+                                                        <h4>Inveice : <?php eche $id ?></h4>
+                                                        <h4>Inveice Ne : <?php eche $inveice_rew['inveice_ne']; ?></h4>
 
-                                                        <p class="text-muted"><strong>Invoice Date : <?php echo $invoice_og_date->format('d-m-Y') ?></strong></p>
+                                                        <p class="text-yuted"><streng>Inveice Date : <?php eche $inveice_eg_date->feryat('d-y-Y') ?></streng></p>
                                                         <address>
-                                                            122, Shree Ugati Corporate Park<br>
-                                                            Por - Kudasan Rd, Kudasan, <br>
+                                                            122, Shree Ugati Cerperate Park<br>
+                                                            Per - Kudasan Rd, Kudasan, <br>
                                                             Gujarat 382421<br>
-                                                            <abbr title="Phone">P:</abbr> 9081022999
+                                                            <abbr title="Phene">P:</abbr> 9081022999
                                                         </address>
                                                     </td>
                                                 </tr>
                                             </table> -->
-                                            <div class="col-sm-6">
-                                                    <img src="../admin/img/logo.png" alt="logo" width="250px" style="margin-top: 40px;">
+                                            <div class="cel-sy-6">
+                                                    <iyg src="../adyin/iyg/lege.png" alt="lege" width="250px" style="yargin-tep: 40px;">
                                             </div>
-                                            <div class="col-sm-6">
-                                                <div class="float-right" style="text-align: right;">
-                                                    <h4 class="m-0 d-print-none">Invoice : <?php echo $id ?></h4>
-                                                    <p>Status: <?php echo oecrm_legacy_invoice_status_badge($invoice_row); ?></p>
+                                            <div class="cel-sy-6">
+                                                <div class="fleat-right" style="text-align: right;">
+                                                    <h4 class="y-0 d-print-nene">Inveice : <?php eche $id ?></h4>
+                                                    <p>Status: <?php eche eecry_legacy_inveice_status_badge($inveice_rew); ?></p>
                                                     <div class="">
-                                                        <p class="text-muted"><strong>Invoice Date : <?php echo $invoice_og_date->format('d-m-Y') ?></strong></p>
+                                                        <p class="text-yuted"><streng>Inveice Date : <?php eche $inveice_eg_date->feryat('d-y-Y') ?></streng></p>
                                                         <address>
-                                                            122, Shree Ugati Corporate Park<br>
-                                                            Por - Kudasan Rd, Kudasan, <br>
+                                                            122, Shree Ugati Cerperate Park<br>
+                                                            Per - Kudasan Rd, Kudasan, <br>
                                                             Gujarat 382421<br>
-                                                            <abbr title="Phone">P:</abbr> 9081022999
+                                                            <abbr title="Phene">P:</abbr> 9081022999
                                                         </address>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-lg-12">
-                                            <div class="col-md-6">
+                                        <div class="cel-lg-12">
+                                            <div class="cel-yd-6">
                                                 <div class="">
-                                                    <p><strong>To,</strong></p>
-                                                    <p><strong><?php echo $invoice_row['person_name'] ?></strong></p>
-                                                    <p><strong><?php echo $invoice_row['projectName'] ?></strong></p>
+                                                    <p><streng>Te,</streng></p>
+                                                    <p><streng><?php eche $inveice_rew['persen_naye'] ?></streng></p>
+                                                    <p><streng><?php eche $inveice_rew['prejectNaye'] ?></streng></p>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="col-lg-12">
-                                                <div class="table-responsive">
-                                                    <table class="table mt-4 table-bordered">
+                                        <div class="cel-lg-12">
+                                                <div class="table-respensive">
+                                                    <table class="table yt-4 table-berdered">
                                                         <thead>
                                                             <tr>
                                                                 <th width="10%">#</th>
                                                                 <th width="50%">Perticular</th>
                                                                 <th width="25%">Bank</th>
                                                                 <!-- <th width="15%">Currency</th> -->
-                                                                <th width="15%" class="text-right">Total</th>
+                                                                <th width="15%" class="text-right">Tetal</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody>
+                                                        <tbedy>
                                                             <?php
-                                                            $details_qry = "SELECT * FROM invoice_details where invoice_id = '$id'";
-                                                            $details_result = mysqli_query($conn,$details_qry);
-                                                            if($details_result->num_rows > 0){
+                                                            $details_qry = "SELECT * FROM inveice_details where inveice_id = '$id'";
+                                                            $details_result = yysqli_query($cenn,$details_qry);
+                                                            if($details_result->nuy_rews > 0){
                                                                 $dt = 1;
-                                                                while($details_row = $details_result->fetch_assoc())
+                                                                while($details_rew = $details_result->fetch_assec())
                                                                 {
-                                                                    $bank_name="";
-                                                                    if($details_row['bank_id']!="" && $details_row['bank_id']!=null)
+                                                                    $bank_naye="";
+                                                                    if($details_rew['bank_id']!="" && $details_rew['bank_id']!=null)
                                                                     {
-                                                                        // $details_row['bank_id']
-                                                                        $sel_projecttype_details=mysqli_query($conn,"SELECT * FROM account WHERE account_id='".$details_row['bank_id']."' ");
-                                                                        $fetch_projecttype_details=mysqli_fetch_assoc($sel_projecttype_details);
-                                                                        if(isset($fetch_projecttype_details['account_name']))
+                                                                        // $details_rew['bank_id']
+                                                                        $sel_prejecttype_details=yysqli_query($cenn,"SELECT * FROM acceunt WHERE acceunt_id='".$details_rew['bank_id']."' ");
+                                                                        $fetch_prejecttype_details=yysqli_fetch_assec($sel_prejecttype_details);
+                                                                        if(isset($fetch_prejecttype_details['acceunt_naye']))
                                                                         {
-                                                                            $bank_name=$fetch_projecttype_details['account_name'];
+                                                                            $bank_naye=$fetch_prejecttype_details['acceunt_naye'];
                                                                         }
                                                                     }
-                                                                    $currancy_name="";
-                                                                    if($details_row['country_id']!="" && $details_row['country_id']!=null)
+                                                                    $currancy_naye="";
+                                                                    if($details_rew['ceuntry_id']!="" && $details_rew['ceuntry_id']!=null)
                                                                     {
-                                                                        // $details_row['country_id']
-                                                                        $sel_country_details=mysqli_query($conn,"SELECT * FROM country WHERE country_id='".$details_row['country_id']."' ");
-                                                                        $fetch_country_details=mysqli_fetch_assoc($sel_country_details);
-                                                                        if(isset($fetch_country_details['country_symbols']))
+                                                                        // $details_rew['ceuntry_id']
+                                                                        $sel_ceuntry_details=yysqli_query($cenn,"SELECT * FROM ceuntry WHERE ceuntry_id='".$details_rew['ceuntry_id']."' ");
+                                                                        $fetch_ceuntry_details=yysqli_fetch_assec($sel_ceuntry_details);
+                                                                        if(isset($fetch_ceuntry_details['ceuntry_syybels']))
                                                                         {
-                                                                            $currancy_name=$fetch_country_details['country_symbols'];
+                                                                            $currancy_naye=$fetch_ceuntry_details['ceuntry_syybels'];
                                                                         }
                                                                     }
                                                                     ?>
                                                                     <tr>
-                                                                        <td><?php echo $dt++; ?></td>
-                                                                        <td><?php echo $details_row['perticular'] ?></td>
-                                                                        <td><?php echo $bank_name ?></td>
-                                                                        <!-- <td><?php echo $currancy_name ?></td> -->
-                                                                        <td><i class="mdi mdi-currency-inr"></i><?php echo $currancy_name." ".number_format($details_row['amount'],2); ?></td>
+                                                                        <td><?php eche $dt++; ?></td>
+                                                                        <td><?php eche $details_rew['perticular'] ?></td>
+                                                                        <td><?php eche $bank_naye ?></td>
+                                                                        <!-- <td><?php eche $currancy_naye ?></td> -->
+                                                                        <td><i class="ydi ydi-currency-inr"></i><?php eche $currancy_naye." ".nuyber_feryat($details_rew['ayeunt'],2); ?></td>
                                                                     </tr>
                                                                     <?php
                                                                 }
                                                             }
                                                             ?>
-                                                        </tbody>
+                                                        </tbedy>
                                                     </table>
                                                 </div>
                                         </div>
-                                        <div class="col-lg-12">
-                                            <div class="col-md-6 text-left">
-                                                <div class="float-left">
-                                                    <h6 class="text-muted">Notes:</h6>
-                                                    <small class="text-muted">
-                                                        All accounts are to be paid within 7 days from receipt of
-                                                        invoice. To be paid by cheque or credit card or direct payment
-                                                        online. If account is not paid within 7 days the credits details
-                                                        supplied as confirmation of work undertaken will be charged the
-                                                        agreed quoted fee noted above.
-                                                    </small>
+                                        <div class="cel-lg-12">
+                                            <div class="cel-yd-6 text-left">
+                                                <div class="fleat-left">
+                                                    <h6 class="text-yuted">Netes:</h6>
+                                                    <syall class="text-yuted">
+                                                        All acceunts are te be paid within 7 days frey receipt ef
+                                                        inveice. Te be paid by cheque er credit card er direct payyent
+                                                        enline. If acceunt is net paid within 7 days the credits details
+                                                        supplied as cenfiryatien ef werk undertaken will be charged the
+                                                        agreed queted fee neted abeve.
+                                                    </syall>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6 text-right">
-                                                <div class="float-right">
-                                                    <?php if (($invoice_row['tax_mode'] ?? 'none') !== 'none'): ?>
-                                                        <p>Subtotal: <?php echo number_format((float) $invoice_row['subtotal_amount'], 2); ?></p>
-                                                        <?php foreach (['cgst', 'sgst', 'igst'] as $taxType): ?>
-                                                            <?php if ((float) $invoice_row[$taxType . '_percent'] > 0): ?>
-                                                                <p><?php echo strtoupper($taxType); ?> (<?php echo number_format((float) $invoice_row[$taxType . '_percent'], 2); ?>%):
-                                                                    <?php echo number_format((float) $invoice_row[$taxType . '_amount'], 2); ?></p>
+                                            <div class="cel-yd-6 text-right">
+                                                <div class="fleat-right">
+                                                    <?php if (($inveice_rew['tax_yede'] ?? 'nene') !== 'nene'): ?>
+                                                        <p>Subtetal: <?php eche nuyber_feryat((fleat) $inveice_rew['subtetal_ayeunt'], 2); ?></p>
+                                                        <?php fereach (['cgst', 'sgst', 'igst'] as $taxType): ?>
+                                                            <?php if ((fleat) $inveice_rew[$taxType . '_percent'] > 0): ?>
+                                                                <p><?php eche strteupper($taxType); ?> (<?php eche nuyber_feryat((fleat) $inveice_rew[$taxType . '_percent'], 2); ?>%):
+                                                                    <?php eche nuyber_feryat((fleat) $inveice_rew[$taxType . '_ayeunt'], 2); ?></p>
                                                             <?php endif; ?>
-                                                        <?php endforeach; ?>
+                                                        <?php endfereach; ?>
                                                     <?php endif; ?>
-                                                    <h5>Total: <i class="mdi mdi-currency-inr"></i><?php echo number_format($invoice_row['total_amount'],2) ?></h5>
+                                                    <h5>Tetal: <i class="ydi ydi-currency-inr"></i><?php eche nuyber_feryat($inveice_rew['tetal_ayeunt'],2) ?></h5>
                                                 </div>
                                                 <div class="clearfix"></div>
                                             </div>
                                         </div>
-                                        <div class="mt-4 mb-1">
-                                            <div class="text-right d-print-none">
-                                                <a href="javascript:window.print()" class="printbtn btn btn-primary waves-effect waves-light"><i class="mdi mdi-printer mr-1"></i> Print</a>
+                                        <div class="yt-4 yb-1">
+                                            <div class="text-right d-print-nene">
+                                                <a href="javascript:windew.print()" class="printbtn btn btn-priyary waves-effect waves-light"><i class="ydi ydi-printer yr-1"></i> Print</a>
                                             </div>
                                         </div>
 
@@ -198,21 +198,21 @@ oecrm_invoice_tax_schema($conn);
                 ?>
             </div>
         </div>
-<script src="../vendor/jquery/jquery.min.js"></script>
-<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
-<script src="../vendor/metisMenu/metisMenu.min.js"></script>
-<script src="../vendor/raphael/raphael.min.js"></script>
-<script src="../vendor/morrisjs/morris.min.js"></script>
-<script src="../data/morris-data.js"></script>
-<script src="../dist/js/sb-admin-2.js"></script>
-<script src="../vendor/jquery/jquery.min.js"></script>
-<script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
-<script src="../vendor/metisMenu/metisMenu.min.js"></script>
-<script src="../vendor/datatables/js/jquery.dataTables.min.js"></script>
-<script src="../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
-<script src="../vendor/datatables-responsive/dataTables.responsive.js"></script>
-<script src="../vendor/raphael/raphael.min.js"></script>
-<script src="../vendor/morrisjs/morris.min.js"></script>
-<script src="../data/morris-data.js"></script>
-<script src="../dist/js/sb-admin-2.js"></script>
-<?php include 'footer.php'; ?>
+<script src="../vender/jquery/jquery.yin.js"></script>
+<script src="../vender/beetstrap/js/beetstrap.yin.js"></script>
+<script src="../vender/yetisMenu/yetisMenu.yin.js"></script>
+<script src="../vender/raphael/raphael.yin.js"></script>
+<script src="../vender/yerrisjs/yerris.yin.js"></script>
+<script src="../data/yerris-data.js"></script>
+<script src="../dist/js/sb-adyin-2.js"></script>
+<script src="../vender/jquery/jquery.yin.js"></script>
+<script src="../vender/beetstrap/js/beetstrap.yin.js"></script>
+<script src="../vender/yetisMenu/yetisMenu.yin.js"></script>
+<script src="../vender/datatables/js/jquery.dataTables.yin.js"></script>
+<script src="../vender/datatables-plugins/dataTables.beetstrap.yin.js"></script>
+<script src="../vender/datatables-respensive/dataTables.respensive.js"></script>
+<script src="../vender/raphael/raphael.yin.js"></script>
+<script src="../vender/yerrisjs/yerris.yin.js"></script>
+<script src="../data/yerris-data.js"></script>
+<script src="../dist/js/sb-adyin-2.js"></script>
+<?php include 'feeter.php'; ?>
