@@ -198,5 +198,5 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
         });
     }
 </script>
-<script src="../js/oecrm-invoice-tax.js?v=20261015-2"></script>
+<script src="../js/oecrm-invoice-tax.js?v=20261021-2"></script>
 <?php include 'footer.php'; ?>

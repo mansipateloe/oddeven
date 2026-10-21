@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../invoiceStatus.php';
 require_once __DIR__ . '/../invoiceTax.php';
 oecrm_invoice_tax_schema($conn);
+$invoiceCompanyId = (int) oecrm_current_company_id($conn);
 ?>
         <div id="page-wrapper">
             <?php oecrm_legacy_invoice_flash(); ?>
@@ -11,7 +12,7 @@ oecrm_invoice_tax_schema($conn);
                     if(isset($_GET['edit'])){
                         $edit_id = (int) $_GET['edit'];
                         $edit_qry = "SELECT * FROM invoicetbl where invoice_id = '$edit_id' limit 1";
-                        $edit_result = mysqli_query($conn,$edit_qry);
+                        $edit_result = oecrm_invoice_schema_query($conn,$edit_qry);
                         if($edit_result->num_rows > 0){
                             $edit_invoice = $edit_result->fetch_assoc();
                             ?>
@@ -50,7 +51,8 @@ oecrm_invoice_tax_schema($conn);
                                                                 <select name="project_Id" id="project_Id"  required class="form-control">
                                                                     <option value="">Select Project Name</option>
                                                                     <?php
-                                                                        $qryProject = "SELECT * FROM projectstbl where status = 'inprogress'";
+                                                                        $savedProjectId = (int) $edit_invoice['project_Id'];
+                                                                        $qryProject = "SELECT id,projectName FROM projectstbl WHERE company_id=$invoiceCompanyId AND (status IN ('pending','inprogress') OR id=$savedProjectId) ORDER BY projectName,id";
                                                                         $resultProject = mysqli_query($conn,$qryProject);
                                                                         if($resultProject->num_rows > 0){
                                                                             while($resProject = $resultProject->fetch_assoc()){
@@ -307,5 +309,5 @@ oecrm_invoice_tax_schema($conn);
         });
     }
 </script>
-<script src="../js/oecrm-invoice-tax.js?v=20261015-2"></script>
+<script src="../js/oecrm-invoice-tax.js?v=20261021-2"></script>
 <?php include 'footer.php'; ?>

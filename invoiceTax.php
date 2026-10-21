@@ -144,13 +144,14 @@ function oecrm_invoice_tax_save($conn, $id, $tax)
 
 function oecrm_invoice_tax_fields($invoice = [])
 {
-    $mode = $invoice['tax_mode'] ?? 'none';
+    $mode = $invoice['tax_mode'] ?? 'cgst_sgst';
+    $hasSavedGst = !empty($invoice) && in_array($mode, ['cgst_sgst', 'igst'], true);
     ?>
-    <div id="invoice-tax-section" class="row" style="display:none;">
+    <div id="invoice-tax-section" class="row" data-saved-gst="<?php echo $hasSavedGst ? '1' : '0'; ?>" style="<?php echo $hasSavedGst ? '' : 'display:none;'; ?>">
         <div class="col-lg-3"><div class="form-group">
             <label for="invoice-tax-mode">GST Type</label>
             <select id="invoice-tax-mode" name="tax_mode" class="form-control">
-                <?php foreach (['cgst_sgst' => 'CGST + SGST', 'igst' => 'IGST'] as $value => $label): ?>
+                <?php foreach (['none' => 'No GST', 'cgst_sgst' => 'CGST + SGST', 'igst' => 'IGST'] as $value => $label): ?>
                     <option value="<?php echo $value; ?>" <?php echo $mode === $value ? 'selected' : ''; ?>><?php echo $label; ?></option>
                 <?php endforeach; ?>
             </select>

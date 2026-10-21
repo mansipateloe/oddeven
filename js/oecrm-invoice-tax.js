@@ -8,7 +8,9 @@
         var mode = document.getElementById('invoice-tax-mode');
         var message = document.getElementById('invoice-tax-message');
         var person = form.querySelector('[name="person_name"]');
-        var eligible = false;
+        var hasSavedGst = section.dataset.savedGst === '1';
+        var eligible = hasSavedGst;
+        var lookupError = '';
         var request = null;
         var loadedProject = '';
         var types = ['cgst', 'sgst', 'igst'];
@@ -38,7 +40,15 @@
             mode.value = 'cgst_sgst';
             types.forEach(function (type) { document.getElementById('invoice-' + type).value = '0'; });
         }
-        function setClient(data) {
+        function setClient(data, preserveTax) {
+            if (preserveTax && hasSavedGst && data.is_indian_client !== true) {
+                // Show the saved tax instead of silently removing it from an old invoice.
+                loadedProject = '';
+                lookupError = 'Saved GST is displayed. Check the linked client country in Clients, then reload before saving.';
+                message.textContent = lookupError;
+                calculate();
+                return;
+            }
             eligible = data.is_indian_client === true;
             section.style.display = eligible ? '' : 'none';
             mode.disabled = !eligible;
@@ -46,16 +56,17 @@
             message.textContent = eligible ? 'Indian client: select the GST type and enter the applicable rates.' :
                 data.client_country ? 'Client country: ' + data.client_country + '. GST fields are not required.' :
                 'The linked client has no country. Set the country in Clients to enable GST options.';
-            if (person) person.value = data.customerName || '';
+            if (person && !preserveTax) person.value = data.customerName || '';
             calculate();
         }
         function loadClient(preserveTax) {
             loadedProject = '';
+            lookupError = '';
             if (request) request.abort();
             if (!preserveTax) resetTaxes();
-            eligible = false;
-            section.style.display = 'none';
-            mode.disabled = true;
+            eligible = preserveTax && hasSavedGst;
+            section.style.display = eligible ? '' : 'none';
+            mode.disabled = !eligible;
             calculate();
             if (!project.value) {
                 message.textContent = 'Select a project to load its client and tax options.';
@@ -75,20 +86,21 @@
                 .then(function (response) {
                     if (project.value === selected && response.data) {
                         loadedProject = selected;
-                        setClient(response.data);
+                        setClient(response.data, preserveTax);
                     }
                 })
                 .catch(function (error) {
-                    if (error.name === 'AbortError') return;
-                    resetTaxes();
+                    if (error.name === 'AbortError' || project.value !== selected) return;
+                    if (!preserveTax) resetTaxes();
                     calculate();
-                    message.textContent = 'Could not load the linked client. Select the project again to retry.';
+                    lookupError = 'Could not load the linked client. Saved values have been kept. Reload or select the project again to retry.';
+                    message.textContent = lookupError;
                 });
         }
         form.addEventListener('submit', function (event) {
             if (project.value && loadedProject !== project.value) {
                 event.preventDefault();
-                message.textContent = 'Please wait for client details to load, or select the project again to retry.';
+                message.textContent = lookupError || 'Please wait for client details to load, or select the project again to retry.';
             }
         });
         form.addEventListener('input', calculate);

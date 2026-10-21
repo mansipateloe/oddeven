@@ -27,7 +27,7 @@ function oecrm_collection_deposit($conn, $companyId, $id, $lock = false)
 function oecrm_collection_invoice_meta($conn, $invoice)
 {
     $stmt = mysqli_prepare($conn, 'SELECT DISTINCT CONCAT(\'bank:\',b.bank_id) AS account_id,b.bank_name AS account_name FROM invoice_details d
-        JOIN app_settings m ON m.company_id=0 AND m.setting_value=CAST(d.bank_id AS CHAR)
+        JOIN app_settings m ON m.company_id=0 AND CAST(m.setting_value AS UNSIGNED)=d.bank_id
         JOIN bank_details b ON m.setting_key=CONCAT(\'invoice_bank_account_\',b.bank_id)
         WHERE d.invoice_id=? ORDER BY b.bank_name');
     mysqli_stmt_bind_param($stmt, 'i', $invoice['invoice_id']);
