@@ -7,7 +7,7 @@ function oecrm_collection_bank_accounts($conn)
 {
     return mysqli_query($conn, 'SELECT b.bank_id,b.bank_name AS account_name,m.setting_value AS account_id
         FROM bank_details b LEFT JOIN app_settings m ON m.company_id=0
-        AND m.setting_key=CONCAT(\'invoice_bank_account_\',b.bank_id)
+        AND CAST(m.setting_key AS BINARY)=CAST(CONCAT(\'invoice_bank_account_\',b.bank_id) AS BINARY)
         ORDER BY b.bank_name,b.bank_id');
 }
 
@@ -28,7 +28,7 @@ function oecrm_collection_invoice_meta($conn, $invoice)
 {
     $stmt = mysqli_prepare($conn, 'SELECT DISTINCT CONCAT(\'bank:\',b.bank_id) AS account_id,b.bank_name AS account_name FROM invoice_details d
         JOIN app_settings m ON m.company_id=0 AND CAST(m.setting_value AS UNSIGNED)=d.bank_id
-        JOIN bank_details b ON m.setting_key=CONCAT(\'invoice_bank_account_\',b.bank_id)
+        JOIN bank_details b ON CAST(m.setting_key AS BINARY)=CAST(CONCAT(\'invoice_bank_account_\',b.bank_id) AS BINARY)
         WHERE d.invoice_id=? ORDER BY b.bank_name');
     mysqli_stmt_bind_param($stmt, 'i', $invoice['invoice_id']);
     mysqli_stmt_execute($stmt);
