@@ -1,49 +1,17 @@
-<?php require_once __DIR__ . '/../dbconnect.php';
-require_once __DIR__ . "/../security.php";
-require_once __DIR__ . "/../foundation.php";
+<?php
+require_once __DIR__ . '/../dbconnect.php';
+require_once __DIR__ . '/../security.php';
+require_once __DIR__ . '/../foundation.php';
+require_once __DIR__ . '/../bankReconciliation.php';
 oecrm_require_admin_login();
 oecrm_require_csrf();
-oecrm_require_permission($conn, "bank_reconciliation", "create");
-$companyId = oecrm_current_company_id($conn);
-$actor = (int) $_SESSION["adminId"];
-$account = (int) $_POST["account_id"];
-$date = $_POST["statement_date"];
-$statement = (float) $_POST["statement_balance"];
-$notes = trim($_POST["notes"] ?? "");
-$a = mysqli_fetch_assoc(
-    mysqli_query(
-        $conn,
-        "SELECT balance FROM account WHERE account_id=" . $account
-    )
-);
-$book = (float) ($a["balance"] ?? 0);
-$diff = $statement - $book;
-$status = abs($diff) < 0.01 ? "reconciled" : "draft";
-$s = mysqli_prepare(
-    $conn,
-    'INSERT INTO bank_reconciliation(company_id,account_id,statement_date,statement_balance,book_balance,difference_amount,status,notes,reconciled_by,reconciled_at) VALUES(?,?,?,?,?,?,?,?,?,IF(?="reconciled",NOW(),NULL))'
-);
-mysqli_stmt_bind_param(
-    $s,
-    "iisdddssis",
-    $companyId,
-    $account,
-    $date,
-    $statement,
-    $book,
-    $diff,
-    $status,
-    $notes,
-    $actor,
-    $status
-);
-mysqli_stmt_execute($s);
-oecrm_audit(
-    $conn,
-    "bank_reconciliation",
-    "create",
-    "reconciliation",
-    mysqli_insert_id($conn),
-    "Bank reconciliation created"
-);
-header("Location: bankReconciliation.php");
+oecrm_require_permission($conn, 'bank_reconciliation', 'create');
+try {
+    $id = oecrm_save_current_bank_reconciliation($conn, oecrm_current_company_id($conn), (int) $_SESSION['adminId'], $_POST);
+    oecrm_audit($conn, 'bank_reconciliation', 'create', 'reconciliation', $id, 'Bank reconciliation created');
+} catch (Throwable $e) {
+    error_log('Bank reconciliation failed: ' . $e->getMessage());
+    $_SESSION['reconciliation_error'] = $e instanceof InvalidArgumentException ? $e->getMessage() : 'Reconciliation could not be saved. Please try again.';
+}
+header('Location: bankReconciliation.php');
+exit;

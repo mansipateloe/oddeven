@@ -216,7 +216,7 @@ $flash = $_SESSION["bank_details_flash"] ?? null;
 unset($_SESSION["bank_details_flash"]);
 
 include "header.php";
-$bankRows = mysqli_query($conn, oecrm_expense_bank_list_sql());
+$bankRows = mysqli_query($conn, oecrm_expense_bank_list_sql($conn));
 ?>
 <div id="page-wrapper" class="compact-admin-page">
     <?php if (!empty($flash["message"])): ?>

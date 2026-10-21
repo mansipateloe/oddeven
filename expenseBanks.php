@@ -50,10 +50,26 @@ function oecrm_expense_bank_schema($conn)
     }
 }
 
-function oecrm_expense_bank_list_sql()
+// Match the legacy project-expense column aliases used by its add/edit screens.
+function oecrm_project_bank_spending_sql($conn)
 {
-    // Saved deposits and expenses determine the balance, including edits exactly once.
-    return "SELECT b.*, b.opening_balance + COALESCE(c.received,0) - COALESCE(x.spent,0) AS current_balance
+    $columns = [];
+    $result = mysqli_query($conn, 'SHOW COLUMNS FROM project_expenses');
+    while ($column = mysqli_fetch_assoc($result)) $columns[strtolower($column['Field'])] = $column['Field'];
+    mysqli_free_result($result);
+    $account = $columns['account_id'] ?? '';
+    $amount = $columns['amount'] ?? $columns['expense_amount'] ?? '';
+    if ($account === '' || $amount === '') throw new RuntimeException('Project expense bank columns are unavailable.');
+    $account = '`' . str_replace('`', '``', $account) . '`';
+    $amount = '`' . str_replace('`', '``', $amount) . '`';
+    return "SELECT $account AS account_id,SUM(CAST($amount AS DECIMAL(14,2))) AS spent FROM project_expenses GROUP BY $account";
+}
+
+function oecrm_expense_bank_list_sql($conn)
+{
+    $projectSpending = oecrm_project_bank_spending_sql($conn);
+    // Derive balances from saved rows so edits and deletes adjust them exactly once.
+    return "SELECT b.*, b.opening_balance + COALESCE(c.received,0) - COALESCE(x.spent,0) - COALESCE(y.spent,0) AS current_balance
         FROM bank_details b
         LEFT JOIN (
             SELECT bank_id, SUM(CAST(amount AS DECIMAL(14,2))) AS spent
@@ -64,12 +80,17 @@ function oecrm_expense_bank_list_sql()
             FROM app_settings m JOIN deposit d ON d.account_Id=CAST(m.setting_value AS UNSIGNED)
             WHERE m.company_id=0 GROUP BY m.setting_key
         ) c ON CAST(c.setting_key AS BINARY)=CAST(CONCAT('invoice_bank_account_',b.bank_id) AS BINARY)
+        LEFT JOIN (
+            SELECT m.setting_key,SUM(pe.spent) AS spent
+            FROM app_settings m JOIN ($projectSpending) pe ON pe.account_id=CAST(m.setting_value AS UNSIGNED)
+            WHERE m.company_id=0 GROUP BY m.setting_key
+        ) y ON CAST(y.setting_key AS BINARY)=CAST(CONCAT('invoice_bank_account_',b.bank_id) AS BINARY)
         ORDER BY b.bank_name";
 }
 
 function oecrm_expense_bank_field($conn, $selectedId = 0)
 {
-    $banks = mysqli_query($conn, oecrm_expense_bank_list_sql());
+    $banks = mysqli_query($conn, oecrm_expense_bank_list_sql($conn));
     echo '<div class="row"><div class="col-lg-6"><div class="form-group">';
     echo '<label for="expense_bank_id">Pay From Bank <span class="text-danger">*</span></label>';
     echo '<select name="bank_id" id="expense_bank_id" class="form-control" required>';

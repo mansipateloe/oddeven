@@ -1,6 +1,7 @@
 <?php
 $active_menu = 'finance';
 include 'header.php';
+require_once __DIR__ . '/../depositCollections.php';
 
 $companyId = oecrm_current_company_id($conn);
 $flash = $_SESSION['project_expense_flash'] ?? '';
@@ -109,7 +110,7 @@ try {
     mysqli_stmt_execute($projectStmt);
     $projects = mysqli_stmt_get_result($projectStmt);
 
-    $accounts = mysqli_query($conn, 'SELECT account_id,account_name FROM account ORDER BY account_name');
+    $accounts = oecrm_collection_bank_accounts($conn);
 
     $selectSql = 'SELECT pe.id, pe.' . oecrm_project_expense_ident($map['date']) . ' AS expense_date_value, '
         . 'pe.' . oecrm_project_expense_ident($map['title']) . ' AS expense_title_value, '
@@ -203,10 +204,16 @@ $formValues = [
                         <div class="col-lg-6">
                             <div class="form-group">
                                 <label>Account Name <span class="text-danger">*</span></label>
-                                <select name="account_Id" id="account_Id" class="form-control" required>
+                                <select name="account_Id" id="account_Id" class="form-control" required data-search-placeholder="Search bank name, account ending or IFSC..." data-oecrm-dropdown="viewport">
                                     <option value="">Select Account Name</option>
                                     <?php if ($accounts): while ($account = mysqli_fetch_assoc($accounts)): ?>
-                                        <option value="<?php echo (int) $account['account_id']; ?>" <?php echo (int) $formValues['account_Id'] === (int) $account['account_id'] ? 'selected' : ''; ?>><?php echo oecrm_h($account['account_name']); ?></option>
+                                        <?php
+                                        $label = $account['account_name'];
+                                        if ($account['account_number'] !== '') $label .= ' - A/c ending ' . substr($account['account_number'], -4);
+                                        if ($account['ifsc_code'] !== '') $label .= ' - ' . $account['ifsc_code'];
+                                        $label .= ' - Balance: ' . number_format((float) $account['current_balance'], 2);
+                                        ?>
+                                        <option value="bank:<?php echo (int) $account['bank_id']; ?>" <?php echo !empty($account['account_id']) && (int) $formValues['account_Id'] === (int) $account['account_id'] ? 'selected' : ''; ?>><?php echo oecrm_h($label); ?></option>
                                     <?php endwhile; endif; ?>
                                 </select>
                             </div>

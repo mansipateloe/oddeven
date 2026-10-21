@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../dbconnect.php';
 require_once __DIR__ . '/../../security.php';
 require_once __DIR__ . '/../../foundation.php';
+require_once __DIR__ . '/../../invoiceBanks.php';
 
 oecrm_require_admin_login();
 
@@ -144,7 +145,8 @@ try {
     $projectId = (int) ($_POST['project_Id'] ?? $_POST['project_id'] ?? 0);
     $expenseTitle = trim((string) ($_POST['expense_title'] ?? ''));
     $amount = trim((string) ($_POST['amount'] ?? ''));
-    $accountId = (int) ($_POST['account_Id'] ?? $_POST['account_id'] ?? 0);
+    $bankSelection = $_POST['account_Id'] ?? $_POST['account_id'] ?? '';
+    $validBank = is_string($bankSelection) && preg_match('/^bank:([1-9][0-9]*)$/D', $bankSelection);
     $remark = trim((string) ($_POST['remark'] ?? ''));
 
     if (!in_array($action, ['add', 'update'], true)) {
@@ -159,7 +161,7 @@ try {
         throw new RuntimeException('Please enter a valid expense date.');
     }
 
-    if ($projectId <= 0 || $expenseTitle === '' || $amount === '' || !is_numeric($amount) || (float) $amount < 0 || $accountId <= 0) {
+    if ($projectId <= 0 || $expenseTitle === '' || $amount === '' || !preg_match('/^[0-9]{1,12}(\.[0-9]{1,2})?$/D', $amount) || (float) $amount <= 0 || !$validBank) {
         throw new RuntimeException('Date, project, expense title, valid amount and account are required.');
     }
 
@@ -174,16 +176,20 @@ try {
 
     mysqli_stmt_close($projectStmt);
 
-    $accountStmt = mysqli_prepare($conn, 'SELECT account_id FROM account WHERE account_id=? LIMIT 1');
-    mysqli_stmt_bind_param($accountStmt, 'i', $accountId);
-    mysqli_stmt_execute($accountStmt);
-    $accountResult = mysqli_stmt_get_result($accountStmt);
-
-    if (!mysqli_fetch_assoc($accountResult)) {
-        throw new RuntimeException('Selected account is invalid.');
+    mysqli_begin_transaction($conn);
+    // Validate and map a current bank without rewriting historical expense IDs.
+    $accountId = oecrm_invoice_bank_resolve($conn, $bankSelection);
+    if ($action === 'update') {
+        $ownershipSql = $map['company'] !== ''
+            ? 'SELECT pe.id FROM project_expenses pe WHERE pe.id=? AND pe.' . oecrm_project_expense_ident($map['company']) . '=? FOR UPDATE'
+            : 'SELECT pe.id FROM project_expenses pe JOIN projectstbl p ON p.id=pe.' . oecrm_project_expense_ident($map['project']) . ' WHERE pe.id=? AND p.company_id=? FOR UPDATE';
+        $ownership = mysqli_prepare($conn, $ownershipSql);
+        mysqli_stmt_bind_param($ownership, 'ii', $id, $companyId);
+        mysqli_stmt_execute($ownership);
+        $existing = mysqli_fetch_assoc(mysqli_stmt_get_result($ownership));
+        mysqli_stmt_close($ownership);
+        if (!$existing) throw new InvalidArgumentException('Selected project expense was not found for the active company.');
     }
-
-    mysqli_stmt_close($accountStmt);
 
     $amountValue = number_format((float) $amount, 2, '.', '');
 
@@ -235,7 +241,9 @@ try {
     }
 
     mysqli_stmt_close($stmt);
-    oecrm_project_expense_redirect('Project expense saved successfully.', false, $action === 'update' ? $id : 0);
+    mysqli_commit($conn);
+    oecrm_project_expense_redirect('Project expense saved. Bank balance updated.', false, $action === 'update' ? $id : 0);
 } catch (Throwable $exception) {
+    mysqli_rollback($conn);
     oecrm_project_expense_redirect($exception->getMessage(), true, oecrm_project_expense_post_int('id'));
 }

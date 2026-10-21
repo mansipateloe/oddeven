@@ -2,12 +2,10 @@
 $active_menu = "finance";
 include "header.php";
 require_once __DIR__ . "/../foundation.php";
+require_once __DIR__ . "/../depositCollections.php";
 oecrm_require_permission($conn, "bank_reconciliation", "view");
 $companyId = oecrm_current_company_id($conn);
-$accounts = mysqli_query(
-    $conn,
-    "SELECT account_id,account_name,balance FROM account ORDER BY account_name"
-);
+$accounts = oecrm_collection_bank_accounts($conn);
 $rows = mysqli_query(
     $conn,
     "SELECT r.*,a.account_name FROM bank_reconciliation r JOIN account a ON a.account_id=r.account_id WHERE r.company_id=" .
@@ -22,6 +20,7 @@ $cash = mysqli_query(
   <div class="foundation-titlebar"><a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a>
     <h2>Bank Reconciliation & Cash Flow</h2>
   </div>
+  <?php if (!empty($_SESSION['reconciliation_error'])): ?><div class="alert alert-danger"><?php echo oecrm_h($_SESSION['reconciliation_error']); unset($_SESSION['reconciliation_error']); ?></div><?php endif; ?>
   <div class="asset-layout">
     <section>
       <div class="panel panel-default">
@@ -104,13 +103,11 @@ $cash = mysqli_query(
         <div class="panel-heading">New Reconciliation</div>
         <div class="panel-body">
           <form method="post" action="reconciliationAction.php"><?php echo oecrm_csrf_field(); ?><select
-              class="form-control" name="account_id" required>
+              class="form-control" name="account_id" required data-search-placeholder="Search bank name..." data-oecrm-dropdown="viewport">
               <option value="">Select account</option><?php while (
     $a = mysqli_fetch_assoc($accounts)
-): ?><option value="<?php echo $a[
-    "account_id"
-]; ?>" data-balance="<?php echo $a["balance"]; ?>"><?php echo oecrm_h(
-    $a["account_name"]
+): ?><option value="bank:<?php echo (int) $a["bank_id"]; ?>" data-balance="<?php echo oecrm_h($a["current_balance"]); ?>"><?php echo oecrm_h(
+    $a["account_name"] . " - Balance: " . number_format((float) $a["current_balance"], 2)
 ); ?></option><?php endwhile; ?>
             </select><br><input class="form-control" type="date" name="statement_date" value="<?php echo date(
     "Y-m-d"
