@@ -10,7 +10,7 @@ oecrm_invoice_tax_schema($conn);
                 <?php
                     if(isset($_GET['edit'])){
                         $edit_id = (int) $_GET['edit'];
-                        $edit_qry = "SELECT * FROM invoiceTbl where invoice_id = '$edit_id' limit 1";
+                        $edit_qry = "SELECT * FROM invoicetbl where invoice_id = '$edit_id' limit 1";
                         $edit_result = mysqli_query($conn,$edit_qry);
                         if($edit_result->num_rows > 0){
                             $edit_invoice = $edit_result->fetch_assoc();
@@ -210,7 +210,7 @@ oecrm_invoice_tax_schema($conn);
                                             <?php
                                                 $i = 1;
                                                 $amounts = 0;
-                                                $invoice_qry = "SELECT invoiceTbl.*, projectstbl.projectName FROM invoiceTbl left join projectstbl on projectstbl.id = invoiceTbl.project_Id order by invoiceTbl.invoice_id DESC";
+                                                $invoice_qry = "SELECT invoicetbl.*, projectstbl.projectName FROM invoicetbl left join projectstbl on projectstbl.id = invoicetbl.project_Id order by invoicetbl.invoice_id DESC";
                                                 $invoice_result = mysqli_query($conn,$invoice_qry);
                                                 if($invoice_result->num_rows > 0){
                                                     while($invoice_row = $invoice_result->fetch_assoc()){
