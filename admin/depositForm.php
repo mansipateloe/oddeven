@@ -26,9 +26,10 @@ $initialInvoices = !empty($deposit['project_Id']) ? oecrm_collection_invoice_opt
             <select id="collection-account" name="account_Id" class="form-control" required>
                 <option value="">Select Receiving Account</option>
                 <?php while ($account = mysqli_fetch_assoc($collectionAccounts)): ?>
-                    <option value="bank:<?php echo (int) $account['bank_id']; ?>" <?php echo !empty($account['account_id']) && (int) ($deposit['account_Id'] ?? 0) === (int) $account['account_id'] ? 'selected' : ''; ?>><?php echo oecrm_h($account['account_name']); ?></option>
+                    <option data-balance="<?php echo oecrm_h($account['current_balance']); ?>" data-account-id="<?php echo (int) $account['account_id']; ?>" value="bank:<?php echo (int) $account['bank_id']; ?>" <?php echo !empty($account['account_id']) && (int) ($deposit['account_Id'] ?? 0) === (int) $account['account_id'] ? 'selected' : ''; ?>><?php echo oecrm_h($account['account_name']) . ' - Balance: ' . number_format((float) $account['current_balance'], 2); ?></option>
                 <?php endwhile; ?>
             </select>
+<p class="help-block" id="collection-bank-balance" aria-live="polite"></p>
             <p class="help-block" id="collection-bank-hint">Select the bank account that receives this payment.</p>
         </div></div>
     </div>
@@ -42,5 +43,5 @@ $initialInvoices = !empty($deposit['project_Id']) ? oecrm_collection_invoice_opt
     <button class="btn btn-primary" type="submit" name="<?php echo $editingDeposit ? 'updateDeposit' : 'addDeposit'; ?>" value="1" id="collection-save"><?php echo $editingDeposit ? 'Update Deposit' : 'Add Deposit'; ?></button>
     <a class="btn btn-default" href="addDeposit.php">Cancel</a>
 </form>
-<script type="application/json" id="collection-initial"><?php echo json_encode(['invoices' => $initialInvoices, 'invoice_id' => (int) ($deposit['invoice_id'] ?? 0)], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?></script>
-<script src="../js/oecrm-collections.js?v=20261015-1"></script>
+<script type="application/json" id="collection-initial"><?php echo json_encode(['invoices' => $initialInvoices, 'invoice_id' => (int) ($deposit['invoice_id'] ?? 0), 'original_account_id' => (int) ($deposit['account_Id'] ?? 0), 'original_amount' => (string) ($deposit['amount'] ?? '0')], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?></script>
+<script src="../js/oecrm-collections.js?v=20261021-2"></script>

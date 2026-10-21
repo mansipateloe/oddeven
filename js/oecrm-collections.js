@@ -7,6 +7,7 @@
         var invoice = document.getElementById('collection-invoice');
         var account = document.getElementById('collection-account');
         var amount = document.getElementById('collection-amount');
+        var balance = document.getElementById('collection-bank-balance');
         var client = document.getElementById('collection-client');
         var date = document.getElementById('collection-invoice-date');
         var hint = document.getElementById('collection-bank-hint');
@@ -15,6 +16,23 @@
         var invoices = [], request = null, ready = false;
         var initial = JSON.parse(document.getElementById('collection-initial').textContent);
         function changed(select) { select.dispatchEvent(new Event('change', {bubbles: true})); }
+        function showBalance() {
+            if (!balance) return;
+            var option = account.selectedOptions[0];
+            if (!account.value || !option || option.dataset.balance === undefined) {
+                balance.textContent = '';
+                return;
+            }
+            // Work in cents and reverse the old deposit when editing the same bank.
+            var current = Math.round(Number(option.dataset.balance) * 100);
+            var credit = Math.round((Number(amount.value) || 0) * 100);
+            var original = Number(initial.original_account_id) > 0 && Number(option.dataset.accountId) === Number(initial.original_account_id)
+                ? Math.round((Number(initial.original_amount) || 0) * 100) : 0;
+            function money(cents) { return (cents / 100).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+            balance.textContent = 'Current Balance: ' + money(current);
+            if (amount.value) balance.textContent += ' | Balance After ' + (Number(form.querySelector('[name="id"]').value) > 0 ? 'Update' : 'Deposit') + ': ' + money(current - original + credit);
+        }
+        account.addEventListener('change', showBalance);
         function details(keepAccount) {
             var selected = invoices.find(function (row) { return String(row.invoice_id) === invoice.value; });
             amount.value = selected ? selected.total_amount : '';
@@ -25,6 +43,7 @@
                 account.value = selected && selected.suggested_account_id ? String(selected.suggested_account_id) : '';
                 changed(account);
             }
+            showBalance();
             save.disabled = !ready || !selected;
         }
         function options(rows, selectedId, keepAccount) {

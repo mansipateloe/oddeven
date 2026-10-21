@@ -1,12 +1,13 @@
 <?php
 require_once __DIR__ . '/invoiceTax.php';
 require_once __DIR__ . '/invoiceBanks.php';
+require_once __DIR__ . '/expenseBanks.php';
 
 // Bank Details is the current bank list; account holds historical ledger balances.
 function oecrm_collection_bank_accounts($conn)
 {
-    return mysqli_query($conn, 'SELECT b.bank_id,b.bank_name AS account_name,m.setting_value AS account_id
-        FROM bank_details b LEFT JOIN app_settings m ON m.company_id=0
+    return mysqli_query($conn, 'SELECT b.bank_id,b.bank_name AS account_name,m.setting_value AS account_id,b.current_balance
+        FROM (' . oecrm_expense_bank_list_sql() . ') b LEFT JOIN app_settings m ON m.company_id=0
         AND CAST(m.setting_key AS BINARY)=CAST(CONCAT(\'invoice_bank_account_\',b.bank_id) AS BINARY)
         ORDER BY b.bank_name,b.bank_id');
 }

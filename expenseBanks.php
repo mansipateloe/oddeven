@@ -52,13 +52,19 @@ function oecrm_expense_bank_schema($conn)
 
 function oecrm_expense_bank_list_sql()
 {
-    // Derive current balance from saved expenses; editing never deducts twice.
-    return "SELECT b.*, b.opening_balance - COALESCE(x.spent,0) AS current_balance
+    // Saved deposits and expenses determine the balance, including edits exactly once.
+    return "SELECT b.*, b.opening_balance + COALESCE(c.received,0) - COALESCE(x.spent,0) AS current_balance
         FROM bank_details b
         LEFT JOIN (
             SELECT bank_id, SUM(CAST(amount AS DECIMAL(14,2))) AS spent
             FROM expense WHERE bank_id IS NOT NULL GROUP BY bank_id
-        ) x ON x.bank_id=b.bank_id ORDER BY b.bank_name";
+        ) x ON x.bank_id=b.bank_id
+        LEFT JOIN (
+            SELECT m.setting_key, SUM(CAST(d.amount AS DECIMAL(14,2))) AS received
+            FROM app_settings m JOIN deposit d ON d.account_Id=CAST(m.setting_value AS UNSIGNED)
+            WHERE m.company_id=0 GROUP BY m.setting_key
+        ) c ON CAST(c.setting_key AS BINARY)=CAST(CONCAT('invoice_bank_account_',b.bank_id) AS BINARY)
+        ORDER BY b.bank_name";
 }
 
 function oecrm_expense_bank_field($conn, $selectedId = 0)
