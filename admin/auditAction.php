@@ -79,5 +79,19 @@ if ($action === "purge") {
     header("Location: audit_logs.php");
     exit();
 }
+if ($action === "clear") {
+    oecrm_require_permission($conn, "activity_audit", "purge");
+    $stmt = mysqli_prepare(
+        $conn,
+        "DELETE FROM audit_logs WHERE company_id=?"
+    );
+    mysqli_stmt_bind_param($stmt, "i", $companyId);
+    mysqli_stmt_execute($stmt);
+    $deleted = mysqli_stmt_affected_rows($stmt);
+    mysqli_stmt_close($stmt);
+    $_SESSION["audit_flash"] = $deleted . " audit records cleared.";
+    header("Location: audit_logs.php");
+    exit();
+}
 http_response_code(400);
 exit("Invalid action.");

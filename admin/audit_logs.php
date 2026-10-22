@@ -228,6 +228,12 @@ endwhile;
         onsubmit="return confirm('Purge audit records older than the retention policy?');">
         <?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="purge"><button
           class="btn btn-danger"><i class="fa fa-trash"></i> Purge Expired Logs</button></form><?php endif; ?>
+      <?php if (
+    oecrm_can($conn, "activity_audit", "purge")
+): ?><form method="post" action="auditAction.php" class="purge-form"
+        onsubmit="return confirm('Permanently delete ALL audit logs for this company? This cannot be undone.');">
+        <?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="clear"><button
+          class="btn btn-danger"><i class="fa fa-trash"></i> Clear All Logs</button></form><?php endif; ?>
     </div>
   </div>
 </div>
