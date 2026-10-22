@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/invoiceTax.php';
+
 // Existing invoiceTbl.status values: 1 = pending, 2 = paid, 3 = cancelled.
 // Reuse the existing integer column: deployment needs no SQL migration.
 function oecrm_legacy_invoice_status_badge($invoice)
@@ -36,7 +38,7 @@ function oecrm_legacy_invoice_flash()
 // Call inside a transaction; cancellation and payment serialize on the invoice.
 function oecrm_legacy_invoice_lock($conn, $id)
 {
-    $stmt = mysqli_prepare($conn, 'SELECT * FROM invoiceTbl WHERE invoice_id=? FOR UPDATE');
+    $stmt = oecrm_invoice_schema_prepare($conn, 'SELECT * FROM invoiceTbl WHERE invoice_id=? FOR UPDATE');
     mysqli_stmt_bind_param($stmt, 'i', $id);
     mysqli_stmt_execute($stmt);
     $invoice = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
@@ -82,7 +84,7 @@ function oecrm_cancel_legacy_invoice($conn, $id)
         if ($deposit) {
             throw new InvalidArgumentException('This invoice has a recorded deposit and cannot be cancelled.');
         }
-        $stmt = mysqli_prepare($conn, 'UPDATE invoiceTbl SET status=3 WHERE invoice_id=? AND status=1');
+        $stmt = oecrm_invoice_schema_prepare($conn, 'UPDATE invoiceTbl SET status=3 WHERE invoice_id=? AND status=1');
         mysqli_stmt_bind_param($stmt, 'i', $id);
         if (!mysqli_stmt_execute($stmt)) {
             throw new RuntimeException(mysqli_stmt_error($stmt));

@@ -52,41 +52,56 @@ if(isset($_POST['addInvoice'])){
         try {
 		$id = (int) ($_POST['id'] ?? 0);
         $invoice = oecrm_legacy_invoice_lock($conn, $id);
-        if (!$invoice || (int) $invoice['status'] === 3) {
+        if (!$invoice) {
+            throw new InvalidArgumentException('Invoice not found.');
+        }
+        if ((int) $invoice['status'] === 2) {
+            throw new InvalidArgumentException('Paid invoices cannot be edited.');
+        }
+        if ((int) $invoice['status'] === 3) {
             throw new InvalidArgumentException('Cancelled invoices cannot be edited.');
         }
-		$invoice_date = mysqli_real_escape_string($conn, $_POST['invoice_date']);
-		$project_Id = mysqli_real_escape_string($conn, $_POST['project_Id']);
-		$person_name = mysqli_real_escape_string($conn, $_POST['person_name']);
-		$invoice_no = mysqli_real_escape_string($conn, $_POST['invoice_no']);
-		$perticulars = $_POST['perticulars'];
-		$amounts = $_POST['amounts'];
-		$bank_ids=$_POST['bank_id'];
-		$country_ids=$_POST['country_id'];
-		$total_amount = 0;
+		$invoice_date = (string) ($_POST['invoice_date'] ?? '');
+		$project_Id = (int) ($_POST['project_Id'] ?? 0);
+		$person_name = (string) ($_POST['person_name'] ?? '');
+		$invoice_no = (string) ($_POST['invoice_no'] ?? '');
+		$perticulars = $_POST['perticulars'] ?? [];
+		$amounts = $_POST['amounts'] ?? [];
+		$bank_ids = $_POST['bank_id'] ?? [];
+		$country_ids = $_POST['country_id'] ?? [];
+		if (!is_array($perticulars) || !is_array($amounts) || !is_array($bank_ids) || !is_array($country_ids)
+			|| count($perticulars) === 0 || count($perticulars) !== count($amounts)
+			|| count($perticulars) !== count($bank_ids) || count($perticulars) !== count($country_ids)) {
+			throw new InvalidArgumentException('Please add at least one valid invoice item.');
+		}
+		$total_amount = 0.0;
 
 		for ($i=0; $i < count($amounts); $i++) {
 			$total_amount += $amounts[$i] ?: "0";
 		}
 
-		$order_qry = "UPDATE `invoiceTbl` SET `invoice_date`='$invoice_date',`project_Id`='$project_Id',`person_name`='$person_name',`total_amount`='$total_amount',`invoice_no`='$invoice_no' WHERE invoice_id=".$id . " AND status<>3";
-        if (mysqli_query($conn,$order_qry)){
+		$order_stmt = oecrm_invoice_schema_prepare($conn, 'UPDATE invoiceTbl SET invoice_date=?,project_Id=?,person_name=?,total_amount=?,invoice_no=? WHERE invoice_id=? AND status<>3');
+		mysqli_stmt_bind_param($order_stmt, 'sisdsi', $invoice_date, $project_Id, $person_name, $total_amount, $invoice_no, $id);
+		mysqli_stmt_execute($order_stmt);
+		mysqli_stmt_close($order_stmt);
 
-            $qry = "DELETE FROM invoice_details WHERE invoice_id=".$id;
-			mysqli_query($conn,$qry);
+		$delete_stmt = mysqli_prepare($conn, 'DELETE FROM invoice_details WHERE invoice_id=?');
+		mysqli_stmt_bind_param($delete_stmt, 'i', $id);
+		mysqli_stmt_execute($delete_stmt);
+		mysqli_stmt_close($delete_stmt);
 
-            for ($i=0; $i < count($perticulars); $i++) {
-				$item = $perticulars[$i] ?: "";
-				$amount = $amounts[$i] ?: "0";
-				$bank_id = $bank_ids[$i] ?: "0";
-				$country_id = $country_ids[$i] ?: "0";
+		$detail_stmt = mysqli_prepare($conn, 'INSERT INTO invoice_details (invoice_id, perticular, amount, bank_id, country_id) VALUES (?, ?, ?, ?, ?)');
+		for ($i=0; $i < count($perticulars); $i++) {
+			$item = (string) ($perticulars[$i] ?? '');
+			$amount = (string) ($amounts[$i] ?: '0');
+			$bank_id = (int) ($bank_ids[$i] ?: 0);
+			$country_id = (int) ($country_ids[$i] ?: 0);
+			mysqli_stmt_bind_param($detail_stmt, 'issii', $id, $item, $amount, $bank_id, $country_id);
+			mysqli_stmt_execute($detail_stmt);
+		}
+		mysqli_stmt_close($detail_stmt);
 
-				$order_detail_qry = "INSERT INTO invoice_details (invoice_id, perticular, amount, bank_id, country_id) VALUES ('$id', '$item', '$amount','$bank_id','$country_id')";
-		        mysqli_query($conn,$order_detail_qry);
-			}
-        }else{
-        }
-        $client = oecrm_invoice_project_client($conn, (int) $project_Id, oecrm_current_company_id($conn));
+        $client = oecrm_invoice_project_client($conn, $project_Id, oecrm_current_company_id($conn));
         $tax = oecrm_invoice_tax_calculate($total_amount, $_POST, $client['is_indian_client']);
         oecrm_invoice_tax_save($conn, $id, $tax);
         mysqli_commit($conn);

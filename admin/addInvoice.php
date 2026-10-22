@@ -130,11 +130,14 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                                             } else {
                                                                 echo '<a href="addDeposit.php?invoice_id=' . (int) $invoice_row['invoice_id'] . '" title="Collect Invoice"><i class="fa fa-money"></i></a>';
                                                             }
-                                                            echo '&nbsp;&nbsp;
+                                                            echo '&nbsp;&nbsp;';
 
-                                                            <a href="editInvoice.php?edit='.$invoice_row["invoice_id"].'" style="display: inline-block;width: 28px;" title="Edit"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;
-                                                            <a href="viewInvoice.php?id='.$invoice_row["invoice_id"].'" style="display: inline-block;width: 28px;" title="View"><i class="fa fa-eye"></i></a>
-                                                            ';
+                                                            if ((int) $invoice_row['status'] === 2) {
+                                                                echo '<span class="text-muted" style="display: inline-block;width: 28px;" title="Paid invoices cannot be edited" aria-label="Paid invoices cannot be edited"><i class="fa fa-pencil"></i></span>';
+                                                            } else {
+                                                                echo '<a href="editInvoice.php?edit=' . (int) $invoice_row['invoice_id'] . '" style="display: inline-block;width: 28px;" title="Edit"><i class="fa fa-pencil"></i></a>';
+                                                            }
+                                                            echo '&nbsp;&nbsp;<a href="viewInvoice.php?id=' . (int) $invoice_row['invoice_id'] . '" style="display: inline-block;width: 28px;" title="View"><i class="fa fa-eye"></i></a>';
                                                             oecrm_legacy_invoice_cancel_form($conn, $invoice_row);
                                                             echo '
                                                             </td>';
