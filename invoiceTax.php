@@ -112,8 +112,8 @@ function oecrm_invoice_tax_calculate($subtotal, $input, $isIndianClient)
         'cgst_percent' => 0, 'sgst_percent' => 0, 'igst_percent' => 0,
         'cgst_amount' => 0, 'sgst_amount' => 0, 'igst_amount' => 0,
     ];
-    $mode = (string) ($input['tax_mode'] ?? 'none');
-    if ($isIndianClient && $mode !== 'none') {
+    $mode = (string) ($input['tax_mode'] ?? '');
+    if ($isIndianClient) {
         if (!in_array($mode, ['cgst_sgst', 'igst'], true)) throw new InvalidArgumentException('Please select a valid GST type.');
         $tax['tax_mode'] = $mode;
         $types = $mode === 'igst' ? ['igst'] : ['cgst', 'sgst'];
@@ -144,14 +144,15 @@ function oecrm_invoice_tax_save($conn, $id, $tax)
 
 function oecrm_invoice_tax_fields($invoice = [])
 {
-    $mode = $invoice['tax_mode'] ?? 'cgst_sgst';
-    $hasSavedGst = !empty($invoice) && in_array($mode, ['cgst_sgst', 'igst'], true);
+    $savedMode = $invoice['tax_mode'] ?? '';
+    $mode = in_array($savedMode, ['cgst_sgst', 'igst'], true) ? $savedMode : 'cgst_sgst';
+    $hasSavedGst = !empty($invoice) && in_array($savedMode, ['cgst_sgst', 'igst'], true);
     ?>
     <div id="invoice-tax-section" class="row" data-saved-gst="<?php echo $hasSavedGst ? '1' : '0'; ?>" style="<?php echo $hasSavedGst ? '' : 'display:none;'; ?>">
         <div class="col-lg-3"><div class="form-group">
             <label for="invoice-tax-mode">GST Type</label>
             <select id="invoice-tax-mode" name="tax_mode" class="form-control">
-                <?php foreach (['none' => 'No GST', 'cgst_sgst' => 'CGST + SGST', 'igst' => 'IGST'] as $value => $label): ?>
+                <?php foreach (['cgst_sgst' => 'CGST + SGST', 'igst' => 'IGST'] as $value => $label): ?>
                     <option value="<?php echo $value; ?>" <?php echo $mode === $value ? 'selected' : ''; ?>><?php echo $label; ?></option>
                 <?php endforeach; ?>
             </select>
