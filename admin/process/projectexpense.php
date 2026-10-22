@@ -3,8 +3,10 @@ require_once __DIR__ . '/../../dbconnect.php';
 require_once __DIR__ . '/../../security.php';
 require_once __DIR__ . '/../../foundation.php';
 require_once __DIR__ . '/../../invoiceBanks.php';
+require_once __DIR__ . '/../../expenseBanks.php';
 
 oecrm_require_admin_login();
+oecrm_expense_bank_schema($conn);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location:../projectExpense.php');
@@ -146,7 +148,7 @@ try {
     $expenseTitle = trim((string) ($_POST['expense_title'] ?? ''));
     $amount = trim((string) ($_POST['amount'] ?? ''));
     $bankSelection = $_POST['account_Id'] ?? $_POST['account_id'] ?? '';
-    $validBank = is_string($bankSelection) && preg_match('/^bank:([1-9][0-9]*)$/D', $bankSelection);
+    $validBank = is_string($bankSelection) && preg_match('/^bank:([1-9][0-9]*)$/D', $bankSelection, $bankMatch);
     $remark = trim((string) ($_POST['remark'] ?? ''));
 
     if (!in_array($action, ['add', 'update'], true)) {
@@ -179,19 +181,25 @@ try {
     mysqli_begin_transaction($conn);
     // Validate and map a current bank without rewriting historical expense IDs.
     $accountId = oecrm_invoice_bank_resolve($conn, $bankSelection);
+    $bankId = (int) $bankMatch[1];
+    $creditBack = 0;
     if ($action === 'update') {
         $ownershipSql = $map['company'] !== ''
-            ? 'SELECT pe.id FROM project_expenses pe WHERE pe.id=? AND pe.' . oecrm_project_expense_ident($map['company']) . '=? FOR UPDATE'
-            : 'SELECT pe.id FROM project_expenses pe JOIN projectstbl p ON p.id=pe.' . oecrm_project_expense_ident($map['project']) . ' WHERE pe.id=? AND p.company_id=? FOR UPDATE';
+            ? 'SELECT pe.id,pe.' . oecrm_project_expense_ident($map['amount']) . ' AS amount,pe.' . oecrm_project_expense_ident($map['account']) . ' AS account_id FROM project_expenses pe WHERE pe.id=? AND pe.' . oecrm_project_expense_ident($map['company']) . '=? FOR UPDATE'
+            : 'SELECT pe.id,pe.' . oecrm_project_expense_ident($map['amount']) . ' AS amount,pe.' . oecrm_project_expense_ident($map['account']) . ' AS account_id FROM project_expenses pe JOIN projectstbl p ON p.id=pe.' . oecrm_project_expense_ident($map['project']) . ' WHERE pe.id=? AND p.company_id=? FOR UPDATE';
         $ownership = mysqli_prepare($conn, $ownershipSql);
         mysqli_stmt_bind_param($ownership, 'ii', $id, $companyId);
         mysqli_stmt_execute($ownership);
         $existing = mysqli_fetch_assoc(mysqli_stmt_get_result($ownership));
         mysqli_stmt_close($ownership);
         if (!$existing) throw new InvalidArgumentException('Selected project expense was not found for the active company.');
+        if ((int) $existing['account_id'] === $accountId) {
+            $creditBack = $existing['amount'];
+        }
     }
 
     $amountValue = number_format((float) $amount, 2, '.', '');
+    oecrm_require_expense_bank_balance($conn, $bankId, $amountValue, $creditBack);
 
     if ($action === 'update') {
         $sql = 'UPDATE project_expenses SET '

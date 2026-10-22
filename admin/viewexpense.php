@@ -10,6 +10,8 @@ if (!oecrm_can($conn, 'finance', 'view') && !oecrm_legacy_can($conn, 'expense'))
 require_once __DIR__ . '/../expenseBanks.php';
 oecrm_expense_bank_schema($conn);
 $canDeleteExpense = oecrm_can($conn, 'finance', 'delete');
+$newExpenseCategoryId = (int) ($_SESSION['new_expense_category_id'] ?? 0);
+unset($_SESSION['new_expense_category_id'], $_SESSION['new_expense_category_name']);
 include 'header.php';
 ?>
 <div id="page-wrapper">
@@ -36,7 +38,10 @@ include 'header.php';
                             <?php echo oecrm_csrf_field(); ?>
                             <?php oecrm_expense_bank_field($conn); ?>
                             <div class="row">
+                                <div class="col-lg-6"><div class="form-group"><label>Expense Title :</label><input type="text" class="form-control" placeholder="Expense Title" name="expense_title" minlength="3" maxlength="200" required></div></div>
                                 <div class="col-lg-6"><div class="form-group"><label>Date :</label><input type="date" class="form-control expense-date-field" name="expensedate" value="<?php echo date('Y-m-d'); ?>" required></div></div>
+                            </div>
+                            <div class="row">
                                 <div class="col-lg-6">
                                     <div class="form-group">
                                         <label>Expense Category :</label>
@@ -46,7 +51,8 @@ include 'header.php';
                                             $resultCategory = mysqli_query($conn, 'SELECT category_id, expenseCategory FROM expencecategory ORDER BY expenseCategory');
                                             if ($resultCategory && mysqli_num_rows($resultCategory) > 0) {
                                                 while ($resCategory = mysqli_fetch_assoc($resultCategory)) {
-                                                    echo '<option value="' . (int) $resCategory['category_id'] . '">' . oecrm_h($resCategory['expenseCategory']) . '</option>';
+                                                    $selected = (int) $resCategory['category_id'] === $newExpenseCategoryId ? ' selected' : '';
+                                                    echo '<option value="' . (int) $resCategory['category_id'] . '"' . $selected . '>' . oecrm_h($resCategory['expenseCategory']) . '</option>';
                                                 }
                                             }
                                             ?>
@@ -55,9 +61,20 @@ include 'header.php';
                                 </div>
                             </div>
                             <div class="row"><div class="col-lg-6"><div class="form-group"><label>Amount :</label><input type="number" step="0.01" min="0.01" max="999999999999.99" class="form-control" placeholder="Amount" name="amount" required></div></div></div>
-                            <div class="row"><div class="col-lg-6"><div class="form-group"><label>Description :</label><textarea class="form-control" placeholder="Description" rows="5" name="description" required></textarea></div></div></div>
+                            <div class="row"><div class="col-lg-6"><div class="form-group"><label>Description :</label><textarea class="form-control" placeholder="Description" rows="5" name="description" maxlength="255" required></textarea></div></div></div>
                             <div class="row"><div class="col-lg-6"><div class="form-group"><input type="submit" class="btn btn-primary viewreport" name="addExpense" value="Add Expense"> <input class="btn btn-danger cancel_btn" type="reset" value="Cancel"></div></div></div>
                         </form>
+                        <details style="margin-top:12px;">
+                            <summary style="cursor:pointer;">Add a new expense category</summary>
+                            <form method="post" action="expenseCategories.php" style="max-width:480px;margin-top:12px;">
+                                <?php echo oecrm_csrf_field(); ?>
+                                <div class="form-group">
+                                    <label for="new-expense-category">Category name</label>
+                                    <input type="text" class="form-control" id="new-expense-category" name="category_name" maxlength="255" required>
+                                </div>
+                                <button type="submit" class="btn btn-default"><i class="fa fa-plus"></i> Add Category</button>
+                            </form>
+                        </details>
                     </div>
                 </div>
             </div>
@@ -68,7 +85,7 @@ include 'header.php';
                 <div class="panel-heading">View All Expense</div>
                 <div class="panel-body table-responsive">
                     <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example" style="width: 100%;">
-                        <thead><tr><th>Date</th><th>Expense Category</th><th>Amount</th><th>Bank</th><th>Action</th></tr></thead>
+                        <thead><tr><th>Date</th><th>Expense Title</th><th>Expense Category</th><th>Amount</th><th>Bank</th><th>Action</th></tr></thead>
                         <tbody>
                             <?php
                             $displayExpense = 'SELECT e.*, c.expenseCategory category_name, b.bank_name FROM expense e LEFT JOIN expencecategory c ON c.category_id = CAST(e.expenseCategory AS UNSIGNED) LEFT JOIN bank_details b ON b.bank_id=e.bank_id ORDER BY e.expensedate DESC, e.expense_id DESC';
@@ -77,6 +94,7 @@ include 'header.php';
                                 while ($row = mysqli_fetch_assoc($result)) {
                                     echo '<tr>';
                                     echo '<td>' . oecrm_h($row['expensedate']) . '</td>';
+                                    echo '<td>' . oecrm_h($row['expense_title'] ?: '-') . '</td>';
                                     echo '<td>' . oecrm_h($row['category_name'] ?: 'Unknown category') . '</td>';
                                     echo '<td>' . oecrm_h($row['amount']) . '</td>';
                                     echo '<td>' . oecrm_h($row['bank_name'] ?? 'Unassigned') . '</td>';
@@ -93,7 +111,7 @@ include 'header.php';
                                     echo '</tr>';
                                 }
                             } else {
-                                echo '<tr><td colspan="5" class="text-center">No expenses found.</td></tr>';
+                                echo '<tr><td colspan="6" class="text-center">No expenses found.</td></tr>';
                             }
                             ?>
                         </tbody>

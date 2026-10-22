@@ -14,7 +14,10 @@ function oecrm_expense_bank_schema($conn)
                 'opening_balance' => 'DECIMAL(14,2) NOT NULL DEFAULT 0.00',
             ],
             // Old expenses remain unassigned and do not change any bank balance.
-            'expense' => ['bank_id' => 'INT NULL DEFAULT NULL, ADD INDEX idx_expense_bank (bank_id)'],
+            'expense' => [
+                'bank_id' => 'INT NULL DEFAULT NULL, ADD INDEX idx_expense_bank (bank_id)',
+                'expense_title' => "VARCHAR(200) NOT NULL DEFAULT ''",
+            ],
         ];
         foreach ($tables as $table => $definitions) {
             $result = mysqli_query($conn, "SHOW COLUMNS FROM $table");
@@ -108,15 +111,36 @@ function oecrm_expense_bank_field($conn, $selectedId = 0)
     echo '</div></div></div>';
 }
 
+function oecrm_require_expense_bank_balance($conn, $bankId, $amount, $creditBack = 0)
+{
+    $sql = 'SELECT current_balance FROM (' . oecrm_expense_bank_list_sql($conn) . ') bank_balances WHERE bank_id=?';
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, 'i', $bankId);
+    mysqli_stmt_execute($stmt);
+    $row = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    mysqli_stmt_close($stmt);
+    if (!$row) {
+        throw new InvalidArgumentException('Please select a valid bank.');
+    }
+
+    $availableCents = (int) round((float) $row['current_balance'] * 100);
+    $creditBackCents = (int) round((float) $creditBack * 100);
+    $expenseCents = (int) round((float) $amount * 100);
+    if ($expenseCents > $availableCents + $creditBackCents) {
+        $available = number_format(($availableCents + $creditBackCents) / 100, 2);
+        throw new InvalidArgumentException('Insufficient bank balance. Available balance is ' . $available . '.');
+    }
+}
+
 // Validation and persistence shared by both add forms and the edit form.
-function oecrm_save_bank_expense($conn, $id, $category, $date, $amount, $description, $bankId)
+function oecrm_save_bank_expense($conn, $id, $category, $date, $amount, $title, $description, $bankId)
 {
     if (!preg_match('/^[0-9]{1,12}(\.[0-9]{1,2})?$/D', $amount) || (float) $amount <= 0) {
         throw new InvalidArgumentException('Enter an expense amount greater than zero with up to 2 decimal places.');
     }
     $parsedDate = DateTime::createFromFormat('!Y-m-d', $date);
-    if (!$parsedDate || $parsedDate->format('Y-m-d') !== $date || $category <= 0 || $description === '' || strlen($description) > 255 || $bankId <= 0) {
-        throw new InvalidArgumentException('Valid date, category, bank and description (maximum 255 characters) are required.');
+    if (!$parsedDate || $parsedDate->format('Y-m-d') !== $date || $category <= 0 || $title === '' || strlen($title) > 200 || $description === '' || strlen($description) > 255 || $bankId <= 0) {
+        throw new InvalidArgumentException('Valid date, category, bank, expense title (maximum 200 characters) and description (maximum 255 characters) are required.');
     }
     $stmt = mysqli_prepare($conn, 'SELECT category_id FROM expencecategory WHERE category_id=?');
     mysqli_stmt_bind_param($stmt, 'i', $category);
@@ -137,8 +161,9 @@ function oecrm_save_bank_expense($conn, $id, $category, $date, $amount, $descrip
         if (!$bank) {
             throw new InvalidArgumentException('Please select a valid bank.');
         }
+        $creditBack = 0;
         if ($id > 0) {
-            $stmt = mysqli_prepare($conn, 'SELECT expense_id FROM expense WHERE expense_id=? FOR UPDATE');
+            $stmt = mysqli_prepare($conn, 'SELECT expense_id,amount,bank_id FROM expense WHERE expense_id=? FOR UPDATE');
             mysqli_stmt_bind_param($stmt, 'i', $id);
             mysqli_stmt_execute($stmt);
             $old = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
@@ -146,11 +171,17 @@ function oecrm_save_bank_expense($conn, $id, $category, $date, $amount, $descrip
             if (!$old) {
                 throw new InvalidArgumentException('Expense not found.');
             }
-            $stmt = mysqli_prepare($conn, 'UPDATE expense SET expenseCategory=?,expensedate=?,amount=?,description=?,bank_id=? WHERE expense_id=?');
-            mysqli_stmt_bind_param($stmt, 'isssii', $category, $date, $amount, $description, $bankId, $id);
+            if ((int) $old['bank_id'] === $bankId) {
+                $creditBack = $old['amount'];
+            }
+        }
+        oecrm_require_expense_bank_balance($conn, $bankId, $amount, $creditBack);
+        if ($id > 0) {
+            $stmt = mysqli_prepare($conn, 'UPDATE expense SET expenseCategory=?,expensedate=?,amount=?,expense_title=?,description=?,bank_id=? WHERE expense_id=?');
+            mysqli_stmt_bind_param($stmt, 'issssii', $category, $date, $amount, $title, $description, $bankId, $id);
         } else {
-            $stmt = mysqli_prepare($conn, 'INSERT INTO expense(expenseCategory,expensedate,amount,description,bank_id) VALUES(?,?,?,?,?)');
-            mysqli_stmt_bind_param($stmt, 'isssi', $category, $date, $amount, $description, $bankId);
+            $stmt = mysqli_prepare($conn, 'INSERT INTO expense(expenseCategory,expensedate,amount,expense_title,description,bank_id) VALUES(?,?,?,?,?,?)');
+            mysqli_stmt_bind_param($stmt, 'issssi', $category, $date, $amount, $title, $description, $bankId);
         }
         if (!mysqli_stmt_execute($stmt)) {
             throw new RuntimeException(mysqli_stmt_error($stmt));

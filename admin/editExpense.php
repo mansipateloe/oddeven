@@ -58,8 +58,11 @@ if (!$rowView) {
                                     </div>
                                 </div>
                             </div>
-                            <div class="row"><div class="col-lg-6"><div class="form-group"><label>Amount :</label><input type="number" step="0.01" min="0.01" max="999999999999.99" class="form-control" value="<?php echo oecrm_h($rowView['amount']); ?>" placeholder="Amount" name="amount" required></div></div></div>
-                            <div class="row"><div class="col-lg-6"><div class="form-group"><label>Description :</label><textarea class="form-control" placeholder="Description" rows="5" name="description" required><?php echo oecrm_h($rowView['description']); ?></textarea></div></div></div>
+                            <div class="row">
+                                <div class="col-lg-6"><div class="form-group"><label>Expense Title :</label><input type="text" class="form-control" value="<?php echo oecrm_h($rowView['expense_title'] ?? ''); ?>" placeholder="Expense Title" name="expense_title" minlength="3" maxlength="200" required></div></div>
+                                <div class="col-lg-6"><div class="form-group"><label>Amount :</label><input type="number" step="0.01" min="0.01" max="999999999999.99" class="form-control" value="<?php echo oecrm_h($rowView['amount']); ?>" placeholder="Amount" name="amount" required></div></div>
+                            </div>
+                            <div class="row"><div class="col-lg-6"><div class="form-group"><label>Description :</label><textarea class="form-control" placeholder="Description" rows="5" maxlength="255" name="description" required><?php echo oecrm_h($rowView['description']); ?></textarea></div></div></div>
                             <div class="row"><div class="col-lg-6"><div class="form-group"><input type="submit" class="btn btn-primary viewreport" name="updateExpense" value="Update Expense"> <a class="btn btn-danger cancel_btn" href="viewexpense.php">Cancel</a></div></div></div>
                         </form>
                     </div>

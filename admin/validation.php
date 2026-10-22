@@ -784,6 +784,7 @@ if (isset($_POST['addExpense']) || isset($_POST['updateExpense'])) {
             (int) ($_POST['expenseCategory'] ?? $_POST['expenceCategory'] ?? $_POST['expencecategory'] ?? 0),
             trim((string) ($_POST['expensedate'] ?? '')),
             trim((string) ($_POST['amount'] ?? '')),
+            trim((string) ($_POST['expense_title'] ?? '')),
             trim((string) ($_POST['description'] ?? '')),
             (int) ($_POST['bank_id'] ?? 0)
         );
@@ -1578,7 +1579,6 @@ if (isset($_POST['roleAccessSave'])) {
     exit;
 
 }
-
 
 
 
