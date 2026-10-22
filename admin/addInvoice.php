@@ -132,8 +132,11 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                                             }
                                                             echo '&nbsp;&nbsp;';
 
-                                                            if ((int) $invoice_row['status'] === 2) {
-                                                                echo '<span class="text-muted" style="display: inline-block;width: 28px;" title="Paid invoices cannot be edited" aria-label="Paid invoices cannot be edited"><i class="fa fa-pencil"></i></span>';
+                                                            if (in_array((int) $invoice_row['status'], [2, 3], true)) {
+                                                                $editDisabledReason = (int) $invoice_row['status'] === 2
+                                                                    ? 'Paid invoices cannot be edited'
+                                                                    : 'Cancelled invoices cannot be edited';
+                                                                echo '<span class="text-muted" style="display: inline-block;width: 28px;" title="' . $editDisabledReason . '" aria-label="' . $editDisabledReason . '"><i class="fa fa-pencil"></i></span>';
                                                             } else {
                                                                 echo '<a href="editInvoice.php?edit=' . (int) $invoice_row['invoice_id'] . '" style="display: inline-block;width: 28px;" title="Edit"><i class="fa fa-pencil"></i></a>';
                                                             }
