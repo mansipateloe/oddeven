@@ -23,6 +23,13 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                     padding: 6px 12px;
                                     box-sizing: border-box;
                                 }
+                                .invoice-status-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; }
+                                .invoice-status-toolbar label { margin: 0 !important; }
+                                .invoice-status-toolbar .form-control { width: 200px; max-width: 100%; height: 40px; }
+                                @media (max-width: 600px) {
+                                    .invoice-status-toolbar { align-items: stretch; flex-direction: column; }
+                                    .invoice-status-toolbar .form-control { width: 100%; }
+                                }
                             </style>
                         	<div>
                                 <form role="form" method="POST" action="invoices.php">
@@ -89,6 +96,15 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                         <div class="panel-body">
                             <div class="row">
                                 <div class="col-sm-12">
+                                    <div class="invoice-status-toolbar">
+                                        <label for="invoiceStatusFilter">Invoice Status</label>
+                                        <select id="invoiceStatusFilter" class="form-control" data-oecrm-native="1" aria-controls="invoice_tbl">
+                                            <option value="">All Statuses</option>
+                                            <option value="Pending">Pending</option>
+                                            <option value="Paid">Paid</option>
+                                            <option value="Cancelled">Cancelled</option>
+                                        </select>
+                                    </div>
                                     <table width="100%" id="invoice_tbl" class="table table-striped table-bordered">
                                         <thead>
                                             <tr role="row">
@@ -181,7 +197,23 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
 <script src="../dist/js/sb-admin-2.js"></script>
 <script>
     $(document).ready(function() {
-        $('#invoice_tbl').DataTable();
+        var invoiceTable = $('#invoice_tbl').DataTable();
+        var statusFilter = document.getElementById('invoiceStatusFilter');
+        var statuses = ['Pending', 'Paid', 'Cancelled'];
+        invoiceTable.column(7).data().each(function (cell) {
+            var label = $('<div>').html(cell).text().trim();
+            if (label && statuses.indexOf(label) === -1) {
+                statuses.push(label);
+                var option = document.createElement('option');
+                option.value = label;
+                option.textContent = label;
+                statusFilter.appendChild(option);
+            }
+        });
+        statusFilter.addEventListener('change', function () {
+            var status = $.fn.dataTable.util.escapeRegex(this.value);
+            invoiceTable.column(7).search(status ? '^' + status + '$' : '', true, false).draw();
+        });
     });
 </script>
 <script type="text/javascript">
