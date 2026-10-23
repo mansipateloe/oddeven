@@ -1,4 +1,31 @@
 <style type="text/css">
+    .admin-portal .employee-form-page .add_employee > .employee-add-heading {
+        padding: 18px 22px !important;
+        background: #fff4e8 !important;
+        border-left: 4px solid var(--oe-primary, #ff7a00) !important;
+        border-bottom: 1px solid #f4dfca !important;
+    }
+    .employee-form-page .employee-add-heading h2 {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+        color: #253047;
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+    .employee-form-page .employee-add-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: #fff;
+        color: #b65300;
+        font-size: 20px;
+    }
     /*.loader{
         position: absolute;
         right: 0;
@@ -16,10 +43,8 @@
                     <div class="col-lg-12">
                         <div class="panel panel-default add_employee">
 
-                            <div class="panel-heading">
-
-                                Add Employee
-
+                            <div class="panel-heading employee-add-heading">
+                                <h2><span class="employee-add-icon"><i class="fa fa-user-plus" aria-hidden="true"></i></span>Add Employee</h2>
                             </div>
                             <div class="panel-body">
 
