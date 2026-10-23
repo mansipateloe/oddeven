@@ -32,6 +32,12 @@ oecrm_expense_bank_schema($conn);
 .admin-portal .dashboard-content .analytics-card { height: 100%; }
 .admin-portal .dashboard-content .finance-summary-grid { margin-bottom: 0; }
 .admin-portal .dashboard-content .finance-account-list { margin-top: 18px; }
+.preadmin-dashboard-page .leave-approval-heading > div { min-width: 0; }
+.admin-portal .preadmin-dashboard-page .leave-approval-heading > div > span,
+.admin-portal .preadmin-dashboard-page .leave-approval-heading > div > small { display: block !important; white-space: normal; }
+.preadmin-dashboard-page .leave-user-info { display: grid; gap: 4px; min-width: 0; }
+.preadmin-dashboard-page .leave-user-info strong { display: block; margin: 0; overflow-wrap: anywhere; }
+.preadmin-dashboard-page .leave-user-info small { display: block; margin: 0; overflow-wrap: anywhere; white-space: normal; }
 </style>
     <div id="page-wrapper" class="preadmin-dashboard-page">
         <div class="row">
@@ -201,7 +207,7 @@ oecrm_expense_bank_schema($conn);
                     <div class="panel panel-default leave-approval-card">
                         <div class="panel-heading leave-approval-heading">
                             <div>
-                                <span>Employees not approve Leaves</span>
+                                <span>Pending Leave Requests</span>
                                 <small><?php echo $pendingLeaveCount; ?> pending request<?php echo $pendingLeaveCount == 1 ? '' : 's'; ?> waiting for admin review</small>
                             </div>
                             <a href="manageLeave.php" class="leave-view-all">View All</a>
@@ -224,9 +230,10 @@ oecrm_expense_bank_schema($conn);
                                     <div class="leave-request-item">
                                         <div class="leave-user-block">
                                             <span class="leave-avatar"><?php echo htmlspecialchars($initial); ?></span>
-                                            <span>
+                                            <span class="leave-user-info">
                                                 <strong><?php echo htmlspecialchars($employeeName); ?></strong>
-                                                <small>@<?php echo htmlspecialchars($employeeUser); ?> ï¿½ <?php echo htmlspecialchars($employeeEmail); ?></small>
+                                                <?php if ($employeeUser !== ''): ?><small>@<?php echo htmlspecialchars(ltrim($employeeUser, '@')); ?></small><?php endif; ?>
+                                                <small><?php echo htmlspecialchars($employeeEmail); ?></small>
                                             </span>
                                         </div>
                                         <div class="leave-detail-block">

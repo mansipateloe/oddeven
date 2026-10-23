@@ -16,7 +16,7 @@ $isView = $id && (($_GET['mode'] ?? '') === 'view' || !$canEditClient);
 if ($id && ($_GET['mode'] ?? '') === 'edit') {
     oecrm_require_permission($conn, 'clients', 'edit');
 }
-$communicationSearch = trim($_GET['communication_q'] ?? '');
+$communicationSearch = $isView ? '' : trim($_GET['communication_q'] ?? '');
 $client = null;
 
 if ($id) {
@@ -132,6 +132,34 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
 .client-profile-page .client-detail-grid dt { margin-bottom: 6px; color: #667085; font-size: 12px; }
 .client-profile-page .client-detail-grid dd { color: #344054; overflow-wrap: anywhere; white-space: pre-wrap; }
 .client-profile-page .client-detail-grid .full-width { grid-column: 1 / -1; }
+.client-view-page .client-profile-head { padding: 24px; border: 1px solid #f0dcc9; border-radius: 12px; background: linear-gradient(120deg, #fff7ee, #fff); }
+.client-view-page .client-profile-head h2 { margin-bottom: 10px; color: #253047; font-size: 25px; font-weight: 700; overflow-wrap: anywhere; }
+.client-view-page .client-profile-head > div { min-width: 0; }
+.client-view-page .client-profile-grid { grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); gap: 20px; }
+.client-view-page .client-overview { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-bottom: 20px; }
+.client-view-page .client-overview > div { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid #e4e7ec; border-radius: 10px; background: #fff; }
+.client-view-page .client-overview i { display: grid; place-items: center; flex: 0 0 38px; height: 38px; border-radius: 9px; background: #fff1e5; color: #b65300; font-size: 17px; }
+.client-view-page .client-overview strong, .client-view-page .client-overview small { display: block; }
+.client-view-page .client-overview strong { color: #253047; font-size: 21px; line-height: 1.2; }
+.client-view-page .client-overview small { margin-top: 4px; color: #667085; font-size: 12px; }
+.client-view-page .client-detail-section + .client-detail-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid #e4e7ec; }
+.client-view-page .client-detail-section h3 { display: flex; align-items: center; gap: 9px; margin: 0 0 14px; color: #344054; font-size: 14px; font-weight: 700; }
+.client-view-page .client-detail-section h3 i { color: #b65300; }
+.client-view-page .client-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.client-view-page .client-detail-grid > div { padding: 12px 14px; border: 1px solid #edf0f4; border-radius: 8px; background: #f8fafc; }
+.client-view-page .client-detail-grid dd { margin: 0; line-height: 1.6; font-weight: 500; }
+.client-view-page .panel-heading > i { margin-right: 8px; color: #b65300; }
+.client-view-page .client-timeline { margin-top: 0; }
+.client-view-page .client-timeline > div { margin-bottom: 12px; padding: 16px; border: 1px solid #e4e7ec; border-radius: 10px; background: #f8fafc; }
+.client-view-page .client-timeline > div:last-child { margin-bottom: 0; }
+.client-view-page .client-timeline > div > i { flex: 0 0 32px; background: #fff1e5; color: #b65300; }
+.client-view-page .client-timeline small { margin-top: 5px; line-height: 1.5; }
+.client-view-page .client-timeline p { margin: 8px 0 0; line-height: 1.6; }
+@media (max-width: 1200px) { .client-view-page .client-profile-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 700px) {
+    .client-view-page .client-profile-head { padding: 18px; }
+    .client-view-page .client-overview, .client-view-page .client-detail-grid { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 1100px) { .client-profile-page .client-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 700px) { .client-profile-page .client-detail-grid { grid-template-columns: minmax(0, 1fr); } }
 .client-profile-page .client-profile-panel > .panel-body { padding: 24px !important; }
@@ -181,7 +209,7 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
     .client-profile-page .communication-search > .btn { flex: 1 1 auto; }
 }
 </style>
-<div id="page-wrapper" class="compact-admin-page client-profile-page<?php echo !$id ? ' client-create-page' : ''; ?>">
+<div id="page-wrapper" class="compact-admin-page client-profile-page<?php echo !$id ? ' client-create-page' : ($isView ? ' client-view-page' : ''); ?>">
     <?php if ($flash): ?><div class="alert alert-success"><?php echo oecrm_h(
     $flash
 ); ?></div><?php endif; ?>
@@ -207,22 +235,29 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
             <a class="btn btn-default" href="clientProfile.php?id=<?php echo (int) $id; ?>&amp;mode=<?php echo $isView ? 'edit' : 'view'; ?>"><i class="fa <?php echo $isView ? 'fa-pencil' : 'fa-eye'; ?>" aria-hidden="true"></i> <?php echo $isView ? 'Edit Client' : 'View Client'; ?></a>
         <?php endif; ?>
     </div>
+    <?php if ($isView): ?>
+        <div class="client-overview" aria-label="Client overview">
+            <div><i class="fa fa-address-book-o" aria-hidden="true"></i><span><strong><?php echo (int) mysqli_num_rows($contacts); ?></strong><small>Contacts</small></span></div>
+            <div><i class="fa fa-file-text-o" aria-hidden="true"></i><span><strong><?php echo (int) mysqli_num_rows($contracts); ?></strong><small>Contracts</small></span></div>
+            <div><i class="fa fa-suitcase" aria-hidden="true"></i><span><strong><?php echo (int) mysqli_num_rows($projects); ?></strong><small>Linked Projects</small></span></div>
+        </div>
+    <?php endif; ?>
     <div class="client-profile-grid">
         <main>
             <div class="panel panel-default client-profile-panel">
                 <div class="panel-heading"><i class="fa fa-id-card-o"></i> Client Profile</div>
                 <div class="panel-body">
                     <?php if ($isView): ?>
+                        <?php foreach ([
+                            ['Client Details', 'fa-building-o', ['client_code' => 'Client Code', 'display_name' => 'Display Name', 'legal_name' => 'Legal Name', 'client_type' => 'Type', 'status' => 'Status', 'industry' => 'Industry']],
+                            ['Contact Information', 'fa-address-card-o', ['email' => 'Email', 'phone' => 'Phone', 'website' => 'Website']],
+                            ['Billing Information', 'fa-credit-card', ['currency_code' => 'Currency', 'payment_terms_days' => 'Payment Terms (days)', 'tax_id' => 'GST / Tax ID']],
+                            ['Address & Notes', 'fa-map-marker', ['country' => 'Country', 'state' => 'State', 'city' => 'City', 'billing_address' => 'Billing Address', 'notes' => 'Notes']]
+                        ] as $detailSection): ?>
+                        <section class="client-detail-section">
+                        <h3><i class="fa <?php echo $detailSection[1]; ?>" aria-hidden="true"></i><?php echo oecrm_h($detailSection[0]); ?></h3>
                         <dl class="client-detail-grid">
-                            <?php foreach ([
-                                'client_code' => 'Client Code', 'display_name' => 'Display Name',
-                                'legal_name' => 'Legal Name', 'client_type' => 'Type', 'status' => 'Status',
-                                'industry' => 'Industry', 'email' => 'Email', 'phone' => 'Phone',
-                                'website' => 'Website', 'currency_code' => 'Currency',
-                                'payment_terms_days' => 'Payment Terms (days)', 'tax_id' => 'GST / Tax ID',
-                                'country' => 'Country', 'state' => 'State', 'city' => 'City',
-                                'billing_address' => 'Billing Address', 'notes' => 'Notes'
-                            ] as $field => $label):
+                            <?php foreach ($detailSection[2] as $field => $label):
                                 $value = trim((string) ($client[$field] ?? ''));
                                 if (in_array($field, ['client_type', 'status'], true)) {
                                     $value = ucwords(str_replace('_', ' ', $value));
@@ -231,6 +266,8 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
                                 <div<?php echo in_array($field, ['billing_address', 'notes'], true) ? ' class="full-width"' : ''; ?>><dt><?php echo oecrm_h($label); ?></dt><dd><?php echo oecrm_h($value !== '' ? $value : '-'); ?></dd></div>
                             <?php endforeach; ?>
                         </dl>
+                        </section>
+                        <?php endforeach; ?>
                     <?php else: ?>
                     <style>
                         .client-form select.form-control{height:38px;background:#fff}
@@ -385,6 +422,7 @@ $value
                             </div>
                         </form>
                         <?php endif; ?>
+                        <?php if (!$isView): ?>
                         <form method="get" action="clientProfile.php#communicationHistory" class="communication-search" role="search" aria-label="Communication history">
                             <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
                             <input type="hidden" name="mode" value="<?php echo $isView ? 'view' : 'edit'; ?>">
@@ -398,6 +436,7 @@ $value
                             <?php endif; ?>
                         </form>
                         <p class="communication-search-help" id="communicationSearchHelp">Showing the latest 100 <?php echo $communicationSearch !== '' ? 'matching ' : ''; ?>activities.</p>
+                        <?php endif; ?>
                         <div class="client-timeline">
                             <?php if (mysqli_num_rows($communications) === 0): ?>
                                 <p class="text-muted"><?php echo $communicationSearch !== '' ? 'No activities match your search.' : 'No communication history yet.'; ?></p>
