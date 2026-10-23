@@ -97,12 +97,35 @@ $error = $_SESSION["client_error"] ?? "";
 unset($_SESSION["client_flash"], $_SESSION["client_error"]);
 ?>
 <style>
+.client-profile-page.client-create-page .client-profile-grid { grid-template-columns: minmax(0, 1fr); }
+.client-profile-page .client-profile-grid > main { min-width: 0; }
+.client-profile-page .client-profile-head { margin-bottom: 20px; }
+.client-profile-page .client-profile-head h2 { display: block; margin: 10px 0 0; line-height: 1.3; }
+.client-profile-page .client-profile-panel > .panel-body { padding: 24px !important; }
+.client-profile-page .client-form { display: grid; gap: 20px; }
+.client-profile-page .client-form .client-form-grid { gap: 18px 20px; align-items: start; }
+.client-profile-page .client-form .form-group { min-width: 0; margin: 0 !important; }
+.client-profile-page .client-form label { margin-bottom: 7px !important; }
+.client-profile-page .client-form .form-control,
+.client-profile-page .client-form .oecrm-select-toggle { width: 100%; min-height: 40px !important; height: 40px; }
+.client-profile-page .client-form textarea.form-control { height: auto; min-height: 90px !important; resize: vertical; }
+.client-profile-page .client-form .form-group > small { display: block; margin-top: 6px; color: #667085; line-height: 1.4; }
+.client-profile-page .client-form-hint { margin: 0; padding: 12px 14px; border: 1px solid #d9e8f7; border-radius: 8px; background: #f4f9ff; color: #344054; line-height: 1.5; }
+.client-profile-page .client-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 18px; border-top: 1px solid #e8e9f1; }
+@media (max-width: 1100px) and (min-width: 701px) {
+    .client-profile-page .client-form .client-form-grid.three { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+    .client-profile-page .client-profile-panel > .panel-body { padding: 16px !important; }
+    .client-profile-page .client-form .client-form-grid.three { grid-template-columns: minmax(0, 1fr); }
+    .client-profile-page .client-form-actions > .btn { flex: 1 1 auto; text-align: center; }
+}
 .client-profile-page .client-document-list > .client-document-item { padding: 12px 0; }
 .client-profile-page .client-document-list a { position: static; overflow-wrap: anywhere; }
 .client-profile-page .client-document-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 .client-profile-page .client-document-actions form { display: inline-flex; margin: 0; }
 </style>
-<div id="page-wrapper" class="compact-admin-page client-profile-page">
+<div id="page-wrapper" class="compact-admin-page client-profile-page<?php echo !$id ? ' client-create-page' : ''; ?>">
     <?php if ($flash): ?><div class="alert alert-success"><?php echo oecrm_h(
     $flash
 ); ?></div><?php endif; ?>
@@ -113,7 +136,7 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
         <div>
             <a href="clients.php"><i class="fa fa-arrow-left"></i> Clients</a>
             <h2><?php echo oecrm_h(
-                $client["display_name"] ?? "New Client"
+                $client["display_name"] ?? "Add Client"
             ); ?></h2>
             <?php if ($client): ?>
                 <span><?php echo oecrm_h($client["client_code"]); ?></span>
@@ -127,7 +150,7 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
     </div>
     <div class="client-profile-grid">
         <main>
-                <div class="panel panel-default">
+            <div class="panel panel-default client-profile-panel">
                 <div class="panel-heading"><i class="fa fa-id-card-o"></i> Client Profile</div>
                 <div class="panel-body">
                     <style>
@@ -205,7 +228,7 @@ $value
                                 $client["tax_id"] ?? ""
                             ); ?>" placeholder="15-character GSTIN / Tax ID"></div>
                         </div>
-                        <div class="alert alert-info" style="margin-top:-4px;">Provide at least one of Email or Phone. Each one must be unique inside the company.</div>
+                        <p class="client-form-hint">Provide at least one of Email or Phone. Each one must be unique inside the company.</p>
                         <div class="form-group"><label>Billing Address</label><textarea class="form-control" name="billing_address"><?php echo oecrm_h(
                             $client["billing_address"] ?? ""
                         ); ?></textarea></div>
@@ -239,8 +262,10 @@ $value
                         <div class="form-group"><label>Notes</label><textarea class="form-control" name="notes"><?php echo oecrm_h(
                             $client["notes"] ?? ""
                         ); ?></textarea></div>
-                        <button class="btn btn-primary"><i class="fa fa-save"></i> Save Client</button>
-                        <a class="btn btn-default" href="clients.php">Cancel</a>
+                        <div class="client-form-actions">
+                            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Client</button>
+                            <a class="btn btn-default" href="clients.php">Cancel</a>
+                        </div>
                     </form>
                 </div>
             </div>

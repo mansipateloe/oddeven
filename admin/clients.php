@@ -119,6 +119,7 @@ unset($_SESSION["client_flash"]);
     <div class="panel-body">
       <form method="get" class="client-filters">
         <input
+          type="search"
           class="form-control"
           name="q"
           value="<?php echo oecrm_h($q); ?>"
@@ -225,4 +226,26 @@ unset($_SESSION["client_flash"]);
     </div>
   </div>
 </div>
+<script>
+(function () {
+    var form = document.querySelector('.client-filters');
+    var searchInput = form.querySelector('input[name="q"]');
+    var hasAppliedSearch = searchInput.defaultValue.trim() !== '';
+    var reloading = false;
+
+    function reloadWhenCleared() {
+        if (!hasAppliedSearch || reloading || searchInput.value.trim() !== '') return;
+        reloading = true;
+        searchInput.value = '';
+        if (form.requestSubmit) {
+            form.requestSubmit();
+        } else {
+            form.submit();
+        }
+    }
+
+    searchInput.addEventListener('input', reloadWhenCleared);
+    searchInput.addEventListener('search', reloadWhenCleared);
+})();
+</script>
 <?php include "footer.php"; ?>
