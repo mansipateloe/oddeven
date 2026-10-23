@@ -157,6 +157,16 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
 .client-profile-page .client-document-list a { position: static; overflow-wrap: anywhere; }
 .client-profile-page .client-document-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 .client-profile-page .client-document-actions form { display: inline-flex; margin: 0; }
+#communicationHistory .communication-form { grid-template-columns: minmax(120px, .8fr) minmax(0, 1.4fr) minmax(190px, 1fr); gap: 16px; align-items: start; }
+#communicationHistory .communication-form .form-group { min-width: 0; margin: 0 !important; }
+#communicationHistory .communication-form label { margin-bottom: 7px !important; }
+#communicationHistory .communication-form .form-control,
+#communicationHistory .communication-form .oecrm-select-toggle { width: 100%; height: 40px; min-height: 40px !important; }
+#communicationHistory .communication-notes,
+#communicationHistory .communication-actions { grid-column: 1 / -1; }
+#communicationHistory .communication-form textarea.form-control { height: auto; min-height: 90px !important; resize: vertical; }
+#communicationHistory .communication-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 4px; }
+#communicationHistory .communication-actions .btn { min-height: 40px; }
 .client-profile-page .communication-search { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin: 24px 0 8px; padding-top: 20px; border-top: 1px solid #e8e9f1; }
 .client-profile-page .communication-search-field { flex: 1 1 240px; max-width: 460px; min-width: 0; }
 .client-profile-page .communication-search label { margin-bottom: 7px !important; }
@@ -165,6 +175,8 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
 .client-profile-page .communication-search-help { margin: 0; color: #667085; font-size: 12px; }
 .client-profile-page .client-timeline section { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 700px) {
+    #communicationHistory .communication-form { grid-template-columns: minmax(0, 1fr); }
+    #communicationHistory .communication-actions .btn { flex: 1 1 auto; text-align: center; }
     .client-profile-page .communication-search-field { flex-basis: 100%; max-width: none; }
     .client-profile-page .communication-search > .btn { flex: 1 1 auto; }
 }
@@ -346,16 +358,31 @@ $value
                             <?php echo oecrm_csrf_field(); ?>
                             <input type="hidden" name="action" value="communication">
                             <input type="hidden" name="client_id" value="<?php echo $id; ?>">
-                            <select class="form-control" name="communication_type"><?php foreach (
+                            <div class="form-group">
+                            <label for="activityType">Activity Type</label>
+                            <select class="form-control" id="activityType" name="communication_type"><?php foreach (
                                 ["call", "email", "meeting", "message", "note"]
                                 as $value
                             ): ?><option><?php echo $value; ?></option><?php endforeach; ?></select>
-                            <input class="form-control" name="subject" placeholder="Subject" required>
-                            <input type="datetime-local" class="form-control" name="communication_at" value="<?php echo date(
+                            </div>
+                            <div class="form-group">
+                                <label for="activitySubject">Subject <span class="text-danger">*</span></label>
+                                <input class="form-control" id="activitySubject" name="subject" placeholder="Enter activity subject" required>
+                            </div>
+                            <div class="form-group">
+                            <label for="activityDate">Date &amp; Time <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="activityDate" name="communication_at" value="<?php echo date(
                                 "Y-m-d\TH:i"
                             ); ?>" required>
-                            <textarea class="form-control" name="details" placeholder="Discussion notes"></textarea>
-                            <button class="btn btn-primary"><i class="fa fa-plus"></i> Add Activity</button>
+                            </div>
+                            <div class="form-group communication-notes">
+                                <label for="activityDetails">Discussion Notes</label>
+                                <textarea class="form-control" id="activityDetails" name="details" placeholder="Add discussion notes"></textarea>
+                            </div>
+                            <div class="communication-actions">
+                                <button type="submit" class="btn btn-primary"><i class="fa fa-plus" aria-hidden="true"></i> Add Activity</button>
+                                <a class="btn btn-default" href="clients.php">Cancel</a>
+                            </div>
                         </form>
                         <?php endif; ?>
                         <form method="get" action="clientProfile.php#communicationHistory" class="communication-search" role="search" aria-label="Communication history">
