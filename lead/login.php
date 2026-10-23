@@ -23,6 +23,7 @@ include("functions.php");
     <link href="css/style.css" rel="stylesheet">
     <link href="css/style-responsive.css" rel="stylesheet" />
     <script src="js/ajax.js"></script>
+    <link href="../dist/css/erp-typography.css?v=20261022-1" rel="stylesheet">
 </head>
 <body class="login-body">
 	<div id="cover"></div>

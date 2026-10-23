@@ -76,8 +76,11 @@ function employee_sidebar_parent($label, $icon, $items, $currentPage)
       <link href="../vendor/custom/fontawesome.all.css" rel="stylesheet">
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
       <script defer src="../js/oecrm-date-format.js?v=20261013-1"></script>
-   </head>
-   <body class="employee-portal" data-current-page="<?php echo htmlspecialchars($currentEmployeePage, ENT_QUOTES, 'UTF-8'); ?>">
+       <link href="../dist/css/erp-typography.css?v=20261022-1" rel="stylesheet">
+       <link href="../dist/css/crm-ui.css?v=20261023-2" rel="stylesheet">
+       <script defer src="../js/crm-ui.js?v=20261023-2"></script>
+</head>
+   <body class="employee-portal crm-ui" data-current-page="<?php echo htmlspecialchars($currentEmployeePage, ENT_QUOTES, 'UTF-8'); ?>">
       <div id="wrapper">
       <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
          <div class="navbar-default sidebar border" role="navigation">

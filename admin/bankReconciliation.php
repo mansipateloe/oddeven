@@ -17,8 +17,8 @@ $cash = mysqli_query(
     "SELECT period,SUM(inflow) inflow,SUM(outflow) outflow FROM (SELECT DATE_FORMAT(payment_date,'%Y-%m') period,SUM(amount-gateway_fee-bank_charge) inflow,0 outflow FROM finance_payments WHERE company_id=$companyId GROUP BY period UNION ALL SELECT DATE_FORMAT(expense_date,'%Y-%m'),0,SUM(amount) FROM finance_expenses WHERE company_id=$companyId GROUP BY DATE_FORMAT(expense_date,'%Y-%m'))x GROUP BY period ORDER BY period DESC LIMIT 12"
 );
 ?><div id="page-wrapper" class="compact-admin-page">
-  <div class="foundation-titlebar"><a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a>
-    <h2>Bank Reconciliation & Cash Flow</h2>
+  <div class="foundation-titlebar"><h2>Bank Reconciliation & Cash Flow</h2>
+    <a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a>
   </div>
   <?php if (!empty($_SESSION['reconciliation_error'])): ?><div class="alert alert-danger"><?php echo oecrm_h($_SESSION['reconciliation_error']); unset($_SESSION['reconciliation_error']); ?></div><?php endif; ?>
   <div class="asset-layout">

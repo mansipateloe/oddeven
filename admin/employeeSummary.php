@@ -29,7 +29,7 @@ $employees = mysqli_query(
 );
 ?>
 <div id="page-wrapper" class="compact-admin-page">
-    <div class="foundation-titlebar"><span></span><h2>Employee Summary</h2></div>
+    <div class="foundation-titlebar"><h2>Employee Summary</h2></div>
 
     <div class="resource-summary">
         <div>

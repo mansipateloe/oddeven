@@ -35,9 +35,10 @@ if ($id) {
         exit("Subscription not found.");
     }
 }
-?><div id="page-wrapper" class="compact-admin-page resource-form-page"><div class="foundation-titlebar"><a href="subscriptions.php"><i class="fa fa-arrow-left"></i> Subscriptions</a><h2><?php echo $id
+?><div id="page-wrapper" class="compact-admin-page resource-form-page"><div class="foundation-titlebar"><h2><?php echo $id
     ? "Edit"
-    : "New"; ?> Subscription</h2></div><div class="panel panel-default"><div class="panel-body"><form class="resource-form" method="post" action="subscriptionAction.php"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="id" value="<?php echo $id; ?>"><div class="form-group"><label>Type</label><select class="form-control" name="asset_type"><?php foreach (
+    : "New"; ?> Subscription</h2>
+    <a href="subscriptions.php"><i class="fa fa-arrow-left"></i> Subscriptions</a></div><div class="panel panel-default"><div class="panel-body"><form class="resource-form" method="post" action="subscriptionAction.php"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="id" value="<?php echo $id; ?>"><div class="form-group"><label>Type</label><select class="form-control" name="asset_type"><?php foreach (
     ["domain", "hosting", "ssl", "software", "ai_tool", "cloud", "other"]
     as $v
 ): ?><option value="<?php echo $v; ?>" <?php echo $r["asset_type"] === $v

@@ -1,0 +1,44 @@
+@media screen {
+    body.crm-ui #page-wrapper.task-list-page .panel-heading h2 { display: flex; align-items: center; gap: 10px; }
+    .task-list-page .task-count { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; padding: 3px 8px; border-radius: 20px; background: #fff1e6; color: #a84d00; font-size: 12px; line-height: 20px; }
+    body.crm-ui #page-wrapper.task-list-page .task-company { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; padding: 7px 10px; border: 1px solid #e4e8ef; border-radius: 6px; color: #526174; font-size: 13px; font-weight: 400; overflow-wrap: anywhere; }
+    .task-list-page .task-toolbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e4e8ef; }
+    .task-list-page .task-search-field { flex: 1 1 300px; max-width: 440px; min-width: 0; }
+    .task-list-page .task-toolbar label { display: block; margin: 0 0 6px; color: #243247; font-size: 14px; font-weight: 600; }
+    .task-list-page .task-search-field small { display: block; margin-top: 6px; color: #526174; font-size: 12px; line-height: 1.5; }
+    .task-list-page .task-create-controls { display: flex; align-items: flex-end; gap: 10px; min-width: 0; }
+    .task-list-page .task-new-project { width: 260px; max-width: 100%; }
+    .task-list-page #taskAddButton { flex-shrink: 0; }
+    .task-list-page .task-table-scroll { width: 100%; overflow-x: auto; }
+    .task-list-page .table { width: 100% !important; min-width: 1000px; }
+    .task-list-page .table td { vertical-align: middle !important; }
+    .task-list-page .table td:nth-child(1) { min-width: 135px; max-width: 200px; overflow-wrap: anywhere; }
+    .task-list-page .table td:nth-child(2) { min-width: 190px; max-width: 340px; overflow-wrap: anywhere; }
+    .task-list-page .table td:nth-child(3) { min-width: 130px; max-width: 200px; overflow-wrap: anywhere; }
+    .task-list-page .task-title { display: block; color: #243247; }
+    .task-list-page .task-reference { display: block; margin-top: 4px; color: #667085; font-size: 12px; }
+    .task-list-page .task-due { white-space: nowrap; }
+    .task-list-page :is(.task-priority, .task-status) { display: inline-block; padding: 4px 9px; border-radius: 5px; font-size: 12px; font-weight: 600; line-height: 1.5; white-space: nowrap; background: #f0f2f6; color: #475467; }
+    .task-list-page :is(.task-priority-critical, .task-status-blocked) { background: #feeceb; color: #a52920; }
+    .task-list-page .task-priority-high { background: #fff1e6; color: #9a4500; }
+    .task-list-page :is(.task-priority-medium, .task-status-in_progress, .task-status-inprogress) { background: #edf3ff; color: #2854a1; }
+    .task-list-page :is(.task-priority-low, .task-status-completed, .task-status-done) { background: #eaf6ef; color: #21633e; }
+    .task-list-page :is(.task-status-pending, .task-status-review, .task-status-qa) { background: #fff6df; color: #815600; }
+    .task-list-page .task-row-actions { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .task-list-page .task-row-actions form { display: inline-flex !important; margin: 0; }
+    body.crm-ui #page-wrapper.task-list-page .task-delete { color: #b42318 !important; }
+    .task-list-page .dataTables_length { margin-bottom: 14px; }
+    .task-list-page .dataTables_info { padding-top: 16px; }
+    .task-list-page .dataTables_paginate { padding-top: 12px; }
+    .task-list-page .empty-cell { padding: 40px 20px !important; text-align: center; color: #667085; }
+    @media (max-width: 1050px) {
+        .task-list-page .task-toolbar { flex-direction: column; gap: 16px; }
+        .task-list-page .task-search-field { flex-basis: auto; width: 100%; max-width: none; }
+        .task-list-page .task-create-controls { width: 100%; }
+        .task-list-page .task-new-project { flex: 1; width: auto; }
+    }
+    @media (max-width: 480px) {
+        .task-list-page .task-create-controls { align-items: stretch; flex-direction: column; }
+        .task-list-page #taskAddButton { align-self: flex-start; }
+    }
+}

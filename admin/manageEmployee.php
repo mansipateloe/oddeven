@@ -73,7 +73,7 @@ $employees = mysqli_stmt_get_result($stmt);
 #employeeTable .employee-status-action.is-activate:hover{background:#e8f6ee;border-color:#88c5a5}
 #employeeTable .employee-status-action:focus-visible{outline:2px solid #696cff;outline-offset:2px}
 </style>
-<div id="page-wrapper" class="compact-admin-page">
+<div id="page-wrapper" class="compact-admin-page employee-list-page">
     <?php if (!empty($_SESSION["employee_flash"])): ?>
         <div class="alert alert-success"><?php echo oecrm_h(
             $_SESSION["employee_flash"]
@@ -94,15 +94,20 @@ $employees = mysqli_stmt_get_result($stmt);
                 ? "All company employees."
                 : "Active and inactive employees for the selected company."; ?></p>
         </div>
-        <div>
+        <div class="employee-page-actions">
             <a href="addEmployee.php" class="btn btn-primary"><i class="fa fa-plus"></i> Add Employee</a>
-            <a href="manageDesignation.php" class="btn btn-info"><i class="fa fa-briefcase"></i> Manage Designation</a>
+            <a href="manageDesignation.php" class="btn btn-default"><i class="fa fa-briefcase"></i> Manage Designation</a>
         </div>
     </div>
 
     <div class="panel panel-default">
-        <div class="panel-heading">Employees Table</div>
-        <div class="panel-body table-responsive">
+        <div class="panel-heading"><h3>Employee Directory</h3><span class="employee-total"><?php echo (int) mysqli_num_rows($employees); ?> employees</span></div>
+        <div class="panel-body">
+            <div class="employee-list-toolbar">
+                <div><label for="employeeSearch">Search Employees</label><input type="search" id="employeeSearch" class="form-control" placeholder="Search name, code, company or contact" aria-controls="employeeTable"></div>
+                <div><label for="employeeStatusFilter">Status</label><select id="employeeStatusFilter" class="form-control" data-oecrm-native="1"><option value="">All employees</option><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+            </div>
+            <div class="employee-table-scroll" role="region" aria-label="Employee directory" tabindex="0">
             <table class="table table-striped table-bordered table-hover foundation-table" id="employeeTable">
                 <thead>
                     <tr>
@@ -118,11 +123,11 @@ $employees = mysqli_stmt_get_result($stmt);
                 </thead>
                 <tbody>
                     <?php while ($employee = mysqli_fetch_assoc($employees)): ?>
-                        <tr>
+                        <tr data-employee-status="<?php echo (int) $employee['status'] === 0 ? 'active' : 'inactive'; ?>">
                             <td><?php echo oecrm_h(
                                 $employee["employeeCode"]
                             ); ?></td>
-                            <td><?php echo oecrm_h($employee["name"]); ?></td>
+                            <td><strong><?php echo oecrm_h($employee["name"]); ?></strong></td>
                             <td><?php echo oecrm_h(
                                 $employee["company_name"] ?: "Not assigned"
                             ); ?></td>
@@ -159,7 +164,7 @@ $employees = mysqli_stmt_get_result($stmt);
                                     </form>
                                 </div>
                             </td>
-                            <td class="employee-actions">
+                            <td><div class="employee-actions">
                                 <a class="icon-action" href="employeeProfile.php?id=<?php echo (int) $employee[
                                     "id"
                                 ]; ?>" title="Employee Profile" aria-label="Employee Profile"><i class="fa fa-user"></i></a>
@@ -169,24 +174,33 @@ $employees = mysqli_stmt_get_result($stmt);
                                 <a class="icon-action" href="employeeContinuations.php?employee_id=<?php echo (int) $employee[
                                     "id"
                                 ]; ?>#renewForm" title="Renew / Continue" aria-label="Renew Employee"><i class="fa fa-refresh"></i></a>
-                                <form method="post" action="deleteEmployee.php" style="display:inline;">
-                                    <?php echo oecrm_csrf_field(); ?>
-                                    <input type="hidden" name="delete" value="<?php echo (int) $employee[
-                                        "id"
-                                    ]; ?>">
-                                    <button type="submit" class="icon-action" title="Deactivate" data-confirm="Deactivate this employee? Existing payroll, attendance and project history will be preserved."><i class="fa fa-ban"></i></button>
-                                </form>
-                                <a href="loginLog.php?id=<?php echo (int) $employee[
+                                <a class="icon-action" href="loginLog.php?id=<?php echo (int) $employee[
                                     "id"
                                 ]; ?>" title="Login Log"><i class="fa fa-sign-in"></i></a>
-                            </td>
+                            </div></td>
                         </tr>
                     <?php endwhile; ?>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (!window.jQuery || !jQuery.fn.DataTable) return;
+    var status = document.getElementById('employeeStatusFilter');
+    jQuery.fn.dataTable.ext.search.push(function (settings, data, index) {
+        if (settings.nTable.id !== 'employeeTable' || !status.value) return true;
+        return settings.aoData[index].nTr.getAttribute('data-employee-status') === status.value;
+    });
+    var table = jQuery('#employeeTable').DataTable({dom: 'lrtip', pageLength: 10, order: [], autoWidth: false, responsive: false,
+        columnDefs: [{targets: [5, 6], orderable: false}],
+        language: {lengthMenu: 'Show _MENU_ employees', emptyTable: 'No employees found.', zeroRecords: 'No employees match your filters.'}});
+    document.getElementById('employeeSearch').addEventListener('input', function () { table.search(this.value.trim()).draw(); });
+    status.addEventListener('change', function () { table.draw(); });
+});
+</script>
 
 <?php
 mysqli_stmt_close($stmt);

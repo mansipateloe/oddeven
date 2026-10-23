@@ -1,0 +1,1 @@
+ERROR 1452 (23000) at line 9710: Cannot add or update a child row: a foreign key constraint fails (`oddeven`.`#sql-4f88_7a`, CONSTRAINT `fk_salary_structure_employee` FOREIGN KEY (`employee_id`) REFERENCES `employeestbl` (`id`) ON DELETE CASCADE)

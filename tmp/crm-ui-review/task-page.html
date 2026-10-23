@@ -1,0 +1,79 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="../../vendor/bootstrap/css/bootstrap.min.css"><link rel="stylesheet" href="../../vendor/font-awesome/css/font-awesome.min.css"><link rel="stylesheet" href="../../vendor/datatables-plugins/dataTables.bootstrap.css"><link rel="stylesheet" href="../../vendor/custom/customAdmin.css"><link rel="stylesheet" href="../../dist/css/erp-typography.css"><link rel="stylesheet" href="../../dist/css/crm-ui.css"><script src="../../vendor/jquery/jquery.min.js"></script><script src="../../vendor/datatables/js/jquery.dataTables.min.js"></script><script src="../../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script><script defer src="../../js/crm-ui.js"></script></head><body class="admin-portal crm-ui">
+<link rel="stylesheet" href="../../dist/css/task-list.css?v=20261023-1">
+<div id="page-wrapper" class="compact-admin-page project-workspace task-list-page">
+    
+    <div class="panel panel-default">
+        <div class="panel-heading foundation-heading">
+            <div><h2>Task Management <span class="task-count">2</span></h2>
+                <small>Manage assignments, priorities and deadlines.</small></div>
+            <span class="task-company"><i class="fa fa-building-o"></i> OddEven Infotech</span>
+        </div>
+        <div class="panel-body">
+            <div class="task-toolbar">
+                <div class="task-search-field">
+                    <label for="taskSearch">Search Tasks</label>
+                    <input type="search" id="taskSearch" class="form-control" placeholder="Search task, project or owner..." aria-controls="dataTables-example" aria-describedby="taskSearchHint">
+                    <small id="taskSearchHint">Search by task, project, owner, priority, due date or status.</small>
+                </div>
+                <div class="task-create-controls">
+                <div class="task-new-project"><label for="taskProjectSelect">Project for new task</label><select class="form-control input-sm" id="taskProjectSelect" data-oecrm-native="1" ><option value="">Choose a project</option><option value="12">CRM Platform</option></select></div>
+                <button type="button" id="taskAddButton" class="btn btn-primary" onclick="goAddTask()" disabled><i class="fa fa-plus"></i> Add Task</button>
+                </div>
+            </div>
+            
+            <div class="task-table-scroll" role="region" aria-label="Task list" tabindex="0">
+            <table class="table foundation-table" id="dataTables-example">
+                <thead><tr><th>Project</th><th>Task</th><th>Owner</th><th>Priority</th><th>Due</th><th>Status</th><th>Attachment</th><th>Actions</th></tr></thead>
+                <tbody><tr><td>CRM Platform</td><td><strong class="task-title">Update client onboarding form</strong><small class="task-reference">#104</small></td><td>Priya Shah</td><td><span class="task-priority task-priority-high">High</span></td><td>23/10/2026</td><td><span class="task-status task-status-in_progress">In Progress</span></td><td>�</td><td><div class="task-row-actions"><a class="btn btn-default" title="View"><i class="fa fa-eye"></i></a><a class="btn btn-default" title="Edit"><i class="fa fa-pencil"></i></a><button class="btn btn-default task-delete" title="Delete"><i class="fa fa-trash-o"></i></button></div></td></tr><tr><td>Website</td><td><strong class="task-title">Review landing page</strong><small class="task-reference">#103</small></td><td>Dev Patel</td><td><span class="task-priority task-priority-low">Low</span></td><td>25/10/2026</td><td><span class="task-status task-status-completed">Completed</span></td><td>�</td><td>�</td></tr></tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var projectSelect = document.getElementById('taskProjectSelect');
+    var addButton = document.getElementById('taskAddButton');
+    function updateAddButton() { addButton.disabled = !projectSelect.value; }
+    projectSelect.addEventListener('change', updateAddButton);
+    updateAddButton();
+    var tableElement = document.getElementById('dataTables-example');
+    var search = document.getElementById('taskSearch');
+    if (!tableElement || !search || !window.jQuery || !jQuery.fn.DataTable) return;
+    // Let DataTables render its own empty state without a colspan data row.
+    var emptyCell = tableElement.querySelector('tbody .empty-cell');
+    if (emptyCell) emptyCell.parentNode.remove();
+    var table = jQuery(tableElement).DataTable({
+        dom: 'lrtip',
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
+        order: [],
+        autoWidth: false,
+        responsive: false,
+        columnDefs: [{targets: [6, 7], searchable: false, orderable: false}],
+        language: {
+            lengthMenu: 'Show _MENU_ tasks',
+            info: 'Showing _START_ to _END_ of _TOTAL_ tasks',
+            infoEmpty: 'Showing 0 tasks',
+            infoFiltered: '(filtered from _MAX_ tasks)',
+            emptyTable: 'No tasks found.',
+            zeroRecords: 'No tasks match your search.'
+        }
+    });
+    search.addEventListener('input', function () {
+        table.search(search.value.trim()).draw();
+    });
+    table.search(search.value.trim()).draw();
+});
+function goAddTask() {
+    var projectId = document.getElementById('taskProjectSelect').value;
+    if (!projectId) {
+        alert('Please select project first.');
+        return;
+    }
+    window.location.href = 'taskEditor.php?project_id=' + encodeURIComponent(projectId);
+}
+</script>
+
+
+</body></html>

@@ -59,9 +59,10 @@ $projects = mysqli_query(
 $error = $_SESSION["resource_error"] ?? "";
 unset($_SESSION["resource_error"]);
 ?>
-<div id="page-wrapper" class="compact-admin-page resource-form-page"><div class="foundation-titlebar"><a href="resources.php"><i class="fa fa-arrow-left"></i> Resources</a><h2><?php echo $id
+<div id="page-wrapper" class="compact-admin-page resource-form-page"><div class="foundation-titlebar"><h2><?php echo $id
     ? "Edit"
-    : "New"; ?> Resource Allocation</h2></div><?php if (
+    : "New"; ?> Resource Allocation</h2>
+    <a href="resources.php"><i class="fa fa-arrow-left"></i> Resources</a></div><?php if (
      $error
  ): ?><div class="alert alert-danger"><?php echo oecrm_h(
     $error

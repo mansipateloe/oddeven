@@ -102,7 +102,8 @@ $canEdit = oecrm_can($conn, 'notices', 'edit');
 include 'header.php';
 ?>
 <div id="page-wrapper" class="compact-admin-page">
-    <div class="foundation-titlebar"><a href="manageNotice.php"><i class="fa fa-arrow-left"></i> Notices</a><h2>Notice Types &amp; Categories</h2></div>
+    <div class="foundation-titlebar"><h2>Notice Types &amp; Categories</h2>
+    <a href="manageNotice.php"><i class="fa fa-arrow-left"></i> Notices</a></div>
     <?php if ($flash): ?><div class="alert alert-info" role="status"><?php echo oecrm_h($flash); ?></div><?php endif; ?>
     <div class="row">
         <?php foreach (['type' => ['Notice Types', $types], 'category' => ['Notice Categories', $categories]] as $kind => $section): ?>

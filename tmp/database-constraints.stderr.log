@@ -1,0 +1,1 @@
+ERROR 1231 (42000) at line 26: Variable 'character_set_client' can't be set to the value of 'NULL'

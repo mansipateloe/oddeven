@@ -147,9 +147,8 @@ $formValues = [
 ];
 ?>
 <div id="page-wrapper" class="compact-admin-page">
-    <div class="foundation-titlebar">
-        <a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a>
-        <h2>Project Expense</h2>
+    <div class="foundation-titlebar"><h2>Project Expense</h2>
+    <a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a>
     </div>
 
     <?php if ($flash): ?><div class="alert alert-success"><?php echo oecrm_h($flash); ?></div><?php endif; ?>

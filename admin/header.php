@@ -34,9 +34,13 @@
     </style> -->
   <!-- <link href="../vendor/custom/custom.css" rel="stylesheet">
  -->
+    <link href="../dist/css/erp-typography.css?v=20261022-1" rel="stylesheet">
+    <link href="../dist/css/crm-ui.css?v=20261023-2" rel="stylesheet">
+    <link href="../dist/css/employee-ui.css?v=20261023-1" rel="stylesheet">
+    <script defer src="../js/crm-ui.js?v=20261023-2"></script>
 </head>
 
-<body class="admin-portal" data-current-page="<?php echo oecrm_h(basename($_SERVER['PHP_SELF'] ?? 'dashboard.php'));?>">
+<body class="admin-portal crm-ui" data-current-page="<?php echo oecrm_h(basename($_SERVER['PHP_SELF'] ?? 'dashboard.php'));?>">
   <?php
   function check_is_access_new($mname,$utype="")
   {

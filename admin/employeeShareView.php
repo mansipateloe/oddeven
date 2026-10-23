@@ -40,7 +40,7 @@ if ($submission) {
 }
 ?>
 <div id="page-wrapper" class="compact-admin-page employee-share-detail-page">
-    <div class="foundation-titlebar"><span></span><h2>Employee Update Details</h2></div>
+    <div class="foundation-titlebar"><h2>Employee Update Details</h2></div>
     <p><a href="employeeShareApprovals.php" class="btn btn-default"><i class="fa fa-arrow-left"></i> Back to approvals</a></p>
 
     <?php if (!$submission): ?>

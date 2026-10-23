@@ -31,7 +31,7 @@ function oecrm_followup_type_can_manage($conn)
         || oecrm_legacy_can($conn, 'view_lead');
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addFollowupType'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['addFollowupType']) || isset($_POST['updateFollowupType']))) {
     oecrm_require_csrf();
 
     if (!oecrm_followup_type_can_manage($conn)) {
@@ -39,6 +39,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addFollowupType'])) {
         exit('You do not have permission to manage follow-up types.');
     }
 
+    $editing = isset($_POST['updateFollowupType']);
+    $id = $editing ? oecrm_int_param($_POST, 'id') : 0;
+    $old = null;
+    if ($editing) {
+        $lookup = mysqli_prepare($conn, 'SELECT id, name FROM followup_type_tbl WHERE id=?');
+        mysqli_stmt_bind_param($lookup, 'i', $id);
+        mysqli_stmt_execute($lookup);
+        $old = mysqli_fetch_assoc(mysqli_stmt_get_result($lookup));
+        mysqli_stmt_close($lookup);
+        if (!$old) {
+            oecrm_followup_type_flash('danger', 'Follow-up type not found.');
+            oecrm_followup_type_redirect();
+        }
+    }
     $name = trim((string) ($_POST['name'] ?? ''));
     $name = preg_replace('/\s+/', ' ', $name);
 
@@ -47,12 +61,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addFollowupType'])) {
         oecrm_followup_type_redirect();
     }
 
-    $check = mysqli_prepare($conn, 'SELECT id FROM followup_type_tbl WHERE LOWER(TRIM(name))=LOWER(?) LIMIT 1');
+    $check = mysqli_prepare($conn, 'SELECT id FROM followup_type_tbl WHERE LOWER(TRIM(name))=LOWER(?) AND id<>? LIMIT 1');
     if (!$check) {
         oecrm_followup_type_flash('danger', 'Follow-up type could not be checked.');
         oecrm_followup_type_redirect();
     }
-    mysqli_stmt_bind_param($check, 's', $name);
+    mysqli_stmt_bind_param($check, 'si', $name, $id);
     mysqli_stmt_execute($check);
     $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
     mysqli_stmt_close($check);
@@ -62,26 +76,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['addFollowupType'])) {
         oecrm_followup_type_redirect();
     }
 
-    $stmt = mysqli_prepare($conn, 'INSERT INTO followup_type_tbl(name) VALUES(?)');
-    if (!$stmt) {
+    mysqli_begin_transaction($conn);
+    try {
+        $stmt = mysqli_prepare($conn, $editing ? 'UPDATE followup_type_tbl SET name=? WHERE id=?' : 'INSERT INTO followup_type_tbl(name) VALUES(?)');
+        if ($editing) {
+            mysqli_stmt_bind_param($stmt, 'si', $name, $id);
+        } else {
+            mysqli_stmt_bind_param($stmt, 's', $name);
+        }
+        if (!mysqli_stmt_execute($stmt)) {
+            throw new RuntimeException('Follow-up type could not be saved.');
+        }
+        $savedId = $editing ? $id : (int) mysqli_insert_id($conn);
+        mysqli_stmt_close($stmt);
+        if ($editing) {
+            // Existing follow-ups store the type name rather than its ID.
+            $stmt = mysqli_prepare($conn, 'UPDATE lead_followup SET followup_type=? WHERE followup_type=?');
+            mysqli_stmt_bind_param($stmt, 'ss', $name, $old['name']);
+            if (!mysqli_stmt_execute($stmt)) {
+                throw new RuntimeException('Follow-up records could not be updated.');
+            }
+            mysqli_stmt_close($stmt);
+        }
+        mysqli_commit($conn);
+    } catch (Exception $exception) {
+        mysqli_rollback($conn);
         oecrm_followup_type_flash('danger', 'Follow-up type could not be saved.');
         oecrm_followup_type_redirect();
     }
-    mysqli_stmt_bind_param($stmt, 's', $name);
-    $saved = mysqli_stmt_execute($stmt);
-    $newId = (int) mysqli_insert_id($conn);
-    mysqli_stmt_close($stmt);
-
-    if (!$saved) {
-        oecrm_followup_type_flash('danger', 'Follow-up type could not be saved.');
-        oecrm_followup_type_redirect();
-    }
-
-    oecrm_audit($conn, 'client_communications', 'create', 'followup_type', $newId, 'Follow-up type created', null, ['name' => $name]);
-    oecrm_followup_type_flash('success', 'Follow-up type added successfully.');
+    oecrm_audit($conn, 'client_communications', $editing ? 'update' : 'create', 'followup_type', $savedId, $editing ? 'Follow-up type updated' : 'Follow-up type created', $old, ['name' => $name]);
+    oecrm_followup_type_flash('success', $editing ? 'Follow-up type updated successfully.' : 'Follow-up type added successfully.');
     oecrm_followup_type_redirect();
 }
 
+$editType = null;
+if (!empty($_GET['edit']) && oecrm_followup_type_can_manage($conn)) {
+    $editId = (int) $_GET['edit'];
+    $stmt = mysqli_prepare($conn, 'SELECT id, name FROM followup_type_tbl WHERE id=?');
+    mysqli_stmt_bind_param($stmt, 'i', $editId);
+    mysqli_stmt_execute($stmt);
+    $editType = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    mysqli_stmt_close($stmt);
+    if (!$editType) oecrm_followup_type_flash('warning', 'Follow-up type not found.');
+}
 include 'header.php';
 
 $followupTypeFlash = $_SESSION['followup_type_flash'] ?? '';
@@ -97,24 +134,25 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
     <div class="row">
         <div class="col-lg-12">
             <div class="dataTablesbox">
-                <form id="followupTypeForm" role="form" method="POST" action="" novalidate>
+                <form id="followupTypeForm" role="form" method="POST" action="manageFollowupType.php" novalidate>
                     <?php echo oecrm_csrf_field(); ?>
+                    <?php if ($editType): ?><input type="hidden" name="id" value="<?php echo (int) $editType['id']; ?>"><?php endif; ?>
                     <div class="col-lg-4">
                         <div class="form-group">
-                            <label>Followup Type</label>
-                            <input id="followupTypeName" class="form-control" value="" type="text" name="name" placeholder="Enter follow-up type">
+                            <label for="followupTypeName"><?php echo $editType ? 'Edit Followup Type' : 'Followup Type'; ?></label>
+                            <input id="followupTypeName" class="form-control" value="<?php echo oecrm_h($editType['name'] ?? ''); ?>" type="text" name="name" placeholder="Enter follow-up type" required>
                         </div>
                     </div>
                     <div class="col-lg-2" style="margin-left: 20px;">
                         <br>
                         <div class="form-group" align="right">
-                            <input class="btn btn-primary" type="submit" name="addFollowupType" value="Add Followup Type" style="margin-top: 7px; margin-left: 10px;">
+                            <input class="btn btn-primary" type="submit" name="<?php echo $editType ? 'updateFollowupType' : 'addFollowupType'; ?>" value="<?php echo $editType ? 'Update Followup Type' : 'Add Followup Type'; ?>" style="margin-top: 7px;">
                         </div>
                     </div>
                     <div class="col-lg-2" style="margin-left: 10px;">
                         <br>
                         <div class="form-group" align="left">
-                            <a class="btn btn-danger cancel_btn" href="followup.php" style="margin-top: 7px; margin-left: 10px;">Cancel</a>
+                            <a class="btn btn-default cancel_btn" href="<?php echo $editType ? 'manageFollowupType.php' : 'followup.php'; ?>" style="margin-top: 7px;">Cancel</a>
                         </div>
                     </div>
                 </form>
@@ -146,12 +184,16 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
                                                 while ($row = $result->fetch_assoc()) {
                                                     echo "<tr class='gradeA even' role='row'>";
                                                     echo "<td class='sorting_1'>" . $row['id'] . "</td>";
-                                                    echo "<td>" . $row['name'] . "</td>";
-                                                    echo '<td class="center" align="center"><form method="post" action="deleteFollowupType.php" style="display:inline;" data-confirm="Delete this follow-up type?">' . oecrm_csrf_field() . '<input type="hidden" name="deleteFollowupType" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link delete-followup-type" style="padding:0;border:0;"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
+                                                    echo "<td>" . oecrm_h($row['name']) . "</td>";
+                                                    echo '<td class="center" align="center">';
+                                                    if (oecrm_followup_type_can_manage($conn)) {
+                                                        echo '<a class="btn btn-link" href="manageFollowupType.php?edit=' . (int)$row['id'] . '" title="Edit follow-up type"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a> ';
+                                                    }
+                                                    echo '<form method="post" action="deleteFollowupType.php" style="display:inline;" data-confirm="Delete this follow-up type?">' . oecrm_csrf_field() . '<input type="hidden" name="deleteFollowupType" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link delete-followup-type" title="Delete follow-up type" style="padding:0;border:0;"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
                                                     echo "</tr>";
                                                 }
                                             } else {
-                                                echo "<tr><td>";
+                                                echo "<tr><td colspan='3'>";
                                                 echo "Nothing to display";
                                                 echo "</td></tr>";
                                             }

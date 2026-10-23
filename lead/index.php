@@ -88,8 +88,11 @@ include("functions.php");
          }); 
 	
         </script>
+    <link href="../dist/css/erp-typography.css?v=20261022-1" rel="stylesheet">
+    <link href="../dist/css/crm-ui.css?v=20261023-2" rel="stylesheet">
+    <script defer src="../js/crm-ui.js?v=20261023-2"></script>
 </head>
-<body>
+<body class="lead-portal crm-ui">
   <section id="container" class="">
 	<?php include("topbar.php"); ?>
     <?php include("sidebar.php"); ?>

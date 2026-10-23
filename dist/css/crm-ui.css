@@ -1,0 +1,223 @@
+/* Shared CRM screen components. Load after module styles; printed documents stay independent. */
+@media screen {
+    body.crm-ui {
+        --crm-border: #dfe4ec;
+        --crm-heading: #243247;
+        --crm-muted: #526174;
+        --crm-accent: #c45a00;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content) {
+        text-align: left;
+    }
+    body.crm-ui :is(.foundation-titlebar, .lead-page-header) {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        flex-wrap: wrap;
+        gap: 12px !important;
+        margin: 0 0 20px !important;
+        text-align: left !important;
+    }
+    body.crm-ui :is(.foundation-titlebar, .lead-page-header) > :is(h1, h2, h3, div:has(> h2)) {
+        order: -1;
+        flex: 1 1 240px;
+        margin: 0 !important;
+        text-align: left !important;
+        float: none !important;
+        color: var(--crm-heading) !important;
+    }
+    body.crm-ui :is(.admin-topbar-left, .employee-topbar-left) { text-align: left !important; }
+    body.crm-ui.crm-page-has-title :is(.admin-topbar-left, .employee-topbar-left) h1 { display: none !important; }
+    body.crm-ui :is(.panel-default, .dataTablesbox, .dataTablesbox2) {
+        border: 1px solid var(--crm-border) !important;
+        border-radius: 10px !important;
+        background: #fff !important;
+        box-shadow: 0 3px 12px rgb(36 50 71 / 4%) !important;
+        margin-bottom: 20px !important;
+    }
+    body.crm-ui :is(.panel-default > .panel-heading, .panel-heading.foundation-heading) {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        flex-wrap: wrap;
+        gap: 12px;
+        min-height: 58px !important;
+        padding: 14px 20px !important;
+        border: 0 !important;
+        border-bottom: 1px solid var(--crm-border) !important;
+        border-radius: 10px 10px 0 0 !important;
+        background: #fff !important;
+        color: var(--crm-heading) !important;
+        text-align: left !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        line-height: 1.5 !important;
+    }
+    body.crm-ui .panel-heading :is(h1, h2, h3, h4, .panel-title) {
+        float: none !important;
+        margin: 0 !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        line-height: 1.5 !important;
+        text-align: left !important;
+    }
+    body.crm-ui .panel-heading > :is(h1, h2, h3, h4) { order: -1; }
+    body.crm-ui :is(.employee-section-heading, .continuation-card-head) {
+        padding-bottom: 14px !important;
+        margin-bottom: 20px !important;
+        border-bottom: 1px solid var(--crm-border);
+        text-align: left !important;
+    }
+    body.crm-ui :is(.employee-section-heading, .continuation-card-head) h3 {
+        margin: 0 !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        color: var(--crm-heading) !important;
+    }
+    body.crm-ui .employee-section-heading > i.fa { display: none !important; }
+    body.crm-ui .panel-heading :is(small, h4 + span) {
+        display: block;
+        color: var(--crm-muted) !important;
+        font-size: 12px !important;
+        font-weight: 400 !important;
+        margin-top: 4px !important;
+    }
+    body.crm-ui :is(.panel-default > .panel-body, .dataTablesbox, .dataTablesbox2) { padding: 20px !important; }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .form-group { margin-bottom: 16px !important; }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) form label {
+        margin-bottom: 6px !important;
+        color: var(--crm-heading);
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        line-height: 1.5 !important;
+        text-align: left !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+    }
+    /* Text labels and section headings have no decorative icons. Action icons remain. */
+    body.crm-ui form label > :is(i.fa, i.glyphicon),
+    body.crm-ui .panel-heading > :is(i.fa, i.glyphicon),
+    body.crm-ui .panel-heading :is(h2, h3, h4) > :is(i.fa, i.glyphicon) { display: none !important; }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) :is(input.form-control, select.form-control, .oecrm-select-toggle, .select2-selection--single) {
+        height: 40px !important;
+        min-height: 40px !important;
+        border: 1px solid var(--crm-border) !important;
+        border-radius: 6px !important;
+        background-color: #fff;
+        color: #243247;
+        box-shadow: none !important;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) :is(input.form-control, select.form-control, textarea.form-control) { padding: 9px 12px !important; }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) :is(textarea.form-control, select.form-control[multiple]) {
+        height: auto !important;
+        min-height: 100px !important;
+        border: 1px solid var(--crm-border) !important;
+        border-radius: 6px !important;
+        box-shadow: none !important;
+    }
+    body.crm-ui textarea.form-control { resize: vertical; }
+    body.crm-ui .crm-decorative-addon { display: none !important; }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .input-group .form-control { border-radius: 6px !important; }
+    body.crm-ui .crm-field { min-width: 0; }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .form-control:focus,
+    body.crm-ui .oecrm-select-toggle:focus-visible {
+        border-color: var(--crm-accent) !important;
+        outline: 2px solid rgb(229 107 0 / 20%);
+        outline-offset: 1px;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .form-control:disabled,
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .form-control[readonly] { background-color: #f3f5f8 !important; }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) :is(.is-invalid, .currency-is-invalid, .has-error .form-control) { border-color: #c83434 !important; }
+    body.crm-ui :is(.field-error, .currency-field-error, .has-error .help-block) { color: #b42318 !important; font-size: 12px !important; }
+    body.crm-ui :is(.resource-form, .resource-form-grid, .employee-form-grid, .client-form-grid, .lead-form-grid, .notice-form-grid, .letter-form-grid, .shift-form-grid) {
+        gap: 16px !important;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) :is(.resource-form, .resource-form-grid, .employee-form-grid, .client-form-grid, .lead-form-grid, .notice-form-grid, .letter-form-grid, .shift-form-grid) .form-group {
+        margin-bottom: 0 !important;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .btn:not(.btn-link) {
+        min-height: 40px !important;
+        padding: 9px 16px !important;
+        border-radius: 6px !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        line-height: 20px !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        white-space: normal;
+    }
+    body.crm-ui :is(.resource-actions, .foundation-actions, .form-actions, .lead-form-actions) {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start !important;
+        gap: 10px;
+        margin-top: 20px;
+        text-align: left !important;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .btn-primary {
+        background-color: var(--crm-accent) !important;
+        border: 1px solid var(--crm-accent) !important;
+        color: #fff !important;
+        box-shadow: none !important;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .btn-primary:hover { background-color: #a84d00 !important; border-color: #a84d00 !important; }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .btn-default {
+        background-color: #fff !important;
+        border: 1px solid var(--crm-border) !important;
+        color: #526174 !important;
+        box-shadow: none !important;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .btn-default:hover { background-color: #f3f5f8 !important; }
+    body.crm-ui .crm-action {
+        background-image: var(--crm-action-icon) !important;
+        background-repeat: no-repeat !important;
+        background-position: 13px center !important;
+        background-size: 16px 16px !important;
+        padding-left: 38px !important;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .btn.crm-action { padding-left: 38px !important; }
+    body.crm-ui .crm-action > :is(i.fa, i.glyphicon, svg) { display: none !important; }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .btn[data-crm-action="cancel"] {
+        background-color: #fff !important;
+        border: 1px solid var(--crm-border) !important;
+        color: #526174 !important;
+        box-shadow: none !important;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) select.oecrm-native-select {
+        height: 1px !important;
+        min-height: 1px !important;
+        padding: 0 !important;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .crm-icon-action {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 36px !important;
+        height: 36px !important;
+        min-height: 36px !important;
+        padding: 0 !important;
+        border-radius: 6px;
+        vertical-align: middle;
+    }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .btn-link.crm-action { min-height: 36px; padding-right: 10px !important; }
+    body.crm-ui :is(#page-wrapper, #main-content, .modal) .crm-icon-action > :is(i.fa, i.glyphicon) {
+        width: auto !important;
+        height: auto !important;
+        font-size: 16px !important;
+        line-height: 1 !important;
+    }
+    body.crm-ui :is(button, a, input):focus-visible { outline: 2px solid #b85600; outline-offset: 3px; }
+    body.crm-ui .crm-inline-master-form { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px; }
+    body.crm-ui .crm-inline-master-form > [class*="col-"] { float: none !important; padding: 0 !important; flex: 1 1 220px; }
+    body.crm-ui .crm-inline-master-form > .crm-action-column { flex: 0 1 auto; }
+    body.crm-ui .crm-inline-master-form > [class*="col-"] > br { display: none; }
+    body.crm-ui .crm-inline-master-form .form-group { margin-bottom: 0 !important; text-align: left !important; }
+    body.crm-ui .crm-inline-master-form .btn { margin-top: 0 !important; }
+    @media (max-width: 767px) {
+        body.crm-ui :is(.panel-default > .panel-body, .dataTablesbox, .dataTablesbox2) { padding: 16px !important; }
+        body.crm-ui :is(.foundation-titlebar, .lead-page-header) > :is(h1, h2, h3, div:has(> h2)) { flex-basis: 100%; }
+        body.crm-ui .crm-inline-master-form > [class*="col-"] { flex-basis: 100%; }
+        body.crm-ui .crm-inline-master-form > .crm-action-column { flex-basis: auto; }
+    }
+}

@@ -1,0 +1,178 @@
+/* Shared screen typography. Keep printed invoices and letters at their designed sizes. */
+@media screen {
+    :root {
+        --erp-font: "Segoe UI", "Nirmala UI", Arial, sans-serif;
+        --erp-text: #243247;
+        --erp-muted: #526174;
+    }
+
+    :is(body.admin-portal, body.employee-portal, body),
+    body.admin-portal,
+    body.employee-portal {
+        font-family: var(--erp-font) !important;
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        line-height: 1.55 !important;
+        letter-spacing: normal !important;
+        color: var(--erp-text);
+    }
+
+    /* Avoid a universal font override: icon fonts must retain their own family. */
+    :is(body.admin-portal, body.employee-portal, body) h1, :is(body.admin-portal, body.employee-portal, body) h2, :is(body.admin-portal, body.employee-portal, body) h3, :is(body.admin-portal, body.employee-portal, body) h4, :is(body.admin-portal, body.employee-portal, body) h5, :is(body.admin-portal, body.employee-portal, body) h6,
+    :is(body.admin-portal, body.employee-portal, body) input, :is(body.admin-portal, body.employee-portal, body) select, :is(body.admin-portal, body.employee-portal, body) textarea, :is(body.admin-portal, body.employee-portal, body) button,
+    :is(body.admin-portal, body.employee-portal, body) .btn, :is(body.admin-portal, body.employee-portal, body) .form-control, :is(body.admin-portal, body.employee-portal, body) table,
+    :is(body.admin-portal, body.employee-portal, body) .select2-container, :is(body.admin-portal, body.employee-portal, body) .popover, :is(body.admin-portal, body.employee-portal, body) .tooltip {
+        font-family: var(--erp-font) !important;
+        letter-spacing: normal !important;
+    }
+
+    :is(body.admin-portal, body.employee-portal, body) h1, :is(body.admin-portal, body.employee-portal, body) h2, :is(body.admin-portal, body.employee-portal, body) h3, :is(body.admin-portal, body.employee-portal, body) h4, :is(body.admin-portal, body.employee-portal, body) h5, :is(body.admin-portal, body.employee-portal, body) h6 {
+        font-weight: 600 !important;
+        line-height: 1.35 !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) h1 { font-size: 28px !important; }
+    :is(body.admin-portal, body.employee-portal, body) h2 { font-size: 24px !important; }
+    :is(body.admin-portal, body.employee-portal, body) h3 { font-size: 20px !important; }
+    :is(body.admin-portal, body.employee-portal, body) h4 { font-size: 18px !important; }
+    :is(body.admin-portal, body.employee-portal, body) h5 { font-size: 16px !important; }
+    :is(body.admin-portal, body.employee-portal, body) h6 { font-size: 14px !important; }
+    :is(body.admin-portal, body.employee-portal, body) strong, :is(body.admin-portal, body.employee-portal, body) b { font-weight: 600; }
+
+    :is(body.admin-portal, body.employee-portal, body) #page-wrapper > h1, :is(body.admin-portal, body.employee-portal, body) #page-wrapper > h2,
+    :is(body.admin-portal, body.employee-portal, body) #page-wrapper > h3, :is(body.admin-portal, body.employee-portal, body) .foundation-titlebar h2,
+    :is(body.admin-portal, body.employee-portal, body) .admin-topbar h1, :is(body.admin-portal, body.employee-portal, body) .employee-topbar h1 {
+        font-size: 24px !important;
+        font-weight: 600 !important;
+        line-height: 1.35 !important;
+    }
+
+    :is(body.admin-portal, body.employee-portal, body) .panel-heading,
+    :is(body.admin-portal, body.employee-portal, body) .panel-heading.foundation-heading,
+    :is(body.admin-portal, body.employee-portal, body) .panel-heading.foundation-heading > span,
+    :is(body.admin-portal, body.employee-portal, body) .foundation-heading, :is(body.admin-portal, body.employee-portal, body) .panel-title,
+    :is(body.admin-portal, body.employee-portal, body) .modal-title {
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        line-height: 1.5 !important;
+        letter-spacing: normal !important;
+    }
+
+    :is(body.admin-portal, body.employee-portal, body) #side-menu > li > a,
+    :is(body.admin-portal, body.employee-portal, body) #side-menu .nav-second-level > li > a,
+    :is(body.admin-portal, body.employee-portal, body) .nav > li > a,
+    :is(body.admin-portal, body.employee-portal, body) #sidebar .sub-menu > a,
+    :is(body.admin-portal, body.employee-portal, body) #sidebar .sub > li > a {
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        line-height: 1.5 !important;
+        letter-spacing: normal !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) #side-menu .nav-second-level > li > a {
+        min-height: 37px !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .erp-nav-label, :is(body.admin-portal, body.employee-portal, body) .erp-company-context label {
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        letter-spacing: .04em !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .sidebar-user-toggle span:first-child {
+        font-size: 14px !important;
+        font-weight: 600 !important;
+    }
+
+    :is(body.admin-portal, body.employee-portal, body) table, :is(body.admin-portal, body.employee-portal, body) .table,
+    :is(body.admin-portal, body.employee-portal, body) .table > tbody > tr > td,
+    :is(body.admin-portal, body.employee-portal, body) .table > tfoot > tr > td,
+    :is(body.admin-portal, body.employee-portal, body) table.dataTable tbody td {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+        line-height: 1.55 !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .table > thead > tr > th,
+    :is(body.admin-portal, body.employee-portal, body) table.dataTable thead th {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        line-height: 1.5 !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        color: #344256 !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .table > tbody > tr > td,
+    :is(body.admin-portal, body.employee-portal, body) .table > thead > tr > th {
+        padding-top: 11px !important;
+        padding-bottom: 11px !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) table { font-variant-numeric: tabular-nums; }
+
+    :is(body.admin-portal, body.employee-portal, body) label, :is(body.admin-portal, body.employee-portal, body) .control-label,
+    :is(body.admin-portal, body.employee-portal, body) .erp-company-context select {
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        line-height: 1.5 !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .form-control, :is(body.admin-portal, body.employee-portal, body) input, :is(body.admin-portal, body.employee-portal, body) select, :is(body.admin-portal, body.employee-portal, body) textarea,
+    :is(body.admin-portal, body.employee-portal, body) .select2-selection__rendered, :is(body.admin-portal, body.employee-portal, body) .select2-results__option {
+        font-size: 14px !important;
+        font-weight: 400 !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .form-control { min-height: 38px; }
+    :is(body.admin-portal, body.employee-portal, body) textarea.form-control { height: auto; }
+    :is(body.admin-portal, body.employee-portal, body) .form-control::placeholder { color: #66758a; opacity: 1; }
+    :is(body.admin-portal, body.employee-portal, body) .btn, :is(body.admin-portal, body.employee-portal, body) .pagination > li > a, :is(body.admin-portal, body.employee-portal, body) .pagination > li > span {
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        line-height: 1.5 !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .btn.btn-sm, :is(body.admin-portal, body.employee-portal, body) .btn.btn-xs,
+    :is(body.admin-portal, body.employee-portal, body) .table td:last-child .employee-share-admin-actions form > .btn.btn-xs {
+        font-size: 13px !important;
+        font-weight: 500 !important;
+    }
+
+    :is(body.admin-portal, body.employee-portal, body) small, :is(body.admin-portal, body.employee-portal, body) .small, :is(body.admin-portal, body.employee-portal, body) .help-block,
+    :is(body.admin-portal, body.employee-portal, body) .admin-breadcrumb, :is(body.admin-portal, body.employee-portal, body) .employee-breadcrumb,
+    :is(body.admin-portal, body.employee-portal, body) .panel-heading small, :is(body.admin-portal, body.employee-portal, body) .detail-grid small,
+    :is(body.admin-portal, body.employee-portal, body) .dataTables_info, :is(body.admin-portal, body.employee-portal, body) .dataTables_length,
+    :is(body.admin-portal, body.employee-portal, body) .dataTables_filter, :is(body.admin-portal, body.employee-portal, body) .analytics-pill,
+    :is(body.admin-portal, body.employee-portal, body) .analytics-trend, :is(body.admin-portal, body.employee-portal, body) .attendance-day-badge,
+    :is(body.admin-portal, body.employee-portal, body) .badge, :is(body.admin-portal, body.employee-portal, body) .label {
+        font-size: 12px !important;
+        line-height: 1.5 !important;
+        letter-spacing: normal !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .help-block, :is(body.admin-portal, body.employee-portal, body) .text-muted,
+    :is(body.admin-portal, body.employee-portal, body) .admin-breadcrumb, :is(body.admin-portal, body.employee-portal, body) .employee-breadcrumb {
+        color: var(--erp-muted) !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .badge, :is(body.admin-portal, body.employee-portal, body) .label, :is(body.admin-portal, body.employee-portal, body) .analytics-pill,
+    :is(body.admin-portal, body.employee-portal, body) .analytics-trend, :is(body.admin-portal, body.employee-portal, body) .attendance-day-badge {
+        font-weight: 600 !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .analytics-value {
+        font-size: 30px !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+        font-variant-numeric: tabular-nums;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .analytics-label {
+        font-size: 14px !important;
+        font-weight: 500 !important;
+        line-height: 1.5 !important;
+    }
+    :is(body.admin-portal, body.employee-portal, body) .finance-summary-tile strong {
+        font-size: 24px !important;
+        font-weight: 600 !important;
+        line-height: 1.35 !important;
+    }
+
+    @media (max-width: 767px) {
+        :is(body.admin-portal, body.employee-portal, body) #page-wrapper > h1, :is(body.admin-portal, body.employee-portal, body) #page-wrapper > h2,
+        :is(body.admin-portal, body.employee-portal, body) #page-wrapper > h3, :is(body.admin-portal, body.employee-portal, body) .foundation-titlebar h2,
+        :is(body.admin-portal, body.employee-portal, body) .admin-topbar h1, :is(body.admin-portal, body.employee-portal, body) .employee-topbar h1 {
+            font-size: 21px !important;
+        }
+        /* 16px keeps mobile browsers from zooming when focusing a form field. */
+        :is(body.admin-portal, body.employee-portal, body) input.form-control, :is(body.admin-portal, body.employee-portal, body) select.form-control,
+        :is(body.admin-portal, body.employee-portal, body) textarea.form-control { font-size: 16px !important; }
+    }
+}

@@ -24,8 +24,13 @@ if (!$expenseCategories) {
 }
 ?>
 <div id="page-wrapper" class="compact-admin-page resource-form-page">
+<<<<<<< HEAD
     <div class="foundation-titlebar"><a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a><h2>Add Expense</h2></div>
     <?php if ($expenseFlash): ?><div class="alert alert-<?php echo in_array($expenseFlashType, ['success', 'warning', 'danger'], true) ? oecrm_h($expenseFlashType) : 'warning'; ?>" role="status"><?php echo oecrm_h($expenseFlash); ?></div><?php endif; ?>
+=======
+    <div class="foundation-titlebar"><h2>Add Expense</h2>
+    <a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a></div>
+>>>>>>> 80bc16ee0a24770885a5c9ac78fcf628c458b164
     <div class="panel panel-default">
         <div class="panel-body">
             <form method="post" action="financeAction.php" class="resource-form">

@@ -48,6 +48,19 @@ if (isset($_POST['addDesignation'])) {
     exit;
 }
 
+$editDesignation = null;
+if (!empty($_GET['edit'])) {
+    oecrm_require_permission($conn, 'employees', 'edit');
+    $editId = (int) $_GET['edit'];
+    $stmt = mysqli_prepare($conn, 'SELECT id, designation FROM designation WHERE id=?');
+    mysqli_stmt_bind_param($stmt, 'i', $editId);
+    mysqli_stmt_execute($stmt);
+    $editDesignation = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+    mysqli_stmt_close($stmt);
+    if (!$editDesignation) {
+        $_SESSION['designation_flash'] = 'Designation not found.';
+    }
+}
 $designations = mysqli_query($conn, 'SELECT id, designation FROM designation ORDER BY id DESC');
 $flash = $_SESSION['designation_flash'] ?? '';
 $warning = !empty($_SESSION['designation_warning']);
@@ -60,7 +73,7 @@ unset($_SESSION['designation_flash'], $_SESSION['designation_warning']);
     <?php endif; ?>
 
     <div class="panel panel-default">
-        <div class="panel-heading">Manage Designation</div>
+        <div class="panel-heading"><?php echo $editDesignation ? 'Edit Designation' : 'Manage Designation'; ?></div>
         <div class="panel-body">
             <style>
                 .designation-form .is-invalid {
@@ -76,14 +89,15 @@ unset($_SESSION['designation_flash'], $_SESSION['designation_warning']);
                 }
             </style>
 
-            <form method="post" action="" class="designation-form" id="designationForm" novalidate>
+            <form method="post" action="<?php echo $editDesignation ? 'updateDesignation.php' : 'manageDesignation.php'; ?>" class="designation-form" id="designationForm" novalidate>
                 <?php echo oecrm_csrf_field(); ?>
+                <?php if ($editDesignation): ?><input type="hidden" name="id" value="<?php echo (int) $editDesignation['id']; ?>"><?php endif; ?>
                 <div class="form-group">
                     <label for="designation">Designation</label>
-                    <input id="designation" class="form-control" type="text" name="designation" placeholder="Enter designation" required>
+                    <input id="designation" class="form-control" type="text" name="designation" placeholder="Enter designation" value="<?php echo oecrm_h($editDesignation['designation'] ?? ''); ?>" required>
                 </div>
-                <button class="btn btn-primary" type="submit" name="addDesignation" value="1">
-                    <i class="fa fa-plus"></i> Add Designation
+                <button class="btn btn-primary" type="submit" name="<?php echo $editDesignation ? 'updateDesignation' : 'addDesignation'; ?>" value="1">
+                    <i class="fa <?php echo $editDesignation ? 'fa-save' : 'fa-plus'; ?>"></i> <?php echo $editDesignation ? 'Update Designation' : 'Add Designation'; ?>
                 </button>
                 <a class="btn btn-default" href="manageDesignation.php">Cancel</a>
             </form>
@@ -109,6 +123,9 @@ unset($_SESSION['designation_flash'], $_SESSION['designation_warning']);
                                 <td><?php echo ++$counter; ?></td>
                                 <td><?php echo oecrm_h($designation['designation']); ?></td>
                                 <td>
+                                    <?php if (oecrm_can($conn, 'employees', 'edit')): ?>
+                                        <a class="btn btn-link" href="manageDesignation.php?edit=<?php echo (int) $designation['id']; ?>" title="Edit designation"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
+                                    <?php endif; ?>
                                     <?php if (oecrm_designation_can_manage($conn, 'delete') || oecrm_designation_can_manage($conn, 'edit')): ?>
                                         <form method="post" action="deleteDesignation.php" class="designation-delete-form" style="display:inline;">
                                             <?php echo oecrm_csrf_field(); ?>

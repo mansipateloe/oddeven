@@ -1,0 +1,60 @@
+[
+  {
+    "page": "add",
+    "width": 1440,
+    "overflow": false,
+    "columns": "505px 505px",
+    "controls": 24
+  },
+  {
+    "page": "add",
+    "width": 390,
+    "overflow": false,
+    "columns": "272px",
+    "controls": 24
+  },
+  {
+    "page": "add",
+    "behavior": {
+      "visible": true,
+      "validationBlocked": true,
+      "invalid": 7,
+      "fields": 25
+    }
+  },
+  {
+    "page": "edit",
+    "width": 1440,
+    "overflow": false,
+    "columns": "503px 503px",
+    "controls": 32
+  },
+  {
+    "page": "edit",
+    "width": 390,
+    "overflow": false,
+    "columns": "288px",
+    "controls": 32
+  },
+  {
+    "page": "list",
+    "width": 1440,
+    "overflow": false,
+    "columns": null,
+    "controls": 0
+  },
+  {
+    "page": "list",
+    "width": 390,
+    "overflow": false,
+    "columns": null,
+    "controls": 0
+  },
+  {
+    "page": "list",
+    "filtering": {
+      "inactive": 1,
+      "search": 1
+    }
+  }
+]

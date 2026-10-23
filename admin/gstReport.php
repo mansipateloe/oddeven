@@ -8,7 +8,8 @@ $rows = mysqli_query(
     $conn,
     "SELECT m.month_no,COALESCE(i.collected,0) collected,COALESCE(e.paid,0) paid FROM (SELECT 1 month_no UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12)m LEFT JOIN(SELECT MONTH(invoice_date) month_no,SUM(tax_amount) collected FROM finance_invoices WHERE company_id=$companyId AND YEAR(invoice_date)=$year AND status<>'cancelled' GROUP BY MONTH(invoice_date))i USING(month_no) LEFT JOIN(SELECT MONTH(expense_date) month_no,SUM(tax_amount) paid FROM finance_expenses WHERE company_id=$companyId AND YEAR(expense_date)=$year GROUP BY MONTH(expense_date))e USING(month_no)"
 );
-?><div id="page-wrapper" class="compact-admin-page"><div class="foundation-titlebar"><a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a><h2>GST Report <?php echo $year; ?></h2></div><div class="panel panel-default"><div class="panel-body table-responsive"><table class="table foundation-table"><thead><tr><th>Month</th><th>GST Collected</th><th>GST Paid</th><th>GST Payable</th></tr></thead><tbody><?php
+?><div id="page-wrapper" class="compact-admin-page"><div class="foundation-titlebar"><h2>GST Report <?php echo $year; ?></h2>
+    <a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a></div><div class="panel panel-default"><div class="panel-body table-responsive"><table class="table foundation-table"><thead><tr><th>Month</th><th>GST Collected</th><th>GST Paid</th><th>GST Payable</th></tr></thead><tbody><?php
 $tc = $tp = 0;
 while ($r = mysqli_fetch_assoc($rows)):
 

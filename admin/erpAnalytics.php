@@ -33,7 +33,7 @@ $trend = mysqli_query(
     $conn,
     "SELECT m.month_no,COALESCE(i.revenue,0) revenue,COALESCE(e.expense,0) expense FROM (SELECT 1 month_no UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10 UNION SELECT 11 UNION SELECT 12)m LEFT JOIN(SELECT MONTH(invoice_date) month_no,SUM(total_amount) revenue FROM finance_invoices WHERE company_id=$companyId AND YEAR(invoice_date)=$year GROUP BY MONTH(invoice_date))i USING(month_no) LEFT JOIN(SELECT MONTH(expense_date) month_no,SUM(amount) expense FROM finance_expenses WHERE company_id=$companyId AND YEAR(expense_date)=$year GROUP BY MONTH(expense_date))e USING(month_no)"
 );
-?><div id="page-wrapper" class="compact-admin-page"><div class="foundation-titlebar"><span></span><h2>Management Analytics</h2></div><div class="resource-summary"><div><i class="fa fa-users"></i><span><small>Employees</small><strong><?php echo (int) $hr[
+?><div id="page-wrapper" class="compact-admin-page"><div class="foundation-titlebar"><h2>Management Analytics</h2></div><div class="resource-summary"><div><i class="fa fa-users"></i><span><small>Employees</small><strong><?php echo (int) $hr[
     "employees"
 ]; ?></strong></span></div><div><i class="fa fa-random"></i><span><small>Allocated Resources</small><strong><?php echo (int) $resource[
     "allocated"

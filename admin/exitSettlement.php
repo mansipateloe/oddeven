@@ -23,9 +23,10 @@ $items = mysqli_query(
         $id .
         " ORDER BY item_type,item_label"
 );
-?><div id="page-wrapper" class="compact-admin-page"><div class="foundation-titlebar"><a href="employeeExits.php"><i class="fa fa-arrow-left"></i> Employee Exits</a><h2><?php echo oecrm_h(
+?><div id="page-wrapper" class="compact-admin-page"><div class="foundation-titlebar"><h2><?php echo oecrm_h(
     $x["name"]
-); ?> Exit Clearance</h2></div><div class="asset-layout"><section><div class="panel panel-default"><div class="panel-heading">Clearance Checklist</div><div class="panel-body"><?php while (
+); ?> Exit Clearance</h2>
+    <a href="employeeExits.php"><i class="fa fa-arrow-left"></i> Employee Exits</a></div><div class="asset-layout"><section><div class="panel panel-default"><div class="panel-heading">Clearance Checklist</div><div class="panel-body"><?php while (
      $r = mysqli_fetch_assoc($items)
  ): ?><form method="post" action="exitAction.php" class="exit-check-row"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="check"><input type="hidden" name="id" value="<?php echo $id; ?>"><input type="hidden" name="item_id" value="<?php echo $r[
     "id"
