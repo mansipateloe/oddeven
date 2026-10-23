@@ -205,11 +205,15 @@ unset($_SESSION["client_flash"]);
                 <td>
                   <a
                     class="icon-action"
-                    href="clientProfile.php?id=<?php echo (int) $c["id"]; ?>"
-                    title="Open Client"
+                    href="clientProfile.php?id=<?php echo (int) $c["id"]; ?>&amp;mode=view"
+                    title="View Client"
+                    aria-label="View Client"
                   >
                     <i class="fa fa-eye"></i>
                   </a>
+                  <?php if (oecrm_can($conn, 'clients', 'edit')): ?>
+                    <a class="icon-action" href="clientProfile.php?id=<?php echo (int) $c['id']; ?>&amp;mode=edit" title="Edit Client" aria-label="Edit Client"><i class="fa fa-pencil" aria-hidden="true"></i></a>
+                  <?php endif; ?>
                   <?php if (
                       !in_array($c["status"], ["inactive", "closed"], true) &&
                       oecrm_can($conn, "clients", "delete")

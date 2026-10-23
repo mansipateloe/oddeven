@@ -11,6 +11,11 @@ oecrm_require_permission(
 
 $companyId = oecrm_current_company_id($conn);
 $id = (int) ($_GET["id"] ?? 0);
+$canEditClient = $id && oecrm_can($conn, 'clients', 'edit');
+$isView = $id && (($_GET['mode'] ?? '') === 'view' || !$canEditClient);
+if ($id && ($_GET['mode'] ?? '') === 'edit') {
+    oecrm_require_permission($conn, 'clients', 'edit');
+}
 $communicationSearch = trim($_GET['communication_q'] ?? '');
 $client = null;
 
@@ -114,6 +119,13 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
 .client-profile-page .client-profile-grid > main { min-width: 0; }
 .client-profile-page .client-profile-head { margin-bottom: 20px; }
 .client-profile-page .client-profile-head h2 { display: block; margin: 10px 0 0; line-height: 1.3; }
+.client-profile-page .client-profile-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
+.client-profile-page .client-detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin: 0; }
+.client-profile-page .client-detail-grid dt { margin-bottom: 6px; color: #667085; font-size: 12px; }
+.client-profile-page .client-detail-grid dd { color: #344054; overflow-wrap: anywhere; white-space: pre-wrap; }
+.client-profile-page .client-detail-grid .full-width { grid-column: 1 / -1; }
+@media (max-width: 1100px) { .client-profile-page .client-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .client-profile-page .client-detail-grid { grid-template-columns: minmax(0, 1fr); } }
 .client-profile-page .client-profile-panel > .panel-body { padding: 24px !important; }
 .client-profile-page .client-form { display: grid; gap: 20px; }
 .client-profile-page .client-form .client-form-grid { gap: 18px 20px; align-items: start; }
@@ -171,12 +183,35 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
 ); ?></span>
             <?php endif; ?>
         </div>
+        <?php if ($id && $canEditClient): ?>
+            <a class="btn btn-default" href="clientProfile.php?id=<?php echo (int) $id; ?>&amp;mode=<?php echo $isView ? 'edit' : 'view'; ?>"><i class="fa <?php echo $isView ? 'fa-pencil' : 'fa-eye'; ?>" aria-hidden="true"></i> <?php echo $isView ? 'Edit Client' : 'View Client'; ?></a>
+        <?php endif; ?>
     </div>
     <div class="client-profile-grid">
         <main>
             <div class="panel panel-default client-profile-panel">
                 <div class="panel-heading"><i class="fa fa-id-card-o"></i> Client Profile</div>
                 <div class="panel-body">
+                    <?php if ($isView): ?>
+                        <dl class="client-detail-grid">
+                            <?php foreach ([
+                                'client_code' => 'Client Code', 'display_name' => 'Display Name',
+                                'legal_name' => 'Legal Name', 'client_type' => 'Type', 'status' => 'Status',
+                                'industry' => 'Industry', 'email' => 'Email', 'phone' => 'Phone',
+                                'website' => 'Website', 'currency_code' => 'Currency',
+                                'payment_terms_days' => 'Payment Terms (days)', 'tax_id' => 'GST / Tax ID',
+                                'country' => 'Country', 'state' => 'State', 'city' => 'City',
+                                'billing_address' => 'Billing Address', 'notes' => 'Notes'
+                            ] as $field => $label):
+                                $value = trim((string) ($client[$field] ?? ''));
+                                if (in_array($field, ['client_type', 'status'], true)) {
+                                    $value = ucwords(str_replace('_', ' ', $value));
+                                }
+                            ?>
+                                <div<?php echo in_array($field, ['billing_address', 'notes'], true) ? ' class="full-width"' : ''; ?>><dt><?php echo oecrm_h($label); ?></dt><dd><?php echo oecrm_h($value !== '' ? $value : '-'); ?></dd></div>
+                            <?php endforeach; ?>
+                        </dl>
+                    <?php else: ?>
                     <style>
                         .client-form select.form-control{height:38px;background:#fff}
                         .client-form .required-field:after{content:" *";color:#d9534f;font-weight:700}
@@ -291,12 +326,14 @@ $value
                             <a class="btn btn-default" href="clients.php">Cancel</a>
                         </div>
                     </form>
+                    <?php endif; ?>
                 </div>
             </div>
             <?php if ($id): ?>
                 <div class="panel panel-default" id="communicationHistory">
                     <div class="panel-heading"><i class="fa fa-comments-o"></i> Communication History</div>
                     <div class="panel-body">
+                        <?php if (!$isView): ?>
                         <form method="post" action="clientAction.php" class="communication-form">
                             <?php echo oecrm_csrf_field(); ?>
                             <input type="hidden" name="action" value="communication">
@@ -312,15 +349,17 @@ $value
                             <textarea class="form-control" name="details" placeholder="Discussion notes"></textarea>
                             <button class="btn btn-primary"><i class="fa fa-plus"></i> Add Activity</button>
                         </form>
+                        <?php endif; ?>
                         <form method="get" action="clientProfile.php#communicationHistory" class="communication-search" role="search" aria-label="Communication history">
                             <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
+                            <input type="hidden" name="mode" value="<?php echo $isView ? 'view' : 'edit'; ?>">
                             <div class="communication-search-field">
                                 <label for="communicationSearch">Search communication history</label>
                                 <input type="search" class="form-control" id="communicationSearch" name="communication_q" value="<?php echo oecrm_h($communicationSearch); ?>" placeholder="Search subject, notes, type or contact" aria-describedby="communicationSearchHelp">
                             </div>
                             <button type="submit" class="btn btn-default"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
                             <?php if ($communicationSearch !== ''): ?>
-                                <a class="btn btn-default" href="clientProfile.php?id=<?php echo (int) $id; ?>#communicationHistory">Clear</a>
+                                <a class="btn btn-default" href="clientProfile.php?id=<?php echo (int) $id; ?>&amp;mode=<?php echo $isView ? 'view' : 'edit'; ?>#communicationHistory">Clear</a>
                             <?php endif; ?>
                         </form>
                         <p class="communication-search-help" id="communicationSearchHelp">Showing the latest 100 <?php echo $communicationSearch !== '' ? 'matching ' : ''; ?>activities.</p>
@@ -355,7 +394,7 @@ $value
         </main>
         <?php if ($id): ?>
             <aside>
-                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-address-book-o"></i> Contacts</div><div class="panel-body"><form method="post" action="clientAction.php" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="contact"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><input class="form-control" name="name" placeholder="Contact name" required><input class="form-control" name="designation" placeholder="Designation"><input type="email" class="form-control" name="email" placeholder="Email"><input class="form-control only-digits" name="phone" placeholder="Phone" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" autocomplete="off"><label><input type="checkbox" name="is_primary"> Primary contact</label><button class="btn btn-default btn-block"><i class="fa fa-plus"></i> Add Contact</button></form><div class="client-mini-list"><?php while (
+                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-address-book-o"></i> Contacts</div><div class="panel-body"><?php if (!$isView): ?><form method="post" action="clientAction.php" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="contact"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><input class="form-control" name="name" placeholder="Contact name" required><input class="form-control" name="designation" placeholder="Designation"><input type="email" class="form-control" name="email" placeholder="Email"><input class="form-control only-digits" name="phone" placeholder="Phone" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" autocomplete="off"><label><input type="checkbox" name="is_primary"> Primary contact</label><button class="btn btn-default btn-block"><i class="fa fa-plus"></i> Add Contact</button></form><?php endif; ?><div class="client-mini-list"><?php while (
     $item = mysqli_fetch_assoc($contacts)
 ): ?><div><strong><?php echo oecrm_h(
     $item["name"]
@@ -364,12 +403,12 @@ $value
 ); ?></small><span><?php echo oecrm_h(
     $item["email"] . " " . $item["phone"]
 ); ?></span></div><?php endwhile; ?></div></div></div>
-                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-file-contract"></i> Contracts & NDA</div><div class="panel-body"><form method="post" action="clientAction.php" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="contract"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><select class="form-control" name="contract_type"><?php foreach (
+                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-file-contract"></i> Contracts & NDA</div><div class="panel-body"><?php if (!$isView): ?><form method="post" action="clientAction.php" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="contract"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><select class="form-control" name="contract_type"><?php foreach (
     ["service", "retainer", "dedicated_resource", "nda", "other"]
     as $value
 ): ?><option value="<?php echo $value; ?>"><?php echo ucwords(
     str_replace("_", " ", $value)
-); ?></option><?php endforeach; ?></select><input class="form-control" name="title" placeholder="Contract title" required><div class="client-form-grid"><input type="date" class="form-control" name="start_date"><input type="date" class="form-control" name="end_date"></div><input type="number" step="0.01" class="form-control" name="value_amount" placeholder="Contract value"><button class="btn btn-default btn-block"><i class="fa fa-plus"></i> Add Contract</button></form><div class="client-mini-list"><?php while (
+); ?></option><?php endforeach; ?></select><input class="form-control" name="title" placeholder="Contract title" required><div class="client-form-grid"><input type="date" class="form-control" name="start_date"><input type="date" class="form-control" name="end_date"></div><input type="number" step="0.01" class="form-control" name="value_amount" placeholder="Contract value"><button class="btn btn-default btn-block"><i class="fa fa-plus"></i> Add Contract</button></form><?php endif; ?><div class="client-mini-list"><?php while (
     $item = mysqli_fetch_assoc($contracts)
 ): ?><div><strong><a href="clientDocument.php?id=<?php echo (int) $item[
     "id"
@@ -382,11 +421,11 @@ $value
 ); ?></small><span><?php echo oecrm_h(
     $item["start_date"] . " to " . $item["end_date"]
 ); ?></span></div><?php endwhile; ?></div></div></div>
-                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-files-o"></i> Documents</div><div class="panel-body"><form method="post" action="clientAction.php" enctype="multipart/form-data" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="document"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><select class="form-control" name="document_type"><?php foreach (
+                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-files-o"></i> Documents</div><div class="panel-body"><?php if (!$isView): ?><form method="post" action="clientAction.php" enctype="multipart/form-data" class="mini-form"><?php echo oecrm_csrf_field(); ?><input type="hidden" name="action" value="document"><input type="hidden" name="client_id" value="<?php echo $id; ?>"><select class="form-control" name="document_type"><?php foreach (
     ["contract", "nda", "tax", "proposal", "other"]
     as $value
-): ?><option><?php echo $value; ?></option><?php endforeach; ?></select><input class="form-control" name="title" placeholder="Document title" required><input type="file" class="form-control" name="document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required><button class="btn btn-default btn-block"><i class="fa fa-upload"></i> Upload Document</button></form><div class="client-mini-list client-document-list">
-    <?php $canDeleteDocuments = oecrm_can($conn, 'clients', 'edit'); ?>
+): ?><option><?php echo $value; ?></option><?php endforeach; ?></select><input class="form-control" name="title" placeholder="Document title" required><input type="file" class="form-control" name="document" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required><button class="btn btn-default btn-block"><i class="fa fa-upload"></i> Upload Document</button></form><?php endif; ?><div class="client-mini-list client-document-list">
+    <?php $canDeleteDocuments = !$isView && $canEditClient; ?>
     <?php while ($item = mysqli_fetch_assoc($documents)): ?>
         <div class="client-document-item">
             <strong><a href="clientDocument.php?id=<?php echo (int) $item['id']; ?>" target="_blank" rel="noopener"><?php echo oecrm_h($item['title']); ?></a></strong>
@@ -493,6 +532,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var country = document.getElementById('countrySelect');
     var state = document.getElementById('stateSelect');
     var city = document.getElementById('citySelect');
+    if (!country || !state || !city) return;
     function countryChanged() {
         state.setAttribute('data-selected', '');
         city.setAttribute('data-selected', '');
