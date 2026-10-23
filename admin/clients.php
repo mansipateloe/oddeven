@@ -68,6 +68,10 @@ unset($_SESSION["client_flash"]);
 }
 .client-page .client-filters select { color: #344054; background-color: #fff; }
 .client-page .client-filters > .btn { min-height: 40px; }
+.client-page .client-contact-details { display: grid; gap: 6px; }
+.client-page .client-contact-detail { display: flex; align-items: baseline; gap: 8px; }
+.client-page .client-contact-detail > .fa { flex: 0 0 14px; text-align: center; color: #858ba1; }
+.client-page .client-contact-detail > span { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 700px) {
     .client-page .client-filters { grid-template-columns: minmax(0, 1fr); }
 }
@@ -174,8 +178,17 @@ unset($_SESSION["client_flash"]);
                   ); ?></small>
                 </td>
                 <td>
-                  <?php echo oecrm_h($c["email"] ?: "-"); ?>
-                  <small><?php echo oecrm_h($c["phone"]); ?></small>
+                  <div class="client-contact-details">
+                    <?php if (trim($c['email'] ?? '') !== ''): ?>
+                      <div class="client-contact-detail"><i class="fa fa-envelope" aria-hidden="true"></i><span><span class="sr-only">Email: </span><?php echo oecrm_h($c['email']); ?></span></div>
+                    <?php endif; ?>
+                    <?php if (trim($c['phone'] ?? '') !== ''): ?>
+                      <div class="client-contact-detail"><i class="fa fa-phone" aria-hidden="true"></i><span><span class="sr-only">Phone: </span><?php echo oecrm_h($c['phone']); ?></span></div>
+                    <?php endif; ?>
+                    <?php if (trim($c['email'] ?? '') === '' && trim($c['phone'] ?? '') === ''): ?>
+                      <span class="text-muted">-</span>
+                    <?php endif; ?>
+                  </div>
                 </td>
                 <td>
                   <span class="client-status <?php echo $c["status"]; ?>">
