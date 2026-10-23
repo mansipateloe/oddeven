@@ -11,7 +11,7 @@ function oecrm_legacy_invoice_status_badge($invoice)
     return '<span class="label label-' . $style . '">' . $label . '</span>';
 }
 
-function oecrm_legacy_invoice_cancel_form($conn, $invoice, $returnPage = 'addInvoice.php')
+function oecrm_legacy_invoice_cancel_form($conn, $invoice, $returnPage = 'addInvoice.php', $iconOnly = false)
 {
     if ((int) ($invoice['status'] ?? 1) !== 1 || !oecrm_can($conn, 'finance', 'edit')) {
         return;
@@ -22,7 +22,8 @@ function oecrm_legacy_invoice_cancel_form($conn, $invoice, $returnPage = 'addInv
     echo '<input type="hidden" name="action" value="cancel_invoice">';
     echo '<input type="hidden" name="id" value="' . (int) $invoice['invoice_id'] . '">';
     echo '<input type="hidden" name="return_page" value="' . oecrm_h($returnPage) . '">';
-    echo '<button type="submit" class="btn btn-danger btn-xs invoice-cancel-btn" title="Cancel Invoice"><i class="fa fa-ban"></i> Cancel Invoice</button>';
+    $buttonClass = $iconOnly ? ' invoice-cancel-icon' : '';
+    echo '<button type="submit" class="btn btn-danger btn-xs invoice-cancel-btn' . $buttonClass . '" title="Cancel Invoice" aria-label="Cancel Invoice"><i class="fa fa-times-circle" aria-hidden="true"></i>' . ($iconOnly ? '' : ' Cancel Invoice') . '</button>';
     echo '</form>';
 }
 

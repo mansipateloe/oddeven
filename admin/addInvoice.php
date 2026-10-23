@@ -132,13 +132,11 @@ $invoiceSequence = oecrm_invoice_sequence_preview($conn, $invoiceCompanyId);
                                                                 } else {
                                                                     echo '<a href="addDeposit.php?invoice_id=' . (int) $invoice_row['invoice_id'] . '" title="Collect Invoice"><i class="fa fa-money"></i></a>';
                                                                 }
-                                                                echo '&nbsp;&nbsp;';
-                                                                echo '<a href="editInvoice.php?edit=' . (int) $invoice_row['invoice_id'] . '" style="display: inline-block;width: 28px;" title="Edit"><i class="fa fa-pencil"></i></a>';
-                                                                echo '&nbsp;&nbsp;';
+                                                                echo '<a href="editInvoice.php?edit=' . (int) $invoice_row['invoice_id'] . '" title="Edit"><i class="fa fa-pencil"></i></a>';
                                                             }
-                                                            echo '<a href="viewInvoice.php?id=' . (int) $invoice_row['invoice_id'] . '" style="display: inline-block;width: 28px;" title="View"><i class="fa fa-eye"></i></a>';
+                                                            echo '<a href="viewInvoice.php?id=' . (int) $invoice_row['invoice_id'] . '" title="View"><i class="fa fa-eye"></i></a>';
                                                             if (!$viewOnlyInvoice) {
-                                                                oecrm_legacy_invoice_cancel_form($conn, $invoice_row);
+                                                                oecrm_legacy_invoice_cancel_form($conn, $invoice_row, 'addInvoice.php', true);
                                                             }
                                                             echo '
                                                             </td>';

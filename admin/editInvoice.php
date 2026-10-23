@@ -226,9 +226,9 @@ $invoiceCompanyId = (int) oecrm_current_company_id($conn);
                                                             echo "<td>".$invoice_row['total_amount']."</td>";
                                                             echo "<td>" . oecrm_legacy_invoice_status_badge($invoice_row) . "</td>";
                                                             echo '<td class="center" align="center">
-                                                            <a href="editInvoice.php?edit='.$invoice_row["invoice_id"].'" style="display: inline-block;width: 28px;" title="Edit"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;
+                                                            <a href="editInvoice.php?edit='.$invoice_row["invoice_id"].'" title="Edit"><i class="fa fa-pencil"></i></a>
                                                             ';
-                                                            oecrm_legacy_invoice_cancel_form($conn, $invoice_row, 'editInvoice.php');
+                                                            oecrm_legacy_invoice_cancel_form($conn, $invoice_row, 'editInvoice.php', true);
                                                             echo '
                                                             </td>';
                                                         echo "</tr>";
