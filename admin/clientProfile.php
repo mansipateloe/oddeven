@@ -110,6 +110,14 @@ if (
     $nextSequence = (int) $match[1] + 1;
 }
 $nextCode = $codePrefix . str_pad($nextSequence, 4, "0", STR_PAD_LEFT);
+$fieldErrors = $_SESSION['client_field_errors'] ?? [];
+$submittedValues = $_SESSION['client_form_values'] ?? [];
+unset($_SESSION['client_field_errors'], $_SESSION['client_form_values']);
+if ((int) ($submittedValues['id'] ?? 0) !== $id) {
+    $fieldErrors = [];
+    $submittedValues = [];
+}
+$clientFormValues = array_merge($client ?? [], $submittedValues);
 $flash = $_SESSION["client_flash"] ?? "";
 $error = $_SESSION["client_error"] ?? "";
 unset($_SESSION["client_flash"], $_SESSION["client_error"]);
@@ -227,20 +235,20 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
                             <div class="form-group">
                                 <label class="required-field">Client Code</label>
                                 <input class="form-control" name="client_code" readonly required value="<?php echo oecrm_h(
-                                    $client["client_code"] ?? $nextCode
+                                    $clientFormValues["client_code"] ?? $nextCode
                                 ); ?>">
                                 <small>Auto generated</small>
                             </div>
                             <div class="form-group"><label class="required-field">Display Name</label><input class="form-control" name="display_name" required value="<?php echo oecrm_h(
-                                $client["display_name"] ?? ""
+                                $clientFormValues["display_name"] ?? ""
                             ); ?>"></div>
                             <div class="form-group"><label class="required-field">Legal Name</label><input class="form-control" name="legal_name" required value="<?php echo oecrm_h(
-                                $client["legal_name"] ?? ""
+                                $clientFormValues["legal_name"] ?? ""
                             ); ?>"></div>
                             <div class="form-group"><label>Type</label><select class="form-control" name="client_type"><?php foreach (
                                 ["company", "individual"]
                                 as $value
-                            ): ?><option <?php echo ($client["client_type"] ??
+                            ): ?><option <?php echo ($clientFormValues["client_type"] ??
     "company") ===
 $value
     ? "selected"
@@ -256,7 +264,7 @@ $value
                                     "closed",
                                 ]
                                 as $value
-                            ): ?><option value="<?php echo $value; ?>" <?php echo ($client[
+                            ): ?><option value="<?php echo $value; ?>" <?php echo ($clientFormValues[
     "status"
 ] ??
     "active") ===
@@ -266,30 +274,30 @@ $value
     str_replace("_", " ", $value)
 ); ?></option><?php endforeach; ?></select></div>
                             <div class="form-group"><label>Industry</label><input class="form-control" name="industry" value="<?php echo oecrm_h(
-                                $client["industry"] ?? ""
+                                $clientFormValues["industry"] ?? ""
                             ); ?>"></div>
-                            <div class="form-group"><label>Email</label><input type="email" class="form-control" name="email" value="<?php echo oecrm_h(
-                                $client["email"] ?? ""
-                            ); ?>"></div>
+                            <div class="form-group"><label for="clientEmail">Email</label><input type="email" class="form-control<?php echo isset($fieldErrors['email']) ? ' is-invalid' : ''; ?>" id="clientEmail" name="email" aria-invalid="<?php echo isset($fieldErrors['email']) ? 'true' : 'false'; ?>"<?php if (isset($fieldErrors['email'])): ?> aria-describedby="clientEmailError"<?php endif; ?> value="<?php echo oecrm_h(
+                                $clientFormValues["email"] ?? ""
+                            ); ?>"><?php if (isset($fieldErrors['email'])): ?><span class="field-error" id="clientEmailError" role="alert"><?php echo oecrm_h($fieldErrors['email']); ?></span><?php endif; ?></div>
                             <div class="form-group"><label>Phone</label><input class="form-control only-digits" name="phone" type="text" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" autocomplete="off" value="<?php echo oecrm_h(
-                                $client["phone"] ?? ""
+                                $clientFormValues["phone"] ?? ""
                             ); ?>"></div>
                             <div class="form-group"><label>Website</label><input class="form-control" name="website" value="<?php echo oecrm_h(
-                                $client["website"] ?? ""
+                                $clientFormValues["website"] ?? ""
                             ); ?>"></div>
                             <div class="form-group"><label class="required-field">Currency</label><input class="form-control" name="currency_code" maxlength="3" value="<?php echo oecrm_h(
-                                $client["currency_code"] ?? "INR"
+                                $clientFormValues["currency_code"] ?? "INR"
                             ); ?>"></div>
-                            <div class="form-group"><label>Payment Terms (days)</label><input type="number" min="0" class="form-control" name="payment_terms_days" value="<?php echo (int) ($client[
+                            <div class="form-group"><label>Payment Terms (days)</label><input type="number" min="0" class="form-control" name="payment_terms_days" value="<?php echo (int) ($clientFormValues[
                                 "payment_terms_days"
                             ] ?? 0); ?>"></div>
                             <div class="form-group"><label>GST / Tax ID</label><input class="form-control" name="tax_id" maxlength="15" value="<?php echo oecrm_h(
-                                $client["tax_id"] ?? ""
+                                $clientFormValues["tax_id"] ?? ""
                             ); ?>" placeholder="15-character GSTIN / Tax ID"></div>
                         </div>
                         <p class="client-form-hint">Provide at least one of Email or Phone. Each one must be unique inside the company.</p>
                         <div class="form-group"><label>Billing Address</label><textarea class="form-control" name="billing_address"><?php echo oecrm_h(
-                            $client["billing_address"] ?? ""
+                            $clientFormValues["billing_address"] ?? ""
                         ); ?></textarea></div>
                         <div class="client-form-grid three">
                             <div class="form-group">
@@ -305,21 +313,21 @@ $value
                                             $country["name"]
                                         ); ?>" data-id="<?php echo (int) $country[
     "id"
-]; ?>" <?php echo ($client["country"] ?? "") === $country["name"]
+]; ?>" <?php echo ($clientFormValues["country"] ?? "") === $country["name"]
     ? "selected"
     : ""; ?>><?php echo oecrm_h($country["name"]); ?></option>
                                     <?php endwhile; ?>
                                 </select>
                             </div>
                             <div class="form-group"><label>State</label><select class="form-control location-native-select" id="stateSelect" name="state" data-oecrm-native="1" data-selected="<?php echo oecrm_h(
-                                $client["state"] ?? ""
+                                $clientFormValues["state"] ?? ""
                             ); ?>" disabled><option value="">Select State</option></select></div>
                             <div class="form-group"><label>City</label><select class="form-control location-native-select" id="citySelect" name="city" data-oecrm-native="1" data-selected="<?php echo oecrm_h(
-                                $client["city"] ?? ""
+                                $clientFormValues["city"] ?? ""
                             ); ?>" disabled><option value="">Select City</option></select></div>
                         </div>
                         <div class="form-group"><label>Notes</label><textarea class="form-control" name="notes"><?php echo oecrm_h(
-                            $client["notes"] ?? ""
+                            $clientFormValues["notes"] ?? ""
                         ); ?></textarea></div>
                         <div class="client-form-actions">
                             <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save Client</button>
@@ -566,19 +574,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderFieldError(field, message) {
         field.classList.add('is-invalid');
+        field.setAttribute('aria-invalid', 'true');
         var parent = field.closest('.form-group');
         if (!parent) return;
         var errorNode = parent.querySelector('.field-error');
         if (!errorNode) {
             errorNode = document.createElement('div');
             errorNode.className = 'field-error';
+            errorNode.id = (field.id || field.name) + 'Error';
+            errorNode.setAttribute('role', 'alert');
             parent.appendChild(errorNode);
         }
+        field.setAttribute('aria-describedby', errorNode.id);
         errorNode.textContent = message;
     }
 
     function clearFieldError(field) {
         field.classList.remove('is-invalid');
+        field.setAttribute('aria-invalid', 'false');
+        field.removeAttribute('aria-describedby');
         var parent = field.closest('.form-group');
         if (!parent) return;
         var errorNode = parent.querySelector('.field-error');
@@ -586,8 +600,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     form.querySelectorAll('input, select, textarea').forEach(function (field) {
-        if (!field.hasAttribute('required')) return;
+        if (!field.hasAttribute('required') && field.type !== 'email') return;
         field.addEventListener('input', function () {
+            if (field.type === 'email') {
+                clearFieldError(field);
+                return;
+            }
             if (field.value && field.value.trim() !== '') {
                 clearFieldError(field);
             }
@@ -609,6 +627,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 clearFieldError(field);
             }
         });
+
+        var emailField = form.querySelector('input[name="email"]');
+        if (emailField) {
+            emailField.value = emailField.value.trim();
+            if (emailField.value !== '' && !emailField.validity.valid) {
+                valid = false;
+                renderFieldError(emailField, 'Please enter a valid email address.');
+            } else {
+                clearFieldError(emailField);
+            }
+        }
 
         if (!valid) {
             event.preventDefault();
@@ -635,6 +664,23 @@ document.addEventListener('DOMContentLoaded', function () {
             var flashHost = document.querySelector('.client-profile-page');
             var oldAlert = flashHost ? flashHost.querySelector('.alert') : null;
             if (oldAlert) oldAlert.remove();
+            if (!payload.ok && payload.data.field_errors) {
+                var hasFieldError = false;
+                Object.keys(payload.data.field_errors).forEach(function (name) {
+                    var field = form.elements.namedItem(name);
+                    if (!field) return;
+                    renderFieldError(field, payload.data.field_errors[name]);
+                    hasFieldError = true;
+                });
+                if (hasFieldError) {
+                    var firstInvalid = form.querySelector('.is-invalid');
+                    if (firstInvalid) {
+                        firstInvalid.focus();
+                        firstInvalid.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    }
+                    return;
+                }
+            }
             var alertBox = document.createElement('div');
             alertBox.className = 'alert ' + (payload.ok ? 'alert-success' : 'alert-danger');
             alertBox.textContent = payload.data.message || (payload.ok ? 'Saved successfully.' : 'Save failed.');

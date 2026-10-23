@@ -1,5 +1,17 @@
 <?php
 // Shared schema and balance calculation for bank-funded expenses.
+function oecrm_bank_details_can_manage($conn, $action = "view")
+{
+    return oecrm_is_super_admin()
+        || oecrm_can($conn, "finance", $action)
+        || oecrm_can($conn, "bank_reconciliation", $action)
+        || oecrm_can($conn, "settings", $action)
+        || oecrm_legacy_can($conn, "settings")
+        || oecrm_legacy_can($conn, "invocie")
+        || oecrm_legacy_can($conn, "deposit")
+        || oecrm_legacy_can($conn, "expense");
+}
+
 function oecrm_expense_bank_schema($conn)
 {
     static $ready = false;

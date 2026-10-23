@@ -1,4 +1,7 @@
-<?php include 'header.php'; ?>
+<?php include 'header.php';
+require_once __DIR__ . '/../expenseBanks.php';
+oecrm_expense_bank_schema($conn);
+?>
 <style>
 /* Keep dashboard card gutters independent of the shared Bootstrap spacing. */
 .admin-portal .preadmin-dashboard-page > .row { margin: 0 !important; }
@@ -175,178 +178,14 @@
                 </div>
             </div>
         </div>
-        <?php
-            $balancePeriod = $_GET['balance_period'] ?? 'month';
-            $allowedBalancePeriods = ['month', 'quarter', 'six_month', 'year', 'all'];
-            if (!in_array($balancePeriod, $allowedBalancePeriods, true)) {
-                $balancePeriod = 'month';
-            }
-
-            $today = new DateTime();
-            $periodStart = null;
-            $periodEnd = $today->format('Y-m-d');
-            $periodLabel = 'This Month';
-
-            if ($balancePeriod === 'month') {
-                $periodStart = $today->format('Y-m-01');
-                $periodLabel = 'This Month';
-            } elseif ($balancePeriod === 'quarter') {
-                $quarterStartMonth = (int)(floor(((int)$today->format('n') - 1) / 3) * 3) + 1;
-                $periodStart = $today->format('Y') . '-' . str_pad((string)$quarterStartMonth, 2, '0', STR_PAD_LEFT) . '-01';
-                $periodLabel = 'This Quarter';
-            } elseif ($balancePeriod === 'six_month') {
-                $periodStart = (new DateTime('-6 months'))->format('Y-m-d');
-                $periodLabel = 'Last 6 Month';
-            } elseif ($balancePeriod === 'year') {
-                $periodStart = $today->format('Y-01-01');
-                $periodLabel = 'This Year';
-            } else {
-                $periodStart = null;
-                $periodLabel = 'All Time';
-            }
-
-            function oecrm_money($amount) {
-                return 'Rs.' . number_format((float)$amount, 0);
-            }
-
-            function oecrm_account_sum($conn, $table, $amountColumn, $accountColumn, $dateColumn, $accountId, $periodStart, $periodEnd) {
-                if ($periodStart === null) {
-                    $stmt = mysqli_prepare($conn, "SELECT COALESCE(SUM($amountColumn), 0) AS total FROM $table WHERE $accountColumn = ?");
-                    mysqli_stmt_bind_param($stmt, 'i', $accountId);
-                } else {
-                    $stmt = mysqli_prepare($conn, "SELECT COALESCE(SUM($amountColumn), 0) AS total FROM $table WHERE $accountColumn = ? AND DATE($dateColumn) BETWEEN ? AND ?");
-                    mysqli_stmt_bind_param($stmt, 'iss', $accountId, $periodStart, $periodEnd);
-                }
-                mysqli_stmt_execute($stmt);
-                $result = mysqli_stmt_get_result($stmt);
-                $row = mysqli_fetch_assoc($result);
-                mysqli_stmt_close($stmt);
-                return (float)($row['total'] ?? 0);
-            }
-
-            $periodLinks = [
-                'month' => 'Month Wise',
-                'quarter' => 'Quarterly',
-                'six_month' => 'Six Month',
-                'year' => 'Yearly',
-                'all' => 'All Time',
-            ];
-
-            $accounts = [];
-            $totalCurrentBalance = 0;
-            $totalPeriodIncome = 0;
-            $totalPeriodExpense = 0;
-            $qryAccount = "
-                SELECT DISTINCT a.account_id, a.account_name, a.balance
-                FROM account a
-                INNER JOIN (
-                    SELECT DISTINCT d.account_Id AS account_id
-                    FROM deposit d
-                    INNER JOIN projectstbl p ON p.id = d.project_Id
-                    WHERE p.company_id = " . (int) $companyId . "
-                    UNION
-                    SELECT DISTINCT pe.account_Id AS account_id
-                    FROM project_expenses pe
-                    INNER JOIN projectstbl p ON p.id = pe.project_Id
-                    WHERE p.company_id = " . (int) $companyId . "
-                ) used_accounts ON used_accounts.account_id = a.account_id
-                ORDER BY a.account_name ASC
-            ";
-            $resultAccount = mysqli_query($conn, $qryAccount);
-            if ($resultAccount && $resultAccount->num_rows > 0) {
-                while ($rowAccount = $resultAccount->fetch_assoc()) {
-                    $accountId = (int)$rowAccount['account_id'];
-                    $currentBalance = (float)$rowAccount['balance'];
-                    $periodIncome = oecrm_account_sum($conn, 'deposit', 'amount', 'account_Id', 'deposit_date', $accountId, $periodStart, $periodEnd);
-                    $periodExpense = oecrm_account_sum($conn, 'project_expenses', 'amount', 'account_Id', 'expensedate', $accountId, $periodStart, $periodEnd);
-                    $netMovement = $periodIncome - $periodExpense;
-                    $totalCurrentBalance += $currentBalance;
-                    $totalPeriodIncome += $periodIncome;
-                    $totalPeriodExpense += $periodExpense;
-                    $accounts[] = [
-                        'name' => $rowAccount['account_name'],
-                        'balance' => $currentBalance,
-                        'income' => $periodIncome,
-                        'expense' => $periodExpense,
-                        'net' => $netMovement,
-                    ];
-                }
-            }
-            $totalNetMovement = $totalPeriodIncome - $totalPeriodExpense;
-        ?>
-        <div class="bank_details finance-balance-section">
+        <?php $bankRows = mysqli_query($conn, oecrm_expense_bank_list_sql($conn)); ?>
+        <div class="bank_details">
             <div class="row">
                 <div class="col-lg-12">
-                    <div class="panel panel-default finance-balance-card">
-                        <div class="panel-heading finance-balance-heading">
-                            <div>
-                                <span>Account Balance</span>
-                                <small><?php echo htmlspecialchars($periodLabel); ?> bank account overview</small>
-                            </div>
-                            <div class="finance-period-tabs">
-                                <?php foreach ($periodLinks as $periodKey => $periodText) { ?>
-                                    <a class="<?php echo $balancePeriod === $periodKey ? 'active' : ''; ?>" href="dashboard.php?balance_period=<?php echo $periodKey; ?>"><?php echo $periodText; ?></a>
-                                <?php } ?>
-                            </div>
-                        </div>
-                        <div class="panel-body">
-                            <div class="finance-summary-grid">
-                                <div class="finance-summary-tile tile-primary">
-                                    <span class="finance-tile-icon"><i class="fa fa-bank"></i></span>
-                                    <span class="finance-tile-label">Current Balance</span>
-                                    <strong><?php echo oecrm_money($totalCurrentBalance); ?></strong>
-                                </div>
-                                <div class="finance-summary-tile tile-success">
-                                    <span class="finance-tile-icon"><i class="fa fa-arrow-down"></i></span>
-                                    <span class="finance-tile-label">Period Income</span>
-                                    <strong><?php echo oecrm_money($totalPeriodIncome); ?></strong>
-                                </div>
-                                <div class="finance-summary-tile tile-danger">
-                                    <span class="finance-tile-icon"><i class="fa fa-arrow-up"></i></span>
-                                    <span class="finance-tile-label">Period Expense</span>
-                                    <strong><?php echo oecrm_money($totalPeriodExpense); ?></strong>
-                                </div>
-                                <div class="finance-summary-tile <?php echo $totalNetMovement >= 0 ? 'tile-info' : 'tile-danger'; ?>">
-                                    <span class="finance-tile-icon"><i class="fa fa-line-chart"></i></span>
-                                    <span class="finance-tile-label">Net Movement</span>
-                                    <strong><?php echo oecrm_money($totalNetMovement); ?></strong>
-                                </div>
-                            </div>
-                            <div class="table-responsive finance-account-list">
-                                <table class="table finance-account-table" width="100%">
-                                    <thead>
-                                        <tr>
-                                            <th>Bank Account</th>
-                                            <th>Current Balance</th>
-                                            <th>Income</th>
-                                            <th>Expense</th>
-                                            <th>Net</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($accounts as $account) {
-                                            $initial = strtoupper(substr(trim($account['name'] ?: 'B'), 0, 1));
-                                            $netClass = $account['net'] >= 0 ? 'status-active' : 'status-inactive';
-                                            $netText = $account['net'] >= 0 ? 'Positive' : 'Outflow';
-                                        ?>
-                                            <tr>
-                                                <td>
-                                                    <div class="finance-account-name">
-                                                        <span class="finance-account-avatar"><?php echo htmlspecialchars($initial); ?></span>
-                                                        <span><strong><?php echo htmlspecialchars($account['name']); ?></strong><small><?php echo htmlspecialchars($periodLabel); ?></small></span>
-                                                    </div>
-                                                </td>
-                                                <td><strong><?php echo oecrm_money($account['balance']); ?></strong></td>
-                                                <td class="finance-income"><?php echo oecrm_money($account['income']); ?></td>
-                                                <td class="finance-expense"><?php echo oecrm_money($account['expense']); ?></td>
-                                                <td class="<?php echo $account['net'] >= 0 ? 'finance-income' : 'finance-expense'; ?>"><?php echo oecrm_money($account['net']); ?></td>
-                                                <td><span class="status-pill <?php echo $netClass; ?>"><?php echo $netText; ?></span></td>
-                                            </tr>
-                                        <?php } ?>
-                                    </tbody>
-                                </table>
-                            </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">Bank Table</div>
+                        <div class="panel-body table-responsive">
+                            <?php include __DIR__ . '/bankDetailsTable.php'; ?>
                         </div>
                     </div>
                 </div>

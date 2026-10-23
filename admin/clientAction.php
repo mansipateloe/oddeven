@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 oecrm_require_csrf();
 
 $action = $_POST['action'] ?? '';
+$fieldErrors = [];
 $companyId = oecrm_current_company_id($conn);
 $actor = (int) ($_SESSION['adminId'] ?? 0);
 $expectsJson = (
@@ -248,6 +249,7 @@ try {
         }
 
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $fieldErrors['email'] = 'Please enter a valid email address.';
             throw new RuntimeException('Please enter a valid email address.');
         }
 
@@ -257,6 +259,7 @@ try {
 
         $excludeId = $id > 0 ? $id : 0;
         if ($email !== '' && oecrm_client_contact_exists($conn, $companyId, 'email', $email, $excludeId)) {
+            $fieldErrors['email'] = 'This email is already used for another client in this company.';
             throw new RuntimeException('This email is already used for another client in this company.');
         }
 
@@ -479,7 +482,14 @@ try {
     exit;
 } catch (Throwable $e) {
     if ($expectsJson) {
-        oecrm_client_action_json(422, $e->getMessage());
+        oecrm_client_action_json(422, $e->getMessage(), ['field_errors' => $fieldErrors]);
+    }
+
+    if ($action === 'save_client' && $fieldErrors) {
+        $_SESSION['client_field_errors'] = $fieldErrors;
+        $_SESSION['client_form_values'] = $_POST;
+        header('Location: clientProfile.php' . (!empty($_POST['id']) ? '?id=' . (int) $_POST['id'] : ''));
+        exit;
     }
 
     $_SESSION['client_error'] = $e->getMessage();
