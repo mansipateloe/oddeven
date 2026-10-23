@@ -187,7 +187,7 @@ unset($_SESSION['followup_type_flash'], $_SESSION['followup_type_flash_type']);
                                                     echo "<td>" . oecrm_h($row['name']) . "</td>";
                                                     echo '<td class="center" align="center">';
                                                     if (oecrm_followup_type_can_manage($conn)) {
-                                                        echo '<a class="btn btn-link" href="manageFollowupType.php?edit=' . (int)$row['id'] . '" title="Edit follow-up type"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a> ';
+                                                        echo '<a class="icon-action" href="manageFollowupType.php?edit=' . (int)$row['id'] . '" title="Edit follow-up type" aria-label="Edit follow-up type"><i class="fa fa-pencil" aria-hidden="true"></i></a> ';
                                                     }
                                                     echo '<form method="post" action="deleteFollowupType.php" style="display:inline;" data-confirm="Delete this follow-up type?">' . oecrm_csrf_field() . '<input type="hidden" name="deleteFollowupType" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link delete-followup-type" title="Delete follow-up type" style="padding:0;border:0;"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
                                                     echo "</tr>";
