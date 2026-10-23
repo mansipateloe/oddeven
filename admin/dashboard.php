@@ -219,7 +219,6 @@ oecrm_expense_bank_schema($conn);
                                     if ($leaveQuery && mysqli_num_rows($leaveQuery) > 0) {
                                         while ($leaveRow = mysqli_fetch_assoc($leaveQuery)) {
                                             $employeeName = !empty($leaveRow['name']) ? $leaveRow['name'] : $leaveRow['employeeUname'];
-                                            $employeeUser = $leaveRow['employeeUname'] ?? '';
                                             $employeeEmail = $leaveRow['companyEmail'] ?? '-';
                                             $initial = strtoupper(substr(trim($employeeName ?: 'U'), 0, 1));
                                             $subject = $leaveRow['subject'] ?? '-';
@@ -232,7 +231,6 @@ oecrm_expense_bank_schema($conn);
                                             <span class="leave-avatar"><?php echo htmlspecialchars($initial); ?></span>
                                             <span class="leave-user-info">
                                                 <strong><?php echo htmlspecialchars($employeeName); ?></strong>
-                                                <?php if ($employeeUser !== ''): ?><small>@<?php echo htmlspecialchars(ltrim($employeeUser, '@')); ?></small><?php endif; ?>
                                                 <small><?php echo htmlspecialchars($employeeEmail); ?></small>
                                             </span>
                                         </div>
