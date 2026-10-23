@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isDeleteAction) {
                 throw $exception;
             }
             $deleted = false;
-            $warning = 'This department is assigned or in use and cannot be deleted. Remove its assignments first.';
+            $warning = 'This department cannot be deleted because it is already linked to users or other records. Please remove these links before deleting it.';
         }
         if ($deleted && mysqli_stmt_affected_rows($stmt) === 1) {
             oecrm_audit(
@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isDeleteAction) {
             );
             $message = 'Department permanently deleted successfully.';
         } elseif ($deleted || mysqli_stmt_errno($stmt) === 1451) {
-            $warning = 'This department is assigned to employees or used in notices and cannot be deleted. Remove its assignments first.';
+            $warning = 'This department cannot be deleted because it is already linked to users or other records. Please remove these links before deleting it.';
         } else {
             $error = 'Department could not be deleted.';
         }
@@ -156,9 +156,6 @@ $list = mysqli_query(
                 <?php endif; ?>
                 <?php if ($error): ?>
                     <div class="alert alert-danger"><?php echo oecrm_h($error); ?></div>
-                <?php endif; ?>
-                <?php if ($warning): ?>
-                    <div class="alert alert-warning" role="alert"><?php echo oecrm_h($warning); ?></div>
                 <?php endif; ?>
 
                 <style>
@@ -265,6 +262,15 @@ $list = mysqli_query(
         </div>
     </div>
 </div>
+<?php if ($warning): ?>
+<script>
+window.addEventListener('load', function () {
+    window.alert(<?php echo json_encode($warning, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>);
+    var closeButton = document.querySelector('#oecrmAlertModal [data-dialog-close]');
+    if (closeButton) closeButton.focus();
+});
+</script>
+<?php endif; ?>
 <script>
 (function () {
     var form = document.getElementById('departmentForm');
