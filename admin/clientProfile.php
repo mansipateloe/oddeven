@@ -11,6 +11,7 @@ oecrm_require_permission(
 
 $companyId = oecrm_current_company_id($conn);
 $id = (int) ($_GET["id"] ?? 0);
+$communicationSearch = trim($_GET['communication_q'] ?? '');
 $client = null;
 
 if ($id) {
@@ -52,14 +53,24 @@ $documents = $id
             " ORDER BY id DESC"
     )
     : null;
-$communications = $id
-    ? mysqli_query(
-        $conn,
-        "SELECT x.*,ct.name contact_name FROM client_communications x LEFT JOIN client_contacts ct ON ct.id=x.contact_id WHERE x.client_id=" .
-            (int) $id .
-            " ORDER BY x.communication_at DESC,x.id DESC LIMIT 100"
-    )
-    : null;
+$communications = null;
+if ($id) {
+    $communicationSql = 'SELECT x.*,ct.name contact_name FROM client_communications x LEFT JOIN client_contacts ct ON ct.id=x.contact_id WHERE x.client_id=?';
+    if ($communicationSearch !== '') {
+        $communicationSql .= ' AND (x.subject LIKE ? OR x.details LIKE ? OR x.communication_type LIKE ? OR ct.name LIKE ?)';
+    }
+    $communicationSql .= ' ORDER BY x.communication_at DESC,x.id DESC LIMIT 100';
+    $communicationStmt = mysqli_prepare($conn, $communicationSql);
+    if ($communicationSearch !== '') {
+        $communicationLike = '%' . $communicationSearch . '%';
+        mysqli_stmt_bind_param($communicationStmt, 'issss', $id, $communicationLike, $communicationLike, $communicationLike, $communicationLike);
+    } else {
+        mysqli_stmt_bind_param($communicationStmt, 'i', $id);
+    }
+    mysqli_stmt_execute($communicationStmt);
+    $communications = mysqli_stmt_get_result($communicationStmt);
+    mysqli_stmt_close($communicationStmt);
+}
 $projects = $id
     ? mysqli_query(
         $conn,
@@ -126,6 +137,17 @@ unset($_SESSION["client_flash"], $_SESSION["client_error"]);
 .client-profile-page .client-document-list a { position: static; overflow-wrap: anywhere; }
 .client-profile-page .client-document-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 .client-profile-page .client-document-actions form { display: inline-flex; margin: 0; }
+.client-profile-page .communication-search { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; margin: 24px 0 8px; padding-top: 20px; border-top: 1px solid #e8e9f1; }
+.client-profile-page .communication-search-field { flex: 1 1 240px; max-width: 460px; min-width: 0; }
+.client-profile-page .communication-search label { margin-bottom: 7px !important; }
+.client-profile-page .communication-search .form-control { width: 100%; height: 40px; min-height: 40px !important; }
+.client-profile-page .communication-search > .btn { min-height: 40px; }
+.client-profile-page .communication-search-help { margin: 0; color: #667085; font-size: 12px; }
+.client-profile-page .client-timeline section { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+    .client-profile-page .communication-search-field { flex-basis: 100%; max-width: none; }
+    .client-profile-page .communication-search > .btn { flex: 1 1 auto; }
+}
 </style>
 <div id="page-wrapper" class="compact-admin-page client-profile-page<?php echo !$id ? ' client-create-page' : ''; ?>">
     <?php if ($flash): ?><div class="alert alert-success"><?php echo oecrm_h(
@@ -272,7 +294,7 @@ $value
                 </div>
             </div>
             <?php if ($id): ?>
-                <div class="panel panel-default">
+                <div class="panel panel-default" id="communicationHistory">
                     <div class="panel-heading"><i class="fa fa-comments-o"></i> Communication History</div>
                     <div class="panel-body">
                         <form method="post" action="clientAction.php" class="communication-form">
@@ -290,7 +312,22 @@ $value
                             <textarea class="form-control" name="details" placeholder="Discussion notes"></textarea>
                             <button class="btn btn-primary"><i class="fa fa-plus"></i> Add Activity</button>
                         </form>
+                        <form method="get" action="clientProfile.php#communicationHistory" class="communication-search" role="search" aria-label="Communication history">
+                            <input type="hidden" name="id" value="<?php echo (int) $id; ?>">
+                            <div class="communication-search-field">
+                                <label for="communicationSearch">Search communication history</label>
+                                <input type="search" class="form-control" id="communicationSearch" name="communication_q" value="<?php echo oecrm_h($communicationSearch); ?>" placeholder="Search subject, notes, type or contact" aria-describedby="communicationSearchHelp">
+                            </div>
+                            <button type="submit" class="btn btn-default"><i class="fa fa-search" aria-hidden="true"></i> Search</button>
+                            <?php if ($communicationSearch !== ''): ?>
+                                <a class="btn btn-default" href="clientProfile.php?id=<?php echo (int) $id; ?>#communicationHistory">Clear</a>
+                            <?php endif; ?>
+                        </form>
+                        <p class="communication-search-help" id="communicationSearchHelp">Showing the latest 100 <?php echo $communicationSearch !== '' ? 'matching ' : ''; ?>activities.</p>
                         <div class="client-timeline">
+                            <?php if (mysqli_num_rows($communications) === 0): ?>
+                                <p class="text-muted"><?php echo $communicationSearch !== '' ? 'No activities match your search.' : 'No communication history yet.'; ?></p>
+                            <?php endif; ?>
                             <?php while (
                                 $item = mysqli_fetch_assoc($communications)
                             ): ?>
@@ -385,6 +422,15 @@ $value
         <?php endif; ?>
     </div>
 </div>
+<script>
+window.addEventListener('pageshow', function () {
+    if (window.location.hash !== '#communicationHistory') return;
+    window.requestAnimationFrame(function () {
+        var historyPanel = document.getElementById('communicationHistory');
+        if (historyPanel) historyPanel.scrollIntoView({block: 'start'});
+    });
+});
+</script>
 <script>
 function getSelectedOptionId(select) {
     var value = select.value;
