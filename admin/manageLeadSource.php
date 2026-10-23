@@ -70,7 +70,7 @@ unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
                                                     echo "<tr class='gradeA even' role='row'>";
                                                     echo "<td class='sorting_1'>" . $row['id'] . "</td>";
                                                     echo "<td>" . oecrm_h($row['name']) . "</td>";
-                                                    echo '<td class="center" align="center"><button type="button" class="btn btn-link edit-lead-source-btn" data-id="' . (int)$row['id'] . '" data-name="' . oecrm_h($row['name']) . '" aria-label="Edit lead source" title="Edit lead source"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</button>';
+                                                    echo '<td class="center" align="center"><button type="button" class="icon-action edit-lead-source-btn" data-id="' . (int)$row['id'] . '" data-name="' . oecrm_h($row['name']) . '" aria-label="Edit lead source" title="Edit lead source"><i class="fa fa-pencil" aria-hidden="true"></i></button>';
                                                     echo '<form method="post" action="deleteLeadSource.php" class="delete-lead-source-form" style="display:inline;" data-confirm="Are you sure you want to delete this lead source?">' . oecrm_csrf_field() . '<input type="hidden" name="deleteLeadSource" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link delete-lead-source-btn" style="padding:0;border:0;"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
                                                     echo "</tr>";
                                                 }
