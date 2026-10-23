@@ -1,6 +1,6 @@
 <?php
-$conn = mysqli_connect("localhost", "oddev213", "QSVtIhci4d989", "oddev213");
-//$conn = mysqli_connect("localhost", "root", "Admin@1234", "oddnew");
+$conn = mysqli_connect("localhost", "root", "", "oddeven");
+//$conn = mysqli_connect("localhost", "root", "", "oddeven");
 
 
 if ($conn === false) {

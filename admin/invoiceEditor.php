@@ -29,9 +29,8 @@ if (!$items) $items[] = ['description'=>'Professional services','quantity'=>1,'r
 ?>
 <div id="page-wrapper" class="compact-admin-page resource-form-page">
   <?php if (!empty($_SESSION['invoice_number_error'])): ?><div class="alert alert-danger"><?php echo oecrm_h($_SESSION['invoice_number_error']); unset($_SESSION['invoice_number_error']); ?></div><?php endif; ?>
-  <div class="foundation-titlebar">
+  <div class="foundation-titlebar"><h2><?php echo $id ? 'Invoice '.oecrm_h($invoice['invoice_number']) : 'New Invoice'; ?></h2>
     <a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a>
-    <h2><?php echo $id ? 'Invoice '.oecrm_h($invoice['invoice_number']) : 'New Invoice'; ?></h2>
   </div>
   <div class="panel panel-default">
     <div class="panel-body">

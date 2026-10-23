@@ -14,43 +14,32 @@ $projectCount = mysqli_num_rows($projects);
 $flash = $_SESSION['project_flash'] ?? '';
 unset($_SESSION['project_flash']);
 ?>
-<style>
-.task-list-page .task-search-field { width: 100%; max-width: 480px; margin-bottom: 18px; }
-.task-list-page .task-search-field label { display: block; margin-bottom: 6px; color: #344054; }
-.task-list-page .task-search-field input { width: 100%; height: 40px; padding: 8px 12px; font-size: 14px; }
-.task-list-page .task-search-field small { display: block; margin-top: 6px; color: #667085; line-height: 1.5; }
-.task-list-page .foundation-heading .resource-actions { flex-wrap: wrap; align-items: flex-end; }
-.task-list-page .task-new-project label { display: block; margin-bottom: 6px; font-size: 12px; color: #344054; }
-.task-list-page .task-new-project select { min-width: 220px; height: 38px; }
-.task-list-page .task-company-context { margin-bottom: 16px; color: #667085; line-height: 1.5; }
-
-.task-list-page table td:nth-child(2) { overflow-wrap: anywhere; }
-@media (max-width: 700px) {
-    .task-list-page .foundation-heading { flex-wrap: wrap; }
-    .task-list-page .foundation-heading .resource-actions { width: 100%; }
-    .task-list-page .task-new-project, .task-list-page .task-new-project select { width: 100%; min-width: 0; }
-}
-</style>
+<link rel="stylesheet" href="../dist/css/task-list.css?v=20261023-1">
 <div id="page-wrapper" class="compact-admin-page project-workspace task-list-page">
     <?php if ($flash): ?><div class="alert alert-success"><?php echo oecrm_h($flash); ?></div><?php endif; ?>
     <div class="panel panel-default">
         <div class="panel-heading foundation-heading">
-            <span>Task Management</span>
-            <div class="resource-actions">
+            <div><h2>Task Management <span class="task-count"><?php echo (int) $taskCount; ?></span></h2>
+                <small>Manage assignments, priorities and deadlines.</small></div>
+            <span class="task-company"><i class="fa fa-building-o" aria-hidden="true"></i> <?php echo oecrm_h($companyName); ?></span>
+        </div>
+        <div class="panel-body">
+            <div class="task-toolbar">
+                <div class="task-search-field">
+                    <label for="taskSearch">Search Tasks</label>
+                    <input type="search" id="taskSearch" class="form-control" placeholder="Search task, project or owner..." aria-controls="dataTables-example" aria-describedby="taskSearchHint">
+                    <small id="taskSearchHint">Search by task, project, owner, priority, due date or status.</small>
+                </div>
+                <div class="task-create-controls">
                 <div class="task-new-project"><label for="taskProjectSelect">Project for new task</label><select class="form-control input-sm" id="taskProjectSelect" data-oecrm-native="1" <?php echo $projectCount === 0 ? 'disabled' : ''; ?>>
                     <option value=""><?php echo $projectCount > 0 ? 'Choose a project' : 'No projects in this company'; ?></option>
                     <?php while ($project = mysqli_fetch_assoc($projects)): ?><option value="<?php echo (int) $project['id']; ?>"><?php echo oecrm_h($project['projectName']); ?></option><?php endwhile; ?>
                 </select></div>
-                <button type="button" class="btn btn-primary btn-sm" onclick="goAddTask()" <?php echo $projectCount === 0 ? 'disabled' : ''; ?>><i class="fa fa-plus"></i> Add Task</button>
+                <button type="button" id="taskAddButton" class="btn btn-primary" onclick="goAddTask()" disabled><i class="fa fa-plus"></i> Add Task</button>
+                </div>
             </div>
-        </div>
-        <div class="panel-body">
-            <p class="task-company-context">Showing <?php echo (int) $taskCount; ?> task<?php echo $taskCount === 1 ? '' : 's'; ?> for <strong><?php echo oecrm_h($companyName); ?></strong>. Tasks are listed for the active company selected in the sidebar.</p>
-            <div class="task-search-field">
-                <label for="taskSearch">Search Tasks</label>
-                <input type="search" id="taskSearch" class="form-control" placeholder="Search tasks..." aria-controls="dataTables-example" aria-describedby="taskSearchHint">
-                <small id="taskSearchHint">Search by task, project, owner, priority, due date or status.</small>
-            </div>
+            <?php if ($projectCount === 0): ?><div class="alert alert-info task-project-empty">Create a project for this company before adding tasks. <a href="projectEditor.php">Create project</a></div><?php endif; ?>
+            <div class="task-table-scroll" role="region" aria-label="Task list" tabindex="0">
             <table class="table foundation-table" id="dataTables-example">
                 <thead><tr><th>Project</th><th>Task</th><th>Owner</th><th>Priority</th><th>Due</th><th>Status</th><th>Attachment</th><th>Actions</th></tr></thead>
                 <tbody>
@@ -58,31 +47,37 @@ unset($_SESSION['project_flash']);
                 <?php while ($task = mysqli_fetch_assoc($tasks)): ?>
                     <tr>
                         <td><?php echo oecrm_h($task['projectName'] ?: '-'); ?></td>
-                        <td><strong><?php echo oecrm_h($task['taskTitle'] ?: $task['task_details']); ?></strong></td>
+                        <td><strong class="task-title"><?php echo oecrm_h($task['taskTitle'] ?: $task['task_details']); ?></strong><small class="task-reference">#<?php echo (int) $task['id']; ?></small></td>
                         <td><?php echo oecrm_h($task['employee_name'] ?: '-'); ?></td>
-                        <td><?php echo ucfirst($task['priority']); ?></td>
-                        <td><?php echo oecrm_h($task['expectedDate']); ?></td>
-                        <td><?php echo oecrm_h(ucwords(str_replace('_', ' ', $task['status']))); ?></td>
+                        <td><span class="task-priority task-priority-<?php echo oecrm_h($task['priority']); ?>"><?php echo oecrm_h(ucfirst($task['priority'])); ?></span></td>
+                        <td class="task-due"><?php echo oecrm_h($task['expectedDate'] ?: '—'); ?></td>
+                        <td><span class="task-status task-status-<?php echo oecrm_h($task['status']); ?>"><?php echo oecrm_h(ucwords(str_replace('_', ' ', $task['status']))); ?></span></td>
                         <td><?php if ((int)($task['attachment_count'] ?? 0) > 0): ?><a class="btn btn-xs btn-default" href="projectBoard.php?id=<?php echo (int) $task['projectId']; ?>" title="View attachments"><i class="fa fa-paperclip"></i> <?php echo (int) $task['attachment_count']; ?></a><?php else: ?>-<?php endif; ?></td>
-                        <td>
-                            <a class="btn btn-xs btn-primary" title="View" href="projectBoard.php?id=<?php echo (int) $task['projectId']; ?>"><i class="fa fa-eye"></i></a>
-                            <a class="btn btn-xs btn-warning" title="Edit" href="taskEditor.php?id=<?php echo (int) $task['id']; ?>"><i class="fa fa-pencil"></i></a>
+                        <td><div class="task-row-actions">
+                            <a class="btn btn-default" title="View task project" aria-label="View task project" href="projectBoard.php?id=<?php echo (int) $task['projectId']; ?>"><i class="fa fa-eye" aria-hidden="true"></i></a>
+                            <a class="btn btn-default" title="Edit task" aria-label="Edit task" href="taskEditor.php?id=<?php echo (int) $task['id']; ?>"><i class="fa fa-pencil" aria-hidden="true"></i></a>
                             <form method="post" action="deleteTask.php" style="display:inline;" data-confirm="Delete this task? Timesheet history will be preserved.">
                                 <?php echo oecrm_csrf_field(); ?>
                                 <input type="hidden" name="delete" value="<?php echo (int) $task['id']; ?>">
                                 <input type="hidden" name="project_id" value="<?php echo (int) $task['projectId']; ?>">
-                                <button type="submit" class="btn btn-xs btn-danger" title="Delete"><i class="fa fa-trash"></i></button>
+                                <button type="submit" class="btn btn-default task-delete" title="Delete task" aria-label="Delete task"><i class="fa fa-trash-o" aria-hidden="true"></i></button>
                             </form>
-                        </td>
+                        </div></td>
                     </tr>
                 <?php endwhile; ?>
                 </tbody>
             </table>
+            </div>
         </div>
     </div>
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    var projectSelect = document.getElementById('taskProjectSelect');
+    var addButton = document.getElementById('taskAddButton');
+    function updateAddButton() { addButton.disabled = !projectSelect.value; }
+    projectSelect.addEventListener('change', updateAddButton);
+    updateAddButton();
     var tableElement = document.getElementById('dataTables-example');
     var search = document.getElementById('taskSearch');
     if (!tableElement || !search || !window.jQuery || !jQuery.fn.DataTable) return;
@@ -95,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         order: [],
         autoWidth: false,
-        responsive: true,
+        responsive: false,
         columnDefs: [{targets: [6, 7], searchable: false, orderable: false}],
         language: {
             lengthMenu: 'Show _MENU_ tasks',

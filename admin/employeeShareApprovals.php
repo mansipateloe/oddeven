@@ -40,7 +40,7 @@ $submissions = mysqli_query(
     <?php if ($flash): ?><div class="alert alert-success"><?php echo oecrm_h($flash); ?></div><?php endif; ?>
     <?php if ($error): ?><div class="alert alert-danger"><?php echo oecrm_h($error); ?></div><?php endif; ?>
 
-    <div class="foundation-titlebar"><span></span><h2>Employee Share Approvals</h2></div>
+    <div class="foundation-titlebar"><h2>Employee Share Approvals</h2></div>
 
     <form method="get" class="form-inline" style="margin-bottom: 15px;">
         <div class="form-group" style="margin-right: 10px;">

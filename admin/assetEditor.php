@@ -61,10 +61,10 @@ $history = $id
 $error = $_SESSION["asset_error"] ?? "";
 unset($_SESSION["asset_error"]);
 ?><div id="page-wrapper" class="compact-admin-page resource-form-page">
-  <div class="foundation-titlebar"><a href="assets.php"><i class="fa fa-arrow-left"></i> Assets</a>
-    <h2><?php echo $id
+  <div class="foundation-titlebar"><h2><?php echo $id
     ? "Asset Details"
     : "New Asset"; ?></h2>
+    <a href="assets.php"><i class="fa fa-arrow-left"></i> Assets</a>
   </div><?php if (
     $error
 ): ?><div class="alert alert-danger"><?php echo oecrm_h(

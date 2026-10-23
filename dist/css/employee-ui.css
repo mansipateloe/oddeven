@@ -1,0 +1,74 @@
+@media screen {
+    body.crm-ui #page-wrapper:is(.employee-form-page, .employee-edit-page, .employee-profile-page) { max-width: none !important; }
+    body.crm-ui #page-wrapper .employee-edit-shell { max-width: none; margin: 0; }
+    body.crm-ui #page-wrapper.employee-form-page .panel { max-width: none !important; }
+    body.crm-ui #page-wrapper :is(.employee-form-section, .employee-edit-section) {
+        padding: 0 !important; margin: 0 0 20px !important; background: #fff !important;
+        border: 1px solid #dfe4ec !important; border-radius: 10px !important; box-shadow: none !important;
+    }
+    body.crm-ui #page-wrapper :is(.employee-form-section, .employee-edit-section) .employee-section-heading {
+        padding: 16px 20px !important; margin: 0 !important; border-bottom: 1px solid #dfe4ec;
+    }
+    body.crm-ui #page-wrapper :is(.employee-form-section, .employee-edit-section) .employee-section-heading h3 { font-size: 16px !important; line-height: 1.5; }
+    body.crm-ui #page-wrapper :is(.employee-form-page, .employee-edit-page) { min-width: 0; }
+    body.crm-ui #page-wrapper:is(.employee-form-page, .employee-edit-page) .employee-form-grid {
+        display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 20px !important; padding: 20px !important;
+    }
+    body.crm-ui #page-wrapper:is(.employee-form-page, .employee-edit-page) .employee-form-grid .form-group { min-width: 0; margin: 0 !important; }
+    body.crm-ui #page-wrapper:is(.employee-form-page, .employee-edit-page) .employee-form-grid :is(.span-2, .span-3) { grid-column: 1 / -1; }
+    body.crm-ui #page-wrapper .employee-edit-hero {
+        border: 1px solid #dfe4ec; border-radius: 10px; background: #fff; box-shadow: none;
+        padding: 20px; gap: 16px; align-items: center; text-align: left;
+    }
+    body.crm-ui #page-wrapper .employee-edit-hero h1 { font-size: 24px !important; }
+    body.crm-ui #page-wrapper .employee-edit-kicker { display: none; }
+    body.crm-ui #page-wrapper .employee-summary-card { min-width: 0; border-radius: 6px; background: #f8fafc; box-shadow: none; }
+    body.crm-ui #page-wrapper .employee-summary-avatar { width: 40px; height: 40px; border-radius: 6px; background: #fff1e6; color: #a84d00; }
+    body.crm-ui #page-wrapper .employee-edit-actions {
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start;
+        flex-direction: row !important; position: static;
+        gap: 10px; padding: 16px 0; margin: 0; background: transparent; border: 0; box-shadow: none;
+    }
+    body.crm-ui #page-wrapper .employee-edit-actions .btn { width: auto !important; min-width: 120px; }
+    body.crm-ui #page-wrapper .employee-edit-actions .btn-primary { order: -1; }
+    body.crm-ui #page-wrapper.employee-edit-page .employee-input-icon { display: none !important; }
+    body.crm-ui #page-wrapper.employee-edit-page .employee-input-wrap .has-action { padding-right: 48px !important; }
+    body.crm-ui #page-wrapper.employee-edit-page .employee-help-text { color: #526174; }
+    body.crm-ui #page-wrapper .employee-password-group { position: relative; }
+    body.crm-ui #page-wrapper .employee-password-group input.form-control { padding-right: 48px !important; }
+    body.crm-ui #page-wrapper .employee-password-toggle {
+        position: absolute; top: 1px; right: 1px; width: 40px; height: 38px; padding: 0;
+        border: 0; border-radius: 0 6px 6px 0; background: #f8fafc; color: #526174;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    body.crm-ui #page-wrapper .employee-password-toggle i { font-size: 16px; width: auto; height: auto; line-height: 1; }
+    body.crm-ui #page-wrapper .employee-form-grid .field-error:empty { display: none; }
+    body.crm-ui #page-wrapper.employee-list-page .employee-page-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    body.crm-ui #page-wrapper.employee-list-page .lead-page-header > div:first-child { flex: 1 1 260px; }
+    body.crm-ui #page-wrapper.employee-list-page .lead-page-header p { margin: 5px 0 0; color: #526174; }
+    body.crm-ui #page-wrapper.employee-list-page .employee-total { background: #fff1e6; color: #a84d00; font-size: 12px !important; border-radius: 20px; padding: 4px 10px; }
+    .employee-list-page .employee-list-toolbar { display: grid; grid-template-columns: minmax(220px, 440px) minmax(150px, 200px); gap: 16px; padding-bottom: 20px; margin-bottom: 16px; border-bottom: 1px solid #dfe4ec; }
+    .employee-list-page .employee-list-toolbar label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .employee-list-page .employee-table-scroll { overflow-x: auto; width: 100%; }
+    .employee-list-page #employeeTable { width: 100% !important; min-width: 1000px; }
+    .employee-list-page #employeeTable td { vertical-align: middle; }
+    .employee-list-page #employeeTable td:nth-child(2) { min-width: 160px; overflow-wrap: anywhere; }
+    .employee-list-page #employeeTable td:nth-child(3) { max-width: 220px; overflow-wrap: anywhere; }
+    .employee-list-page .employee-contact-number { white-space: nowrap; }
+    body.crm-ui #page-wrapper.employee-list-page .employee-actions { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    body.crm-ui #page-wrapper.employee-list-page .employee-actions .icon-action { border: 1px solid #dfe4ec !important; border-radius: 6px !important; background: #fff !important; color: #526174 !important; margin: 0 !important; }
+    body.crm-ui #page-wrapper.employee-profile-page .employee-profile-hero { border: 1px solid #dfe4ec; box-shadow: none; border-radius: 10px; flex-wrap: wrap; }
+    body.crm-ui #page-wrapper.employee-profile-page .employee-avatar { background: #fff1e6; color: #a84d00; border-radius: 8px; }
+    body.crm-ui #page-wrapper.employee-profile-page .employee-profile-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); gap: 20px; }
+    body.crm-ui #page-wrapper.employee-profile-page .employee-profile-layout > * { min-width: 0; }
+    @media (max-width: 1100px) {
+        body.crm-ui #page-wrapper.employee-profile-page .employee-profile-layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 767px) {
+        body.crm-ui #page-wrapper:is(.employee-form-page, .employee-edit-page) .employee-form-grid { grid-template-columns: 1fr !important; padding: 16px !important; gap: 16px !important; }
+        body.crm-ui #page-wrapper .employee-edit-hero { flex-direction: column; align-items: flex-start; padding: 16px; }
+        body.crm-ui #page-wrapper .employee-summary-card { width: 100%; }
+        .employee-list-page .employee-list-toolbar { grid-template-columns: 1fr; }
+    }
+}

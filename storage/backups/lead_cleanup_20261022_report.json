@@ -1,0 +1,7 @@
+{
+    "deleted": {
+        "lead_followup": 4,
+        "leads": 20
+    },
+    "backup": "oddeven_before_lead_cleanup_20261022_202327.sql"
+}

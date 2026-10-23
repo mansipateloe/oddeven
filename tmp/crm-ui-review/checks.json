@@ -1,0 +1,152 @@
+[
+  {
+    "name": "admin 1440px layout",
+    "ok": true,
+    "details": {
+      "titleLeft": 284,
+      "backLeft": 1321.921875,
+      "titleTop": 24,
+      "backTop": 29.34375,
+      "fieldHeight": 40,
+      "saveHeight": 40,
+      "cancelHeight": 40,
+      "cancelColor": "rgb(255, 255, 255)",
+      "overflow": false,
+      "labelLinked": true,
+      "iconLabel": "Delete",
+      "required": true,
+      "submitValue": "1",
+      "masterFlex": "flex",
+      "invalid": "rgb(200, 52, 52)"
+    }
+  },
+  {
+    "name": "admin 390px layout",
+    "ok": true,
+    "details": {
+      "titleLeft": 16,
+      "backLeft": 16,
+      "titleTop": 16,
+      "backTop": 56.34375,
+      "fieldHeight": 40,
+      "saveHeight": 40,
+      "cancelHeight": 40,
+      "cancelColor": "rgb(255, 255, 255)",
+      "overflow": false,
+      "labelLinked": true,
+      "iconLabel": "Delete",
+      "required": true,
+      "submitValue": "1",
+      "masterFlex": "flex",
+      "invalid": "rgb(200, 52, 52)"
+    }
+  },
+  {
+    "name": "employee 1440px layout",
+    "ok": true,
+    "details": {
+      "titleLeft": 284,
+      "backLeft": 1327.890625,
+      "titleTop": 24,
+      "backTop": 29.34375,
+      "fieldHeight": 40,
+      "saveHeight": 40,
+      "cancelHeight": 40,
+      "cancelColor": "rgb(255, 255, 255)",
+      "overflow": false,
+      "labelLinked": true,
+      "iconLabel": "Delete",
+      "required": true,
+      "submitValue": "1",
+      "masterFlex": "flex",
+      "invalid": "rgb(200, 52, 52)"
+    }
+  },
+  {
+    "name": "employee 390px layout",
+    "ok": true,
+    "details": {
+      "titleLeft": 16,
+      "backLeft": 16,
+      "titleTop": 16,
+      "backTop": 56.34375,
+      "fieldHeight": 40,
+      "saveHeight": 40,
+      "cancelHeight": 40,
+      "cancelColor": "rgb(255, 255, 255)",
+      "overflow": false,
+      "labelLinked": true,
+      "iconLabel": "Delete",
+      "required": true,
+      "submitValue": "1",
+      "masterFlex": "flex",
+      "invalid": "rgb(200, 52, 52)"
+    }
+  },
+  {
+    "name": "lead 1440px layout",
+    "ok": true,
+    "details": {
+      "titleLeft": 24,
+      "backLeft": 1327.890625,
+      "titleTop": 24,
+      "backTop": 29.34375,
+      "fieldHeight": 40,
+      "saveHeight": 40,
+      "cancelHeight": 40,
+      "cancelColor": "rgb(255, 255, 255)",
+      "overflow": false,
+      "labelLinked": true,
+      "iconLabel": "Delete",
+      "required": true,
+      "submitValue": "1",
+      "masterFlex": "flex",
+      "invalid": "rgb(200, 52, 52)"
+    }
+  },
+  {
+    "name": "lead 390px layout",
+    "ok": true,
+    "details": {
+      "titleLeft": 24,
+      "backLeft": 24,
+      "titleTop": 24,
+      "backTop": 64.34375,
+      "fieldHeight": 40,
+      "saveHeight": 40,
+      "cancelHeight": 40,
+      "cancelColor": "rgb(255, 255, 255)",
+      "overflow": false,
+      "labelLinked": true,
+      "iconLabel": "Delete",
+      "required": true,
+      "submitValue": "1",
+      "masterFlex": "flex",
+      "invalid": "rgb(200, 52, 52)"
+    }
+  },
+  {
+    "name": "Add to update icon refresh",
+    "ok": true
+  },
+  {
+    "name": "Dynamic controls enhanced",
+    "ok": true
+  },
+  {
+    "name": "Primary input and button share color",
+    "ok": true
+  },
+  {
+    "name": "Decorative field icon removed",
+    "ok": true
+  },
+  {
+    "name": "Mini form has persistent label",
+    "ok": true
+  },
+  {
+    "name": "Screen-only styles excluded from print",
+    "ok": true
+  }
+]

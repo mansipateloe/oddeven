@@ -25,27 +25,17 @@
 
                                 <form id="employeeForm" role="form" method="POST" action="employeeSave.php" novalidate>
 <?php echo oecrm_csrf_field(); ?><input type="hidden" name="mode" value="create">
-                                    <div class="employee-form-section">
-                                        <h4><i class="fa fa-building-o"></i> Organization & Employment</h4>
-                                        <div class="employee-foundation-grid">
-                                            <div class="form-group"><label>Company *</label><select class="form-control company-selector" name="company_id" required><?php while($company=mysqli_fetch_assoc($employeeCompanies)): ?><option value="<?php echo (int)$company['id']; ?>" <?php echo $currentCompanyId===(int)$company['id']?'selected':''; ?>><?php echo oecrm_h($company['display_name']); ?></option><?php endwhile; ?></select></div>
-                                            <div class="form-group"><label>Department</label><select class="form-control department-selector" name="department_id"><option value="0">No Department</option><?php while($department=mysqli_fetch_assoc($employeeDepartments)): ?><option data-company="<?php echo (int)$department['company_id']; ?>" value="<?php echo (int)$department['id']; ?>"><?php echo oecrm_h($department['name']); ?></option><?php endwhile; ?></select></div>
-                                            <div class="form-group"><label>Employment Type</label><select class="form-control" name="employment_type"><?php foreach(['permanent','probation','contract','intern','consultant'] as $type): ?><option value="<?php echo $type; ?>"><?php echo ucwords($type); ?></option><?php endforeach; ?></select></div>
-                                            <div class="form-group"><label>Employment Status</label><select class="form-control" name="employment_status"><option value="active">Active</option><option value="notice_period">Notice Period</option><option value="inactive">Inactive</option></select></div>
-                                            <div class="form-group"><label>Confirmation Date</label><input type="date" class="form-control" name="confirmation_date"></div>
-                                            <div class="form-group"><label>Notice Period Days</label><input type="number" min="0" class="form-control" name="notice_period_days" value="0"></div>
-                                        </div>
-                                    </div>
-                                    <div class="employee-form-section"><h4><i class="fa fa-user"></i> Basic Information</h4>
-                                    <div class="row">
-                                        <div class="form-group col-lg-3">
-                                            <span>*Employee Code :</span>
-                                            <input type="text" class="form-control" name="employeeCode" value="<?php echo $employeeCode ?>" maxlength="6" placeholder="Employee code" required>
-                                            <span style="color: red;"><?php echo $employeeCodeError; ?></span>
-                                        </div>
-                                        <div class="form-group col-lg-3">
-                                            <span>*Designation :</span>
-                                            <select class="form-control" name="designation" required>
+<section class="employee-form-section"><div class="employee-section-heading"><h3>Organization & Employment</h3></div><div class="employee-form-grid">
+<div class="form-group"><label for="employee-company_id">Company <span class="text-danger">*</span></label><select id="employee-company_id" class="form-control company-selector" name="company_id" required><?php while($company=mysqli_fetch_assoc($employeeCompanies)): ?><option value="<?php echo (int)$company['id']; ?>" <?php echo $currentCompanyId===(int)$company['id']?'selected':''; ?>><?php echo oecrm_h($company['display_name']); ?></option><?php endwhile; ?></select></div>
+<div class="form-group"><label for="employee-department_id">Department</label><select id="employee-department_id" class="form-control department-selector" name="department_id"><option value="0">No Department</option><?php while($department=mysqli_fetch_assoc($employeeDepartments)): ?><option data-company="<?php echo (int)$department['company_id']; ?>" value="<?php echo (int)$department['id']; ?>"><?php echo oecrm_h($department['name']); ?></option><?php endwhile; ?></select></div>
+<div class="form-group"><label for="employee-employment_type">Employment Type</label><select id="employee-employment_type" class="form-control" name="employment_type"><?php foreach(['permanent','probation','contract','intern','consultant'] as $type): ?><option value="<?php echo $type; ?>"><?php echo ucwords($type); ?></option><?php endforeach; ?></select></div>
+<div class="form-group"><label for="employee-employment_status">Employment Status</label><select id="employee-employment_status" class="form-control" name="employment_status"><option value="active">Active</option><option value="notice_period">Notice Period</option><option value="inactive">Inactive</option></select></div>
+<div class="form-group"><label for="employee-confirmation_date">Confirmation Date</label><input id="employee-confirmation_date" type="date" class="form-control" name="confirmation_date"></div>
+<div class="form-group"><label for="employee-notice_period_days">Notice Period Days</label><input id="employee-notice_period_days" type="number" min="0" class="form-control" name="notice_period_days" value="0"></div>
+</div></section>
+<section class="employee-form-section"><div class="employee-section-heading"><h3>Basic Information</h3></div><div class="employee-form-grid">
+<div class="form-group"><label for="employee-employeeCode">Employee Code <span class="text-danger">*</span></label><input id="employee-employeeCode" type="text" class="form-control" name="employeeCode" value="<?php echo oecrm_h($employeeCode); ?>" maxlength="6" placeholder="Employee code" required><span class="field-error"><?php echo oecrm_h($employeeCodeError); ?></span></div>
+<div class="form-group"><label for="employee-designation">Designation <span class="text-danger">*</span></label><select id="employee-designation" class="form-control" name="designation" required>
                                                 <option value="">--- Select Designation ---</option>
                                                 <?php 
                                                     $qryDesignation = "select * from designation";
@@ -57,138 +47,29 @@
                                                         }
                                                     }
                                                 ?>
-                                            </select>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <span>*Name :</span>
-                                            <div class=" input-group">
-                                                <span class="input-group-addon" style="padding: 8px 20px 0px 20px;"><p  class="fa fa-user"></p></span>
-                                                <input type="text" class="form-control" name="name" placeholder="Name" value="<?php echo $name ?>" required>
-                                            </div>
-                                            <span style="color: red;"><?php echo $nameError; ?></span>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <span>*Username :</span>
-                                            <div class="form-group input-group" style="position: relative;">
-                                                <span class="input-group-addon" style="padding: 8px 9px 0px 16px;"><p  class="fa fa-user"></p>@</span>
-                                                <input type="text" class="form-control" name="employeeUname" id="employeeUname" onkeyup="checkname();" value="<?php echo $employeeUname ?>" placeholder="Username" required>
-                                            </div>
-                                            <span id="user-availability-status"></span>
-                                            <span id="name_status"></span>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <span>*Password :</span>
-                                            <div class="form-group input-group employee-password-group">
-                                                <span class="input-group-addon" style="padding: 8px 16px 0px 20px;"><p class="fa fa-key"></p></span>
-                                                <input type="password" class="form-control" id="employeeUpass" minlength="6" name="employeeUpass" value="<?php echo $employeeUpass ?>" placeholder="Password" required>
-                                                <button type="button" class="employee-password-toggle" id="toggleEmployeePassword" aria-label="Show password" aria-controls="employeeUpass"><i class="fa fa-eye" aria-hidden="true"></i></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <span>*Company Email :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 0px 17px 0px 20px;"><span class="glyphicon glyphicon-envelope"></span></span>
-                                                <input type="email" class="form-control" name="companyEmail" id="companyEmail" onkeyup="checkemail();" value="<?php echo $companyEmail ?>" placeholder="Email address" required>
-                                            </div>
-                                            <span style="color: red;"><?php echo $mobile1Error; ?></span>
-                                            <span id="email_status"></span>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <span>Personal Email :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 0px 17px 0px 20px;"><span class="glyphicon glyphicon-envelope"></span></span>
-                                                <input type="email" class="form-control" name="personalEmail" value="<?php echo $personalEmail ?>" placeholder="Email address">
-                                            </div>
-                                            <span style="color: red;"><?php echo $mobile1Error; ?></span>
-                                            <span id="email_status"></span>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <span>Mobile :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 8px 20px 0px 20px;"><p class="fa fa-phone"></p></span>
-                                                <input type="text" class="form-control" pattern="\d*" name="mobile1" minlength="10" maxlength="10" value="<?php echo $mobile1 ?>" placeholder="Contact No.1">
-                                            </div>
-                                            <span style="color: red;"><?php echo $mobile1Error; ?></span>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <span>Phone :</span>
-                                            <div class="form-group input-group">
-                                            <span class="input-group-addon" style="padding: 0px 17px 0px 20px;"><span class="glyphicon glyphicon-phone-alt"></span></span>
-                                            <input type="text" class="form-control" pattern="\d*" name="mobile2" minlength="10" maxlength="12" value="<?php echo $mobile2 ?>" placeholder="Contact No.2">
-                                            <span style="color: red;"><?php echo $mobile2Error; ?></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                        <span>Birth Date :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 8px 20px 0px 20px;"><p class="fa fa-calendar-o"></p></span>
-                                                <input type="date" class="form-control" name="birthdate" value="<?php echo $birthdate ?>" placeholder="Birth Date">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-lg-6">
-                                            <span>Skype :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 8px 20px 0px 20px;"><p class="fa fa-skype"></p></span>
-                                                <input type="text" class="form-control" name="skypeUname" value="<?php echo $skypeUname ?>" placeholder="Skype username">
-                                            </div>
-                                            <span>Bank Name :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 8px 15px 0px 20px;"><p class="fa fa-bank"></p></span>
-                                                <input type="text" class="form-control" name="bankName" value="<?php echo $bankName ?>" placeholder="Bank Name">
-                                            </div>
-                                            <span>Bank IFSC No. :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 8px 15px 0px 20px;"><p class="fa fa-bank"></p></span>
-                                                <input type="text" class="form-control" name="bankIFSCno" value="<?php echo $bankIFSCno ?>" placeholder="Bank IFSC No.">
-                                            </div>
-                                            <span>Bank A/c Holder Name :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 8px 15px 0px 20px;"><p class="fa fa-bank"></p></span>
-                                                <input type="text" class="form-control" name="bankAcHolderName" value="<?php echo $bankAcHolderName ?>" placeholder="Bank A/c Holder Name">
-                                            </div>
-                                            <span>Bank A/c No. :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 8px 15px 0px 20px;"><p class="fa fa-bank"></p></span>
-                                                <input type="text" class="form-control" pattern="\d*" name="bankAcNo" value="<?php echo $bankAcNo ?>" placeholder="Bank A/c No.">
-                                            </div>
-                                        </div>
-                                        <div class="col-lg-6">
-                                            <span>Joining Date :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 8px 20px 0px 20px;"><p class="fa fa-calendar-o"></p></span>
-                                                <input type="date" class="form-control" name="joiningDate" value="<?php echo $joiningDate ?>" placeholder="Joining Date" required>
-                                            </div>
-                                            <span>Salary :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 8px 25px 0px 20px;"><p class="fa fa-rupee"></p></span>
-                                                <input type="text" class="form-control" name="salary" pattern="[0-9]{1,10}" value="<?php echo $salary ?>" placeholder="Salary">
-                                                <span style="color: red;"><?php echo $salaryError; ?></span>
-                                            </div>
-                                            <span>Address :</span>
-                                            <div class="form-group input-group">
-                                                <span class="input-group-addon" style="padding: 0px 17px 0px 20px;"><span class="glyphicon glyphicon-home"></span></span>
-                                                <textarea type="text" rows="7" name="address" class="form-control" placeholder="Address"><?php echo $address ?></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    </div>
-                                    <div class="row employee-submit-row">
-                                        <div class="col-lg-6" align="right">
-                                            <input type="submit" class="btn btn-primary" id="addemployeeBtn" value="Add Employee">
-                                        </div>
-                                        <div class="col-lg-6" align="left">
-                                            <input class="btn btn-danger cancel_btn" type="reset" value="Cancel">
-                                        </div>
-                                    </div>
-                                </form>
+                                            </select></div>
+<div class="form-group"><label for="employee-name">Full Name <span class="text-danger">*</span></label><input id="employee-name" type="text" class="form-control" name="name" placeholder="Name" value="<?php echo oecrm_h($name); ?>" required><span class="field-error"><?php echo oecrm_h($nameError); ?></span></div>
+<div class="form-group"><label for="employeeUname">Username <span class="text-danger">*</span></label><input type="text" class="form-control" name="employeeUname" id="employeeUname" onkeyup="checkname();" value="<?php echo oecrm_h($employeeUname); ?>" placeholder="Username" required><span id="user-availability-status"></span><span id="name_status" role="status"></span></div>
+<div class="form-group"><label for="employeeUpass">Password <span class="text-danger">*</span></label><div class="employee-password-group"><input type="password" class="form-control" id="employeeUpass" minlength="6" name="employeeUpass" value="<?php echo oecrm_h($employeeUpass); ?>" placeholder="Password" required><button type="button" class="employee-password-toggle" id="toggleEmployeePassword" aria-label="Show password" aria-controls="employeeUpass"><i class="fa fa-eye" aria-hidden="true"></i></button></div></div>
+<div class="form-group"><label for="employee-birthdate">Birth Date</label><input id="employee-birthdate" type="date" class="form-control" name="birthdate" value="<?php echo oecrm_h($birthdate); ?>" placeholder="Birth Date"></div>
+<div class="form-group"><label for="employee-joiningDate">Joining Date <span class="text-danger">*</span></label><input id="employee-joiningDate" type="date" class="form-control" name="joiningDate" value="<?php echo oecrm_h($joiningDate); ?>" placeholder="Joining Date" required></div>
+</div></section>
+<section class="employee-form-section"><div class="employee-section-heading"><h3>Contact Details</h3></div><div class="employee-form-grid">
+<div class="form-group"><label for="companyEmail">Company Email <span class="text-danger">*</span></label><input type="email" class="form-control" name="companyEmail" id="companyEmail" onkeyup="checkemail();" value="<?php echo oecrm_h($companyEmail); ?>" placeholder="Email address" required><span id="email_status" role="status"></span></div>
+<div class="form-group"><label for="employee-personalEmail">Personal Email</label><input id="employee-personalEmail" type="email" class="form-control" name="personalEmail" value="<?php echo oecrm_h($personalEmail); ?>" placeholder="Email address"></div>
+<div class="form-group"><label for="employee-mobile1">Mobile</label><input id="employee-mobile1" type="text" class="form-control" pattern="\d*" name="mobile1" minlength="10" maxlength="10" value="<?php echo oecrm_h($mobile1); ?>" placeholder="Contact No.1"><span class="field-error"><?php echo oecrm_h($mobile1Error); ?></span></div>
+<div class="form-group"><label for="employee-mobile2">Phone</label><input id="employee-mobile2" type="text" class="form-control" pattern="\d*" name="mobile2" minlength="10" maxlength="12" value="<?php echo oecrm_h($mobile2); ?>" placeholder="Contact No.2"><span class="field-error"><?php echo oecrm_h($mobile2Error); ?></span></div>
+<div class="form-group"><label for="employee-skypeUname">Skype</label><input id="employee-skypeUname" type="text" class="form-control" name="skypeUname" value="<?php echo oecrm_h($skypeUname); ?>" placeholder="Skype username"></div>
+<div class="form-group span-2"><label for="employee-address">Address</label><textarea id="employee-address" type="text" rows="7" name="address" class="form-control" placeholder="Address"><?php echo oecrm_h($address); ?></textarea></div>
+</div></section>
+<section class="employee-form-section"><div class="employee-section-heading"><h3>Payroll & Bank</h3></div><div class="employee-form-grid">
+<div class="form-group"><label for="employee-salary">Salary</label><input id="employee-salary" type="text" class="form-control" name="salary" pattern="[0-9]{1,10}" value="<?php echo oecrm_h($salary); ?>" placeholder="Salary"></div>
+<div class="form-group"><label for="employee-bankName">Bank Name</label><input id="employee-bankName" type="text" class="form-control" name="bankName" value="<?php echo oecrm_h($bankName); ?>" placeholder="Bank Name"></div>
+<div class="form-group"><label for="employee-bankIFSCno">Bank IFSC No.</label><input id="employee-bankIFSCno" type="text" class="form-control" name="bankIFSCno" value="<?php echo oecrm_h($bankIFSCno); ?>" placeholder="Bank IFSC No."></div>
+<div class="form-group"><label for="employee-bankAcHolderName">Bank Account Holder</label><input id="employee-bankAcHolderName" type="text" class="form-control" name="bankAcHolderName" value="<?php echo oecrm_h($bankAcHolderName); ?>" placeholder="Bank A/c Holder Name"></div>
+<div class="form-group"><label for="employee-bankAcNo">Bank Account No.</label><input id="employee-bankAcNo" type="text" class="form-control" pattern="\d*" name="bankAcNo" value="<?php echo oecrm_h($bankAcNo); ?>" placeholder="Bank A/c No."></div>
+</div></section>
+<div class="employee-edit-actions"><button class="btn btn-primary" type="submit"><i class="fa fa-plus" aria-hidden="true"></i> Add Employee</button><a class="btn btn-default" href="manageEmployee.php">Cancel</a></div></form>
 
                             </div>
                         </div>

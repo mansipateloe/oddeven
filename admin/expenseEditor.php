@@ -19,7 +19,8 @@ if (!$expenseCategories) {
 }
 ?>
 <div id="page-wrapper" class="compact-admin-page resource-form-page">
-    <div class="foundation-titlebar"><a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a><h2>Add Expense</h2></div>
+    <div class="foundation-titlebar"><h2>Add Expense</h2>
+    <a href="finance.php"><i class="fa fa-arrow-left"></i> Finance</a></div>
     <div class="panel panel-default">
         <div class="panel-body">
             <form method="post" action="financeAction.php" class="resource-form">

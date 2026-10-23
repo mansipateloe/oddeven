@@ -42,9 +42,8 @@ $formValue = static function ($key, $default = '') use ($oldForm) {
 $formTeam = array_key_exists('team', $oldForm) ? array_map('intval', (array) $oldForm['team']) : $selectedTeam;
 ?>
 <div id="page-wrapper" class="compact-admin-page resource-form-page">
-    <div class="foundation-titlebar">
-        <a href="projectWorkspace.php"><i class="fa fa-arrow-left"></i> Projects</a>
-        <h2><?php echo $id ? 'Edit Project' : 'New Project'; ?></h2>
+    <div class="foundation-titlebar"><h2><?php echo $id ? 'Edit Project' : 'New Project'; ?></h2>
+    <a href="projectWorkspace.php"><i class="fa fa-arrow-left"></i> Projects</a>
     </div>
     <?php if ($error): ?><div class="alert alert-danger"><?php echo oecrm_h($error); ?></div><?php endif; ?>
     <div class="panel panel-default">

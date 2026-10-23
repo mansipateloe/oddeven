@@ -1,0 +1,291 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="../../vendor/bootstrap/css/bootstrap.min.css"><link rel="stylesheet" href="../../vendor/font-awesome/css/font-awesome.min.css"><link rel="stylesheet" href="../../vendor/datatables-plugins/dataTables.bootstrap.css"><link rel="stylesheet" href="../../vendor/custom/customAdmin.css"><link rel="stylesheet" href="../../dist/css/erp-typography.css"><link rel="stylesheet" href="../../dist/css/crm-ui.css"><link rel="stylesheet" href="../../dist/css/employee-ui.css"><script src="../../vendor/jquery/jquery.min.js"></script><script src="../../vendor/datatables/js/jquery.dataTables.min.js"></script><script src="../../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script><script defer src="../../js/crm-ui.js"></script></head><body class="admin-portal crm-ui"><style type="text/css">
+    /*.loader{
+        position: absolute;
+        right: 0;
+        z-index: 10;
+        top: 7px;
+    }
+    .loader img{
+        width: 100%;
+    }*/
+</style>
+
+
+        <div id="page-wrapper" class="compact-admin-page employee-form-page">
+            <div class="row">
+                    <div class="col-lg-12">
+                        <div class="panel panel-default add_employee">
+
+                            <div class="panel-heading">
+
+                                Add Employee
+
+                            </div>
+                            <div class="panel-body">
+
+                                <form id="employeeForm" role="form" method="POST" action="employeeSave.php" novalidate>
+<input type="hidden" name="mode" value="create">
+<section class="employee-form-section"><div class="employee-section-heading"><h3>Organization & Employment</h3></div><div class="employee-form-grid">
+<div class="form-group"><label for="employee-company_id">Company <span class="text-danger">*</span></label><select id="employee-company_id" class="form-control company-selector" name="company_id" required><option value="1">OddEven Infotech</option></select></div>
+<div class="form-group"><label for="employee-department_id">Department</label><select id="employee-department_id" class="form-control department-selector" name="department_id"><option value="0">No Department</option><option data-company="" value=""></option></select></div>
+<div class="form-group"><label for="employee-employment_type">Employment Type</label><select id="employee-employment_type" class="form-control" name="employment_type"><option value=""></option></select></div>
+<div class="form-group"><label for="employee-employment_status">Employment Status</label><select id="employee-employment_status" class="form-control" name="employment_status"><option value="active">Active</option><option value="notice_period">Notice Period</option><option value="inactive">Inactive</option></select></div>
+<div class="form-group"><label for="employee-confirmation_date">Confirmation Date</label><input id="employee-confirmation_date" type="date" class="form-control" name="confirmation_date"></div>
+<div class="form-group"><label for="employee-notice_period_days">Notice Period Days</label><input id="employee-notice_period_days" type="number" min="0" class="form-control" name="notice_period_days" value="0"></div>
+</div></section>
+<section class="employee-form-section"><div class="employee-section-heading"><h3>Basic Information</h3></div><div class="employee-form-grid">
+<div class="form-group"><label for="employee-employeeCode">Employee Code <span class="text-danger">*</span></label><input id="employee-employeeCode" type="text" class="form-control" name="employeeCode" value="" maxlength="6" placeholder="Employee code" required><span class="field-error"></span></div>
+<div class="form-group"><label for="employee-designation">Designation <span class="text-danger">*</span></label><select id="employee-designation" class="form-control" name="designation" required><option value="">Select designation</option><option value="Developer">Developer</option></select></div>
+<div class="form-group"><label for="employee-name">Full Name <span class="text-danger">*</span></label><input id="employee-name" type="text" class="form-control" name="name" placeholder="Name" value="" required><span class="field-error"></span></div>
+<div class="form-group"><label for="employeeUname">Username <span class="text-danger">*</span></label><input type="text" class="form-control" name="employeeUname" id="employeeUname" onkeyup="checkname();" value="" placeholder="Username" required><span id="user-availability-status"></span><span id="name_status" role="status"></span></div>
+<div class="form-group"><label for="employeeUpass">Password <span class="text-danger">*</span></label><div class="employee-password-group"><input type="password" class="form-control" id="employeeUpass" minlength="6" name="employeeUpass" value="" placeholder="Password" required><button type="button" class="employee-password-toggle" id="toggleEmployeePassword" aria-label="Show password" aria-controls="employeeUpass"><i class="fa fa-eye" aria-hidden="true"></i></button></div></div>
+<div class="form-group"><label for="employee-birthdate">Birth Date</label><input id="employee-birthdate" type="date" class="form-control" name="birthdate" value="" placeholder="Birth Date"></div>
+<div class="form-group"><label for="employee-joiningDate">Joining Date <span class="text-danger">*</span></label><input id="employee-joiningDate" type="date" class="form-control" name="joiningDate" value="" placeholder="Joining Date" required></div>
+</div></section>
+<section class="employee-form-section"><div class="employee-section-heading"><h3>Contact Details</h3></div><div class="employee-form-grid">
+<div class="form-group"><label for="companyEmail">Company Email <span class="text-danger">*</span></label><input type="email" class="form-control" name="companyEmail" id="companyEmail" onkeyup="checkemail();" value="" placeholder="Email address" required><span id="email_status" role="status"></span></div>
+<div class="form-group"><label for="employee-personalEmail">Personal Email</label><input id="employee-personalEmail" type="email" class="form-control" name="personalEmail" value="" placeholder="Email address"></div>
+<div class="form-group"><label for="employee-mobile1">Mobile</label><input id="employee-mobile1" type="text" class="form-control" pattern="\d*" name="mobile1" minlength="10" maxlength="10" value="" placeholder="Contact No.1"><span class="field-error"></span></div>
+<div class="form-group"><label for="employee-mobile2">Phone</label><input id="employee-mobile2" type="text" class="form-control" pattern="\d*" name="mobile2" minlength="10" maxlength="12" value="" placeholder="Contact No.2"><span class="field-error"></span></div>
+<div class="form-group"><label for="employee-skypeUname">Skype</label><input id="employee-skypeUname" type="text" class="form-control" name="skypeUname" value="" placeholder="Skype username"></div>
+<div class="form-group span-2"><label for="employee-address">Address</label><textarea id="employee-address" type="text" rows="7" name="address" class="form-control" placeholder="Address"></textarea></div>
+</div></section>
+<section class="employee-form-section"><div class="employee-section-heading"><h3>Payroll & Bank</h3></div><div class="employee-form-grid">
+<div class="form-group"><label for="employee-salary">Salary</label><input id="employee-salary" type="text" class="form-control" name="salary" pattern="[0-9]{1,10}" value="" placeholder="Salary"></div>
+<div class="form-group"><label for="employee-bankName">Bank Name</label><input id="employee-bankName" type="text" class="form-control" name="bankName" value="" placeholder="Bank Name"></div>
+<div class="form-group"><label for="employee-bankIFSCno">Bank IFSC No.</label><input id="employee-bankIFSCno" type="text" class="form-control" name="bankIFSCno" value="" placeholder="Bank IFSC No."></div>
+<div class="form-group"><label for="employee-bankAcHolderName">Bank Account Holder</label><input id="employee-bankAcHolderName" type="text" class="form-control" name="bankAcHolderName" value="" placeholder="Bank A/c Holder Name"></div>
+<div class="form-group"><label for="employee-bankAcNo">Bank Account No.</label><input id="employee-bankAcNo" type="text" class="form-control" pattern="\d*" name="bankAcNo" value="" placeholder="Bank A/c No."></div>
+</div></section>
+<div class="employee-edit-actions"><button class="btn btn-primary" type="submit"><i class="fa fa-plus" aria-hidden="true"></i> Add Employee</button><a class="btn btn-default" href="manageEmployee.php">Cancel</a></div></form>
+
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    
+    
+    
+    
+    
+    
+    
+    <script type="text/javascript">
+    </script>
+    <script>
+        (function () {
+            var password = document.getElementById('employeeUpass');
+            var toggle = document.getElementById('toggleEmployeePassword');
+            if (!password || !toggle) return;
+
+            toggle.addEventListener('click', function () {
+                var visible = password.type === 'password';
+                password.type = visible ? 'text' : 'password';
+                toggle.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+                toggle.innerHTML = '<i class="fa ' + (visible ? 'fa-eye-slash' : 'fa-eye') + '" aria-hidden="true"></i>';
+            });
+        }());
+    </script>
+    <script type="text/javascript">
+        function checkname(){
+            $("#loaderIcon").show();
+            /*name=("#employeeUname").val();*/
+            var name=document.getElementById( "employeeUname" ).value;
+
+            if(name){
+                $.ajax({
+                    type:'post',
+                    url:'checkAvailibility.php',
+                    data: {
+                        employeeUname:name,
+                        company_id:document.querySelector('.company-selector').value,
+                    },
+                    success: function (response){
+                        $("#loaderIcon").hide();
+                        $('#name_status').html(response);
+                        if(response=="Username Available"){
+                            $('#name_status').css("color", "green");
+                            return true;
+                        }else{
+                            $('#name_status').css("color", "red");
+                            return false;
+                        }
+                    }
+                });
+            }else{
+                $('#name_status').html("");
+                return false;
+            }
+        }
+
+        function checkemail(){
+            $("#loaderIcon").show();
+            //email=('#emailUname').val();
+            var email=document.getElementById( "companyEmail" ).value;
+            if(email){
+                $.ajax({
+                    type:'post',
+                    url:'checkAvailibility.php',
+                    data: {
+                        companyEmail:email,
+                    },
+                    success: function (response){
+                        $("#loaderIcon").hide();
+                        $('#email_status').html(response);
+                        if(response=="Email Available"){
+                            $('#email_status').css("color", "green");
+                            return true;
+                        }else{
+                            $('#email_status').css("color", "red");
+                            return false;
+                        }
+                    }
+                });
+            }else{
+                $('#email_status').html("");
+                return false;
+            }
+        }
+
+        function checkall(){
+            var namehtml=document.getElementById("name_status").innerHTML;
+            var emailhtml=document.getElementById("email_status").innerHTML;
+
+            if(namehtml=="Username Available" && emailhtml=="Email Available"){
+                return true;
+            }else{
+                return false;
+            }
+        }
+
+    </script>
+    <script>
+    (function(){
+      var company=document.querySelector('.company-selector');
+      var department=document.querySelector('.department-selector');
+      function filterDepartments(){if(!company||!department)return;var companyId=company.value;Array.prototype.forEach.call(department.options,function(option,index){if(index===0)return;option.hidden=option.getAttribute('data-company')!==companyId;});if(department.selectedOptions[0]&&department.selectedOptions[0].hidden)department.value='0';}
+      if(company){company.addEventListener('change',filterDepartments);filterDepartments();}
+    }());
+    </script>
+    <script>
+    (function () {
+        var form = document.getElementById('employeeForm');
+        if (!form) return;
+
+        var requiredFields = [
+            'company_id',
+            'employeeCode',
+            'designation',
+            'name',
+            'employeeUname',
+            'employeeUpass',
+            'companyEmail',
+            'joiningDate'
+        ];
+
+        function getParentContainer(field) {
+            var parent = field.closest('.form-group');
+            if (parent) return parent;
+            var inputGroup = field.closest('.input-group');
+            if (inputGroup) return inputGroup;
+            return field.parentElement || field;
+        }
+
+        function markField(field, message) {
+            field.classList.add('is-invalid');
+            var parent = getParentContainer(field);
+            if (!parent) return;
+            var error = parent.querySelector('.field-error');
+            if (!error) {
+                error = document.createElement('div');
+                error.className = 'field-error';
+                parent.appendChild(error);
+            }
+            error.textContent = message;
+        }
+
+        function clearField(field) {
+            field.classList.remove('is-invalid');
+            var parent = getParentContainer(field);
+            if (!parent) return;
+            var error = parent.querySelector('.field-error');
+            if (error) error.remove();
+        }
+
+        requiredFields.forEach(function (name) {
+            var field = form.querySelector('[name="' + name + '"]');
+            if (!field) return;
+            field.addEventListener('input', function () {
+                if (field.value && field.value.trim() !== '') clearField(field);
+            });
+            field.addEventListener('change', function () {
+                if (field.value && field.value.trim() !== '') clearField(field);
+            });
+        });
+
+        form.addEventListener('submit', function (event) {
+            var valid = true;
+            requiredFields.forEach(function (name) {
+                var field = form.querySelector('[name="' + name + '"]');
+                if (!field) return;
+                if (!field.value || field.value.trim() === '') {
+                    valid = false;
+                    markField(field, 'This field is required.');
+                } else {
+                    clearField(field);
+                }
+            });
+
+            if (!valid) {
+                event.preventDefault();
+                var firstInvalid = form.querySelector('.is-invalid');
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    })();
+    </script>
+    <style>
+        .employee-password-group .form-control {
+            padding-right: 44px;
+        }
+        .employee-password-toggle {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 4;
+            width: 42px;
+            height: 34px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #667085;
+            cursor: pointer;
+        }
+        .employee-password-toggle:hover,
+        .employee-password-toggle:focus {
+            color: #2e6da4;
+            outline: none;
+        }
+        .employee-password-toggle:focus-visible {
+            box-shadow: 0 0 0 2px rgba(46, 109, 164, .25);
+        }
+        .employee-form-page .is-invalid {
+            border-color: #d9534f !important;
+            box-shadow: 0 0 0 0.2rem rgba(217, 83, 79, 0.15) !important;
+        }
+        .employee-form-page .field-error {
+            display: block;
+            color: #d9534f;
+            font-size: 12px;
+            margin-top: 6px;
+            line-height: 1.3;
+        }
+    </style>
+
+</body></html>

@@ -17,6 +17,7 @@ unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
             <div class="dataTablesbox">
                 <form id="leadSourceForm" role="form" method="POST" action="" novalidate>
                     <?php echo oecrm_csrf_field(); ?>
+                    <input type="hidden" name="leadSourceId" id="leadSourceId" value="0">
                     <div class="col-lg-4">
                         <div class="form-group">
                             <label>Lead Source</label>
@@ -68,12 +69,13 @@ unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
                                                 while ($row = $result->fetch_assoc()) {
                                                     echo "<tr class='gradeA even' role='row'>";
                                                     echo "<td class='sorting_1'>" . $row['id'] . "</td>";
-                                                    echo "<td>" . $row['name'] . "</td>";
-                                                    echo '<td class="center" align="center"><form method="post" action="deleteLeadSource.php" class="delete-lead-source-form" style="display:inline;" data-confirm="Are you sure you want to delete this lead source?">' . oecrm_csrf_field() . '<input type="hidden" name="deleteLeadSource" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link delete-lead-source-btn" style="padding:0;border:0;"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
+                                                    echo "<td>" . oecrm_h($row['name']) . "</td>";
+                                                    echo '<td class="center" align="center"><button type="button" class="btn btn-link edit-lead-source-btn" data-id="' . (int)$row['id'] . '" data-name="' . oecrm_h($row['name']) . '" aria-label="Edit lead source" title="Edit lead source"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</button>';
+                                                    echo '<form method="post" action="deleteLeadSource.php" class="delete-lead-source-form" style="display:inline;" data-confirm="Are you sure you want to delete this lead source?">' . oecrm_csrf_field() . '<input type="hidden" name="deleteLeadSource" value="' . (int)$row["id"] . '"><button type="submit" class="btn btn-link delete-lead-source-btn" style="padding:0;border:0;"><i class="fa fa-trash-o" style="font-size:25px; color:red;"></i></button></form></td>';
                                                     echo "</tr>";
                                                 }
                                             } else {
-                                                echo "<tr><td>";
+                                                echo "<tr><td colspan='3'>";
                                                 echo "Nothing to display";
                                                 echo "</td></tr>";
                                             }
@@ -111,6 +113,27 @@ unset($_SESSION['lead_source_flash'], $_SESSION['lead_source_flash_type']);
 
     var input = form.querySelector('input[name="name"]');
     if (!input) return;
+    var sourceId = document.getElementById('leadSourceId');
+    var submit = form.querySelector('input[type="submit"]');
+
+    document.addEventListener('click', function (event) {
+        var button = event.target.closest('.edit-lead-source-btn');
+        if (!button) return;
+        sourceId.value = button.getAttribute('data-id');
+        input.value = button.getAttribute('data-name');
+        submit.name = 'updateLeadSource';
+        submit.value = 'Update Lead Source';
+        clearError();
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        input.focus({ preventScroll: true });
+    });
+
+    form.addEventListener('reset', function () {
+        sourceId.value = sourceId.defaultValue;
+        submit.name = 'addLeadSource';
+        submit.value = 'Add Lead Source';
+        clearError();
+    });
 
     function showError(message) {
         input.classList.add('is-invalid');

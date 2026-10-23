@@ -19,7 +19,8 @@ $rows = mysqli_query(
         $where .
         " ORDER BY s.start_date DESC"
 );
-?><div id="page-wrapper" class="compact-admin-page"><div class="foundation-titlebar"><a href="projectKanban.php"><i class="fa fa-arrow-left"></i> Kanban</a><h2>Sprint Management</h2></div><div class="asset-layout"><section><div class="panel panel-default"><div class="panel-heading">Sprints</div><div class="panel-body table-responsive"><table class="table foundation-table"><thead><tr><th>Sprint</th><th>Project</th><th>Period</th><th>Tasks</th><th>Status</th></tr></thead><tbody><?php
+?><div id="page-wrapper" class="compact-admin-page"><div class="foundation-titlebar"><h2>Sprint Management</h2>
+    <a href="projectKanban.php"><i class="fa fa-arrow-left"></i> Kanban</a></div><div class="asset-layout"><section><div class="panel panel-default"><div class="panel-heading">Sprints</div><div class="panel-body table-responsive"><table class="table foundation-table"><thead><tr><th>Sprint</th><th>Project</th><th>Period</th><th>Tasks</th><th>Status</th></tr></thead><tbody><?php
 if (
     mysqli_num_rows($rows) === 0
 ): ?><tr><td colspan="5" class="empty-cell">No sprints found.</td></tr><?php endif;

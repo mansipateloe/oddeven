@@ -1,0 +1,586 @@
+{
+  "sharedPages": 111,
+  "formPages": 92,
+  "pages": [
+    {
+      "file": "admin/accessAccount.php",
+      "forms": 3,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/accessManagement.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/activeShiftAssignments.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/addaccount.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/addBankDetails.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/addcountry.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/addDeposit.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/addDomainHosting.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/addEmployee.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/addexpense.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/addInvoice.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/add_lead.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/add_role.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/all_user_roles.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/assetEditor.php",
+      "forms": 3,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/assets.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/attendanceReview.php",
+      "forms": 5,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/audit_logs.php",
+      "forms": 4,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/backupManagement.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/bankReconciliation.php",
+      "forms": 1,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/birthdayCenter.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/clientProfile.php",
+      "forms": 6,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/clients.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/companies.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/dashboard.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/databaseMaintenance.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/departments.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/editCurrency.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/editDeposit.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/editDomainHosting.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/editEmployee.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/editExpense.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/editInvoice.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/editNotice.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/edit_followup_details.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/employeeContinuations.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/employeeExits.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/employeeProfile.php",
+      "forms": 4,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/employeeShareApprovals.php",
+      "forms": 4,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/employeeShareView.php",
+      "forms": 0,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/employeeSummary.php",
+      "forms": 0,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/erpAnalytics.php",
+      "forms": 0,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/exitSettlement.php",
+      "forms": 2,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/expenseEditor.php",
+      "forms": 1,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/expiring_hostings.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/finance.php",
+      "forms": 3,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/followup.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/globalSettings.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/gstReport.php",
+      "forms": 0,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/hiringOnboarding.php",
+      "forms": 0,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/hrLetters.php",
+      "forms": 4,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/hrLetterTemplates.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/invoiceEditor.php",
+      "forms": 1,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/leads.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/lead_details.php",
+      "forms": 3,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/lead_edit.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/leavePolicies.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/loginLog.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageCurrency.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageDesignation.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageEmployee.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageEmployeeLoginLog.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageFollowupType.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageHoliday.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageLeadSource.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageLeave.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageLeaveType.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageNotice.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/manageProfessionalTax.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/noticeCenter.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/noticeMasters.php",
+      "forms": 2,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/noticeReport.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/payrollManagement.php",
+      "forms": 5,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/projectBoard.php",
+      "forms": 1,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/projectEditor.php",
+      "forms": 1,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/projectExpense.php",
+      "forms": 2,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/projectKanban.php",
+      "forms": 3,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/projectWorkspace.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/resourceAllocation.php",
+      "forms": 1,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/resources.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/role_permissions.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/salaryPolicies.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/salaryStructures.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/shiftAssignments.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/shifts.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/sprints.php",
+      "forms": 1,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/subscriptionEditor.php",
+      "forms": 1,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/subscriptions.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/taskEditor.php",
+      "forms": 1,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/timesheets.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/upcomingCelebrations.php",
+      "forms": 0,
+      "titleBars": 1
+    },
+    {
+      "file": "admin/viewDomainHosting.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/viewexpense.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/viewInvoice.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/viewTask.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/view_followup.php",
+      "forms": 4,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/view_lead_followup_details.php",
+      "forms": 4,
+      "titleBars": 0
+    },
+    {
+      "file": "admin/workforceReports.php",
+      "forms": 1,
+      "titleBars": 1
+    },
+    {
+      "file": "employee/activityLog.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/dashboard.php",
+      "forms": 8,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/empLoginLog.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/holidays.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/home.php",
+      "forms": 2,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/leave_index.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/newlogtesting.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/notices.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/shareUpdate.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/timesheets.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/userinfo.php",
+      "forms": 1,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/viewProject.php",
+      "forms": 0,
+      "titleBars": 0
+    },
+    {
+      "file": "employee/viewTask.php",
+      "forms": 1,
+      "titleBars": 0
+    }
+  ],
+  "correctedTitleOrder": [
+    "admin/accessAccount.php",
+    "admin/assetEditor.php",
+    "admin/bankReconciliation.php",
+    "admin/employeeShareApprovals.php",
+    "admin/employeeShareView.php",
+    "admin/employeeSummary.php",
+    "admin/erpAnalytics.php",
+    "admin/exitSettlement.php",
+    "admin/expenseEditor.php",
+    "admin/gstReport.php",
+    "admin/hiringOnboarding.php",
+    "admin/invoiceEditor.php",
+    "admin/noticeMasters.php",
+    "admin/projectBoard.php",
+    "admin/projectEditor.php",
+    "admin/projectExpense.php",
+    "admin/projectKanban.php",
+    "admin/resourceAllocation.php",
+    "admin/sprints.php",
+    "admin/subscriptionEditor.php",
+    "admin/taskEditor.php",
+    "admin/upcomingCelebrations.php",
+    "admin/workforceReports.php"
+  ]
+}

@@ -21,9 +21,8 @@ while ($t = mysqli_fetch_assoc($tasks)) {
 }
 ?>
 <div id="page-wrapper" class="compact-admin-page">
-    <div class="foundation-titlebar">
-        <a href="projectWorkspace.php"><i class="fa fa-arrow-left"></i> Projects</a>
-        <h2>Project Kanban</h2>
+    <div class="foundation-titlebar"><h2>Project Kanban</h2>
+    <a href="projectWorkspace.php"><i class="fa fa-arrow-left"></i> Projects</a>
         <a href="sprints.php<?php echo $projectId ? '?project_id=' . $projectId : ''; ?>" class="btn btn-default btn-sm">Manage Sprints</a>
     </div>
     <form method="get" class="finance-month-filter">

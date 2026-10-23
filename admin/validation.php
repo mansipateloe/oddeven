@@ -1123,35 +1123,52 @@ if (isset($_POST['addLeaveType'])) {
 
 }
 
-if (isset($_POST['addLeadSource'])) {
+if (isset($_POST['addLeadSource']) || isset($_POST['updateLeadSource'])) {
     oecrm_require_csrf();
+    $editing = isset($_POST['updateLeadSource']);
+    $sourceId = oecrm_int_param($_POST, 'leadSourceId');
     $message = '';
     $type = 'error';
     if (
-        !oecrm_can($conn, 'clients', 'create')
+        !(!$editing && oecrm_can($conn, 'clients', 'create'))
         && !oecrm_can($conn, 'clients', 'edit')
         && !oecrm_legacy_can($conn, 'add_lead')
         && !oecrm_legacy_can($conn, 'view_lead')
     ) {
-        $message = 'You do not have permission to add lead sources.';
+        $message = 'You do not have permission to ' . ($editing ? 'edit' : 'add') . ' lead sources.';
     } else {
         $name = trim($_POST['name'] ?? '');
-        if ($name === '') {
+        $sourceExists = true;
+        if ($editing) {
+            $lookup = mysqli_prepare($conn, 'SELECT id FROM lead_source_tbl WHERE id=? LIMIT 1');
+            mysqli_stmt_bind_param($lookup, 'i', $sourceId);
+            mysqli_stmt_execute($lookup);
+            $sourceExists = (bool) mysqli_fetch_assoc(mysqli_stmt_get_result($lookup));
+            mysqli_stmt_close($lookup);
+        }
+        if (!$sourceExists) {
+            $message = 'Lead source not found.';
+        } elseif ($name === '') {
             $message = 'Lead source name is required.';
         } else {
-            $check = mysqli_prepare($conn, 'SELECT id FROM lead_source_tbl WHERE LOWER(TRIM(name))=LOWER(?) LIMIT 1');
-            mysqli_stmt_bind_param($check, 's', $name);
+            $excludedId = $editing ? $sourceId : 0;
+            $check = mysqli_prepare($conn, 'SELECT id FROM lead_source_tbl WHERE LOWER(TRIM(name))=LOWER(?) AND id<>? LIMIT 1');
+            mysqli_stmt_bind_param($check, 'si', $name, $excludedId);
             mysqli_stmt_execute($check);
             $exists = mysqli_fetch_assoc(mysqli_stmt_get_result($check));
             mysqli_stmt_close($check);
             if ($exists) {
                 $message = 'Lead source already exists.';
             } else {
-                $insert = mysqli_prepare($conn, 'INSERT INTO lead_source_tbl (name) VALUES (?)');
-                mysqli_stmt_bind_param($insert, 's', $name);
+                $insert = mysqli_prepare($conn, $editing ? 'UPDATE lead_source_tbl SET name=? WHERE id=?' : 'INSERT INTO lead_source_tbl (name) VALUES (?)');
+                if ($editing) {
+                    mysqli_stmt_bind_param($insert, 'si', $name, $sourceId);
+                } else {
+                    mysqli_stmt_bind_param($insert, 's', $name);
+                }
                 $saved = mysqli_stmt_execute($insert);
                 mysqli_stmt_close($insert);
-                $message = $saved ? 'Lead source added successfully.' : 'Lead source could not be saved.';
+                $message = $saved ? 'Lead source ' . ($editing ? 'updated' : 'added') . ' successfully.' : 'Lead source could not be saved.';
                 $type = $saved ? 'success' : 'error';
             }
         }

@@ -35,9 +35,8 @@ unset($_SESSION['project_flash']);
 ?>
 <div id="page-wrapper" class="compact-admin-page project-board">
     <?php if ($flash): ?><div class="alert alert-success"><?php echo oecrm_h($flash); ?></div><?php endif; ?>
-    <div class="foundation-titlebar">
-        <a href="projectWorkspace.php"><i class="fa fa-arrow-left"></i> Projects</a>
-        <h2><?php echo oecrm_h($project['projectName']); ?></h2>
+    <div class="foundation-titlebar"><h2><?php echo oecrm_h($project['projectName']); ?></h2>
+    <a href="projectWorkspace.php"><i class="fa fa-arrow-left"></i> Projects</a>
         <div class="resource-actions">
             <a class="btn btn-primary btn-sm" href="taskEditor.php?project_id=<?php echo (int) $id; ?>"><i class="fa fa-plus"></i> Add Task</a>
             <a class="btn btn-warning btn-sm" href="projectEditor.php?id=<?php echo (int) $id; ?>"><i class="fa fa-pencil"></i> Edit Project</a>

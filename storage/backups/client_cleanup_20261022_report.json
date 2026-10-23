@@ -1,0 +1,23 @@
+{
+    "deleted_records": {
+        "finance_invoice_items": 0,
+        "finance_payments": 0,
+        "finance_invoices": 0,
+        "invoice_details": 7,
+        "invoice_reminders": 0,
+        "deposit": 3,
+        "invoicetbl": 7,
+        "resource_allocations": 0,
+        "client_communications": 0,
+        "client_contacts": 2,
+        "client_contracts": 0,
+        "client_documents": 2,
+        "clients": 13
+    },
+    "client_files_removed": [
+        "7e0d1674e7d74fd092cc955fb66db846.png",
+        "f25a0d992ddbc31cdd1cff8a1a284c17.pdf"
+    ],
+    "document_backup": "storage\/backups\/client_documents_before_cleanup_20261022_195407",
+    "database_backup": "storage\/backups\/oddeven_before_client_cleanup_20261022_195407.sql"
+}

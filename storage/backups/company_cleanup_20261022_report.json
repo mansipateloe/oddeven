@@ -1,0 +1,38 @@
+{
+    "mode": "completed",
+    "deleted": {
+        "access_accounts": 2,
+        "app_settings": 4,
+        "assets": 3,
+        "asset_history": 2,
+        "attendance_events": 7,
+        "attendance_sessions": 3,
+        "audit_logs": 2,
+        "companies": 4,
+        "departments": 6,
+        "digital_subscriptions": 2,
+        "finance_expenses": 2,
+        "finance_payments": 2,
+        "hr_letter_templates": 36,
+        "leave_policies": 3,
+        "notices": 4,
+        "notice_categories": 2,
+        "notice_events": 9,
+        "notice_types": 8,
+        "payroll_runs": 3,
+        "projectstbl": 22,
+        "project_expenses": 2,
+        "project_team_members": 72,
+        "resource_allocations": 13,
+        "tasktbl": 4,
+        "task_assignees": 8,
+        "task_attachments": 1
+    },
+    "financial_project_links_cleared": {
+        "finance_invoices": 0,
+        "invoicetbl": 7,
+        "deposit": 3
+    },
+    "remaining_company": "Oddeven Infotech Pvt Ltd",
+    "employees_retained": 11
+}

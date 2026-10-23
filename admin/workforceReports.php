@@ -144,7 +144,7 @@ $yearlyEmployeeProjects = mysqli_query($conn, "SELECT e.id employee_id,e.employe
     ORDER BY e.name,p.projectName");
 ?>
 <div id="page-wrapper" class="compact-admin-page">
-    <div class="foundation-titlebar"><span></span><h2>Workforce & Project Analytics</h2></div>
+    <div class="foundation-titlebar"><h2>Workforce & Project Analytics</h2></div>
     <div class="panel panel-default">
         <div class="panel-body">
             <form method="get" class="form-inline">

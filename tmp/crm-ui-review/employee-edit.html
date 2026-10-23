@@ -1,0 +1,645 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="../../vendor/bootstrap/css/bootstrap.min.css"><link rel="stylesheet" href="../../vendor/font-awesome/css/font-awesome.min.css"><link rel="stylesheet" href="../../vendor/datatables-plugins/dataTables.bootstrap.css"><link rel="stylesheet" href="../../vendor/custom/customAdmin.css"><link rel="stylesheet" href="../../dist/css/erp-typography.css"><link rel="stylesheet" href="../../dist/css/crm-ui.css"><link rel="stylesheet" href="../../dist/css/employee-ui.css"><script src="../../vendor/jquery/jquery.min.js"></script><script src="../../vendor/datatables/js/jquery.dataTables.min.js"></script><script src="../../vendor/datatables-plugins/dataTables.bootstrap.min.js"></script><script defer src="../../js/crm-ui.js"></script></head><body class="admin-portal crm-ui">
+
+<style>
+    .employee-edit-page {
+        background: #f6f7fb;
+        min-height: calc(100vh - 52px);
+    }
+    .employee-edit-shell {
+        padding: 22px 28px 36px;
+    }
+    .employee-edit-hero {
+        align-items: center;
+        background: linear-gradient(135deg, #ffffff 0%, #f4f7ff 100%);
+        border: 1px solid #e7ebf5;
+        border-radius: 18px;
+        box-shadow: 0 12px 35px rgba(26, 35, 126, 0.08);
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding: 22px 24px;
+    }
+    .employee-edit-kicker {
+        color: #8a94ad;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+    }
+    .employee-edit-hero h1 {
+        color: #202846;
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0 0 6px;
+    }
+    .employee-edit-hero p {
+        color: #667085;
+        margin: 0;
+    }
+    .employee-summary-card {
+        align-items: center;
+        background: #fff;
+        border: 1px solid #e8ecf6;
+        border-radius: 16px;
+        display: flex;
+        gap: 12px;
+        min-width: 245px;
+        padding: 12px 14px;
+    }
+    .employee-summary-avatar {
+        align-items: center;
+        background: #eef4ff;
+        border-radius: 14px;
+        color: #5b5ff6;
+        display: flex;
+        font-size: 22px;
+        height: 48px;
+        justify-content: center;
+        width: 48px;
+    }
+    .employee-summary-card strong {
+        color: #202846;
+        display: block;
+        font-size: 15px;
+    }
+    .employee-summary-card span {
+        color: #7b849b;
+        font-size: 12px;
+    }
+    .employee-edit-section {
+        background: #fff;
+        border: 1px solid #e7ebf5;
+        border-radius: 18px;
+        box-shadow: 0 10px 28px rgba(31, 41, 55, 0.06);
+        margin-bottom: 18px;
+        overflow: hidden;
+    }
+    .employee-section-heading {
+        align-items: center;
+        border-bottom: 1px solid #edf0f7;
+        display: flex;
+        gap: 12px;
+        padding: 18px 22px;
+    }
+    .employee-section-heading i {
+        align-items: center;
+        background: #f0efff;
+        border-radius: 12px;
+        color: #625df5;
+        display: flex;
+        height: 38px;
+        justify-content: center;
+        width: 38px;
+    }
+    .employee-section-heading h3 {
+        color: #202846;
+        font-size: 18px;
+        font-weight: 800;
+        margin: 0;
+    }
+    .employee-section-heading p {
+        color: #8790a6;
+        font-size: 12px;
+        margin: 2px 0 0;
+    }
+    .employee-form-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        padding: 22px;
+    }
+    .employee-form-grid .form-group {
+        margin-bottom: 0;
+    }
+    .employee-form-grid .span-2 {
+        grid-column: span 2;
+    }
+    .employee-form-grid .span-3 {
+        grid-column: 1 / -1;
+    }
+    .employee-edit-form label {
+        color: #2f3954;
+        display: block;
+        font-size: 13px;
+        font-weight: 800;
+        margin-bottom: 7px;
+    }
+    .employee-edit-form .required-star {
+        color: #ff5a5f;
+    }
+    .employee-edit-form .form-control {
+        background: #fff;
+        border: 1px solid #d8deeb;
+        border-radius: 11px;
+        box-shadow: none;
+        color: #1f2a44;
+        font-size: 14px;
+        height: 44px;
+        transition: border-color .18s ease, box-shadow .18s ease;
+    }
+    .employee-edit-form .form-control:focus {
+        border-color: #6b63ff;
+        box-shadow: 0 0 0 4px rgba(107, 99, 255, .12);
+    }
+    .employee-edit-form textarea.form-control {
+        height: auto;
+        min-height: 126px;
+        resize: vertical;
+    }
+    .employee-input-wrap {
+        position: relative;
+    }
+    .employee-input-wrap .form-control {
+        padding-left: 42px;
+    }
+    .employee-input-wrap .has-action {
+        padding-right: 48px;
+    }
+    .employee-input-icon {
+        color: #98a2b3;
+        left: 15px;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 3;
+    }
+    .employee-field-action {
+        align-items: center;
+        background: transparent;
+        border: 0;
+        color: #667085;
+        display: flex;
+        height: 42px;
+        justify-content: center;
+        position: absolute;
+        right: 2px;
+        top: 1px;
+        width: 44px;
+        z-index: 4;
+    }
+    .employee-help-text {
+        color: #8a94ad;
+        display: block;
+        font-size: 12px;
+        margin-top: 6px;
+    }
+    .employee-edit-actions {
+        align-items: center;
+        background: rgba(255, 255, 255, .94);
+        border: 1px solid #e7ebf5;
+        border-radius: 18px;
+        bottom: 18px;
+        box-shadow: 0 14px 34px rgba(31, 41, 55, 0.12);
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 8px;
+        padding: 14px;
+        position: sticky;
+        z-index: 20;
+    }
+    .employee-edit-actions .btn {
+        border-radius: 11px;
+        font-weight: 800;
+        min-width: 145px;
+        padding: 11px 18px;
+    }
+    .employee-edit-actions .btn-primary {
+        background: #625df5;
+        border-color: #625df5;
+        box-shadow: 0 8px 18px rgba(98, 93, 245, .25);
+    }
+    .employee-edit-actions .btn-default {
+        background: #f2f4f8;
+        border-color: #e0e5ef;
+        color: #475467;
+    }
+    .employee-not-found {
+        background: #fff;
+        border: 1px solid #fee4e2;
+        border-radius: 18px;
+        color: #b42318;
+        padding: 22px;
+    }
+    @media (max-width: 1199px) {
+        .employee-form-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .employee-form-grid .span-3 {
+            grid-column: 1 / -1;
+        }
+    }
+    @media (max-width: 767px) {
+        .employee-edit-shell {
+            padding: 14px;
+        }
+        .employee-edit-hero {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+        .employee-summary-card {
+            min-width: 100%;
+        }
+        .employee-form-grid {
+            grid-template-columns: 1fr;
+            padding: 16px;
+        }
+        .employee-form-grid .span-2,
+        .employee-form-grid .span-3 {
+            grid-column: auto;
+        }
+        .employee-edit-actions {
+            flex-direction: column-reverse;
+            position: static;
+        }
+        .employee-edit-actions .btn {
+            width: 100%;
+        }
+    }
+</style>
+
+<div id="page-wrapper" class="compact-admin-page employee-edit-page">
+    <div class="employee-edit-shell">
+        <div class="employee-edit-hero">
+            <div>
+                <div class="employee-edit-kicker">Admin / Employee Management</div>
+                <h1>Edit Employee</h1>
+                <p>Update organization, personal, contact, payroll and bank details from one clean screen.</p>
+            </div>
+            <div class="employee-summary-card">
+                <div class="employee-summary-avatar"><i class="fa fa-user"></i></div>
+                <div>
+                    <strong></strong>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+
+        
+            <div class="employee-not-found">
+                <strong>Employee not found.</strong> Please go back to employee listing and select a valid employee.
+            </div>
+        
+            <form class="employee-edit-form" role="form" method="POST" action="employeeSave.php" autocomplete="off">
+                
+                <input type="hidden" name="mode" value="update">
+                <input type="hidden" name="employee_id" value="">
+
+                <div class="employee-edit-section">
+                    <div class="employee-section-heading">
+                        <i class="fa fa-building-o"></i>
+                        <div>
+                            <h3>Organization & Employment</h3>
+                            <p>Company mapping, department, employment status and exit details.</p>
+                        </div>
+                    </div>
+                    <div class="employee-form-grid">
+                        <div class="form-group">
+                            <label>Company <span class="required-star">*</span></label>
+                            <select class="form-control company-selector" name="company_id" required>
+                                <option value="">Select Company</option>
+                                
+                                    <option value="" >
+                                        
+                                    </option>
+                                
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Department</label>
+                            <select class="form-control department-selector" name="department_id">
+                                <option value="0">No Department</option>
+                                
+                                    <option data-company="" value="" >
+                                        
+                                    </option>
+                                
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Employment Type</label>
+                            <select class="form-control" name="employment_type">
+                                
+                                    <option value="" >
+                                        
+                                    </option>
+                                
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Employment Status</label>
+                            <select class="form-control" name="employment_status">
+                                
+                                    <option value="" >
+                                        
+                                    </option>
+                                
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Joining Date <span class="required-star">*</span></label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-calendar-o employee-input-icon"></i>
+                                <input type="date" class="form-control" name="joiningDate" value="" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirmation Date</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-check-circle-o employee-input-icon"></i>
+                                <input type="date" class="form-control" name="confirmation_date" value="">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Notice Period Days</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-clock-o employee-input-icon"></i>
+                                <input type="number" min="0" class="form-control" name="notice_period_days" value="">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Exit Date</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-calendar-times-o employee-input-icon"></i>
+                                <input type="date" class="form-control" name="exit_date" value="">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Exit Reason</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-commenting-o employee-input-icon"></i>
+                                <input class="form-control" name="exit_reason" value="" placeholder="Reason, if applicable">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="employee-edit-section">
+                    <div class="employee-section-heading">
+                        <i class="fa fa-id-card-o"></i>
+                        <div>
+                            <h3>Basic Information</h3>
+                            <p>Identity, login and designation details.</p>
+                        </div>
+                    </div>
+                    <div class="employee-form-grid">
+                        <div class="form-group">
+                            <label>Employee Code <span class="required-star">*</span></label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-hashtag employee-input-icon"></i>
+                                <input type="text" class="form-control" name="employeeCode" value="" maxlength="6" placeholder="Employee code" required>
+                            </div>
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label>Designation <span class="required-star">*</span></label>
+                            <select class="form-control" name="designation" required>
+                                <option value="">Select Designation</option>
+                                
+                                    <option value="" >
+                                        
+                                    </option>
+                                
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Full Name <span class="required-star">*</span></label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-user employee-input-icon"></i>
+                                <input type="text" class="form-control" name="name" value="" placeholder="Employee full name" required>
+                            </div>
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label>Username <span class="required-star">*</span></label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-at employee-input-icon"></i>
+                                <input type="text" class="form-control" name="employeeUname" value="" placeholder="Username" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-key employee-input-icon"></i>
+                                <input id="employeePassword" type="password" class="form-control has-action" name="employeeUpass" value="" placeholder="Leave blank to keep current" minlength="6" maxlength="13" autocomplete="new-password">
+                                <button type="button" class="employee-field-action" data-toggle-password="#employeePassword" aria-label="Show password">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                            </div>
+                            <span class="employee-help-text">Only enter password if you want to change it.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Birth Date</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-birthday-cake employee-input-icon"></i>
+                                <input type="date" class="form-control" name="birthdate" value="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="employee-edit-section">
+                    <div class="employee-section-heading">
+                        <i class="fa fa-address-book-o"></i>
+                        <div>
+                            <h3>Contact Details</h3>
+                            <p>Email, phone and communication information.</p>
+                        </div>
+                    </div>
+                    <div class="employee-form-grid">
+                        <div class="form-group">
+                            <label>Company Email <span class="required-star">*</span></label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-envelope-o employee-input-icon"></i>
+                                <input type="email" class="form-control" name="companyEmail" value="" placeholder="Company email address" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Personal Email</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-envelope employee-input-icon"></i>
+                                <input type="email" class="form-control" name="personalEmail" value="" placeholder="Personal email address">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-phone employee-input-icon"></i>
+                                <input type="text" class="form-control" name="mobile1" minlength="10" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" data-digits-only value="" placeholder="10 digit mobile">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-phone-square employee-input-icon"></i>
+                                <input type="text" class="form-control" name="mobile2" minlength="10" maxlength="10" pattern="[0-9]{10}" inputmode="numeric" data-digits-only value="" placeholder="10 digit phone">
+                            </div>
+                        </div>
+                        <div class="form-group span-2">
+                            <label>Skype</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-skype employee-input-icon"></i>
+                                <input type="text" class="form-control" name="skypeUname" value="" placeholder="Skype username">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="employee-edit-section">
+                    <div class="employee-section-heading">
+                        <i class="fa fa-credit-card"></i>
+                        <div>
+                            <h3>Payroll & Bank</h3>
+                            <p>Salary, bank account and address details.</p>
+                        </div>
+                    </div>
+                    <div class="employee-form-grid">
+                        <div class="form-group">
+                            <label>Salary</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-rupee employee-input-icon"></i>
+                                <input type="text" class="form-control" name="salary" pattern="[0-9]{1,10}" inputmode="numeric" data-digits-only value="" placeholder="Salary">
+                            </div>
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label>Bank Name</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-bank employee-input-icon"></i>
+                                <input type="text" class="form-control" name="bankName" value="" placeholder="Bank name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Bank IFSC No.</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-code employee-input-icon"></i>
+                                <input type="text" class="form-control" name="bankIFSCno" value="" placeholder="IFSC code">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Account Holder Name</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-user-o employee-input-icon"></i>
+                                <input type="text" class="form-control" name="bankAcHolderName" value="" placeholder="Account holder name">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Account No.</label>
+                            <div class="employee-input-wrap">
+                                <i class="fa fa-university employee-input-icon"></i>
+                                <input type="text" class="form-control" name="bankAcNo" pattern="[0-9]*" inputmode="numeric" data-digits-only value="" placeholder="Bank account number">
+                            </div>
+                        </div>
+                        <div class="form-group span-3">
+                            <label>Address</label>
+                            <textarea rows="5" name="address" class="form-control" placeholder="Employee address"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="employee-edit-section">
+                    <div class="employee-section-heading">
+                        <i class="fa fa-heart-o"></i>
+                        <div>
+                            <h3>Personal & Emergency Details</h3>
+                            <p>Additional personal information and emergency contacts.</p>
+                        </div>
+                    </div>
+                    <div class="employee-form-grid">
+                        <div class="form-group">
+                            <label>Blood Group</label>
+                            <input type="text" class="form-control" name="blood_group" value="" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label>Marital Status</label>
+                            <select class="form-control" name="marital_status">
+                                <option value="">Select</option>
+                                
+                                    <option value="" >
+                                        
+                                    </option>
+                                
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Emergency Contact Name</label>
+                            <input type="text" class="form-control" name="emergency_contact_name" value="" maxlength="150">
+                        </div>
+                        <div class="form-group">
+                            <label>Emergency Contact Phone</label>
+                            <input type="text" class="form-control" name="emergency_contact_phone" value="" maxlength="40">
+                        </div>
+                        <div class="form-group span-3">
+                            <label>Current Address</label>
+                            <textarea rows="3" name="current_address" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group span-3">
+                            <label>Permanent Address</label>
+                            <textarea rows="3" name="permanent_address" class="form-control"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="employee-edit-actions">
+                    <a href="manageEmployee.php" class="btn btn-default">
+                        <i class="fa fa-times"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Update Employee
+                    </button>
+                </div>
+            </form>
+        
+    </div>
+</div>
+
+
+
+
+
+<script>
+(function () {
+    var company = document.querySelector('.company-selector');
+    var department = document.querySelector('.department-selector');
+
+    function filterDepartments() {
+        if (!company || !department) return;
+        var companyId = company.value;
+        Array.prototype.forEach.call(department.options, function (option, index) {
+            if (index === 0) return;
+            option.hidden = option.getAttribute('data-company') !== companyId;
+        });
+        if (department.selectedOptions[0] && department.selectedOptions[0].hidden) {
+            department.value = '0';
+        }
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-digits-only]'), function (input) {
+        input.addEventListener('input', function () {
+            var maxLength = parseInt(input.getAttribute('maxlength') || '0', 10);
+            var value = input.value.replace(/\D/g, '');
+            input.value = maxLength ? value.slice(0, maxLength) : value;
+        });
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('[data-toggle-password]'), function (button) {
+        button.addEventListener('click', function () {
+            var input = document.querySelector(button.getAttribute('data-toggle-password'));
+            var icon = button.querySelector('i');
+            if (!input) return;
+            input.type = input.type === 'password' ? 'text' : 'password';
+            if (icon) {
+                icon.className = input.type === 'password' ? 'fa fa-eye' : 'fa fa-eye-slash';
+            }
+        });
+    });
+
+    if (company) {
+        company.addEventListener('change', filterDepartments);
+        filterDepartments();
+    }
+}());
+</script>
+
+</body></html>
