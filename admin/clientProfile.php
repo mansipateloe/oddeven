@@ -65,6 +65,8 @@ $projects = $id
         $conn,
         "SELECT id,projectName,status,startdate,enddate,amount FROM projectstbl WHERE client_id=" .
             (int) $id .
+            " AND company_id=" .
+            (int) $companyId .
             " ORDER BY id DESC"
     )
     : null;
@@ -368,13 +370,15 @@ $value
         </div>
     <?php endwhile; ?>
 </div></div></div>
-                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-suitcase"></i> Linked Projects</div><div class="panel-body client-mini-list"><?php while (
+                <div class="panel panel-default"><div class="panel-heading"><i class="fa fa-suitcase"></i> Linked Projects</div><div class="panel-body client-mini-list">
+                <?php if (mysqli_num_rows($projects) === 0): ?><p class="text-muted">No linked projects in the active company.</p><?php endif; ?>
+                <?php while (
                     $item = mysqli_fetch_assoc($projects)
                 ): ?><div><strong><?php echo oecrm_h(
     $item["projectName"]
 ); ?></strong><small><?php echo oecrm_h(
     ucfirst($item["status"])
-); ?></small><a href="projectBoard.php?id=<?php echo (int) $item[
+); ?></small><a title="View project details" aria-label="<?php echo oecrm_h('View project: ' . $item['projectName']); ?>" href="projectBoard.php?id=<?php echo (int) $item[
     "id"
 ]; ?>"><i class="fa fa-arrow-right"></i></a></div><?php endwhile; ?></div></div>
             </aside>

@@ -11,7 +11,20 @@ $id = (int) ($_GET['id'] ?? 0);
 $project = mysqli_fetch_assoc(mysqli_query($conn, 'SELECT p.*,c.display_name client_name FROM projectstbl p LEFT JOIN clients c ON c.id=p.client_id WHERE p.id=' . (int) $id . ' AND p.company_id=' . (int) $companyId));
 if (!$project) {
     http_response_code(404);
-    exit('Project not found.');
+    ?>
+    <div id="page-wrapper" class="compact-admin-page project-board">
+        <div class="panel panel-default">
+            <div class="panel-heading">Project not found</div>
+            <div class="panel-body">
+                <p role="alert">This project is unavailable or does not belong to the active company.</p>
+                <a class="btn btn-default" href="clients.php"><i class="fa fa-arrow-left" aria-hidden="true"></i> Back to Clients</a>
+                <a class="btn btn-primary" href="projectWorkspace.php">View Projects</a>
+            </div>
+        </div>
+    </div>
+    <?php
+    include 'footer.php';
+    exit;
 }
 $originalDeadline = oecrm_project_original_deadline($project);
 $currentDeadline = oecrm_project_current_deadline($project);
