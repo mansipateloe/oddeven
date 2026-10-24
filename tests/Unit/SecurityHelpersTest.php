@@ -1,6 +1,56 @@
 <?php
 
 return [
+    'test_employee_login_replaces_previous_super_admin_identity' => function (): void {
+        oecrm_test_reset_state();
+        $_SESSION = ['adminId' => 1, 'is_admin' => '1', 'adminName' => 'Admin',
+            'admin_access_role' => 5, 'company_id' => 99, 'csrf_token' => 'old-token',
+            '_oecrm_navigation' => ['old' => ['values' => ['id' => 123]]]];
+        oecrm_initialize_authenticated_session();
+        $_SESSION['employeeId'] = 8;
+        oecrm_test_assert_false(oecrm_admin_session_is_valid());
+        oecrm_test_assert_false(oecrm_is_super_admin());
+        oecrm_test_assert_false(oecrm_can(null, 'employees'));
+        oecrm_test_assert_false(oecrm_legacy_can(null, 'employees', 5));
+        foreach (['adminId', 'is_admin', 'adminName', 'admin_access_role', 'company_id', 'csrf_token', '_oecrm_navigation'] as $key) {
+            oecrm_test_assert_false(isset($_SESSION[$key]), 'Previous session value survived: ' . $key);
+        }
+    },
+
+    'test_admin_login_replaces_employee_identity_and_role' => function (): void {
+        oecrm_test_reset_state();
+        $_SESSION = ['employeeId' => 8, 'admin_access_role' => 5, 'company_id' => 99];
+        oecrm_initialize_authenticated_session();
+        $_SESSION['adminId'] = 1;
+        $_SESSION['is_admin'] = '1';
+        oecrm_test_assert_true(oecrm_admin_session_is_valid());
+        oecrm_test_assert_true(oecrm_is_super_admin());
+        oecrm_test_assert_true(oecrm_can(null, 'employees'));
+        oecrm_test_assert_false(isset($_SESSION['employeeId']));
+        oecrm_test_assert_false(isset($_SESSION['admin_access_role']));
+        oecrm_test_assert_false(isset($_SESSION['company_id']));
+    },
+
+    'test_mixed_employee_and_admin_session_never_grants_admin_permissions' => function (): void {
+        oecrm_test_reset_state();
+        $_SESSION = ['employeeId' => 8, 'adminId' => 1, 'is_admin' => '1', 'admin_access_role' => 5];
+        oecrm_test_assert_false(oecrm_admin_session_is_valid());
+        oecrm_test_assert_false(oecrm_is_super_admin());
+        oecrm_test_assert_false(oecrm_can(null, 'employees'));
+        oecrm_test_assert_false(oecrm_legacy_can(null, 'employees', 5));
+    },
+
+    'test_admin_session_requires_explicit_admin_or_delegated_role' => function (): void {
+        oecrm_test_reset_state();
+        $_SESSION['adminId'] = 8;
+        oecrm_test_assert_false(oecrm_admin_session_is_valid());
+        $_SESSION['is_admin'] = '0';
+        oecrm_test_assert_false(oecrm_admin_session_is_valid());
+        $_SESSION['admin_access_role'] = 5;
+        oecrm_test_assert_true(oecrm_admin_session_is_valid());
+        oecrm_test_assert_false(oecrm_is_super_admin());
+    },
+
     'test_oecrm_navigation_actor_key_includes_portal_and_actor_id' => function (): void {
         oecrm_test_reset_state();
         $_SESSION['adminId'] = 15;
@@ -56,9 +106,9 @@ return [
     'test_oecrm_session_guard_rejects_expired_session' => function (): void {
         oecrm_test_reset_state();
         $_SERVER['HTTP_USER_AGENT'] = 'Test Agent';
-        $_SESSION['_oecrm_started_at'] = time() - 50000;
-        $_SESSION['_oecrm_last_activity'] = time() - 50000;
-        $_SESSION['_oecrm_rotated_at'] = time() - 50000;
+        $_SESSION['_oecrm_started_at'] = time() - OECRM_SESSION_LIFETIME_SECONDS - 1;
+        $_SESSION['_oecrm_last_activity'] = time() - OECRM_SESSION_LIFETIME_SECONDS - 1;
+        $_SESSION['_oecrm_rotated_at'] = time() - OECRM_SESSION_LIFETIME_SECONDS - 1;
         $_SESSION['_oecrm_user_agent'] = hash('sha256', 'Test Agent');
         oecrm_test_assert_false(oecrm_session_guard());
     },

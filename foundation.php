@@ -45,11 +45,14 @@ function oecrm_current_company_id($conn)
 
 function oecrm_is_super_admin()
 {
-    return !empty($_SESSION['is_admin']) && (int) $_SESSION['is_admin'] === 1;
+    return oecrm_admin_session_is_valid() && (string) ($_SESSION['is_admin'] ?? '') === '1';
 }
 
 function oecrm_can($conn, $module, $action = 'view')
 {
+    if (!oecrm_admin_session_is_valid()) {
+        return false;
+    }
     if (oecrm_is_super_admin()) {
         return true;
     }
@@ -107,6 +110,9 @@ function oecrm_legacy_permission_target($legacyName)
 
 function oecrm_legacy_can($conn, $legacyName, $roleId = 0)
 {
+    if (!oecrm_admin_session_is_valid()) {
+        return false;
+    }
     if (oecrm_is_super_admin()) {
         return true;
     }

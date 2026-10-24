@@ -8,6 +8,17 @@ Run:
 php tests/run.php
 ```
 
+Run the admin portal access regression checks:
+
+```bash
+php tests/portalAccess.php
+```
+
+This starts a temporary loopback PHP server with isolated test sessions. It checks
+employee and mixed employee/admin sessions against copied admin URLs and POST
+endpoints, along with login redirects, authorized session guards and no-store
+headers. It does not log into real accounts or modify application records.
+
 Coverage focus:
 
 - `security.php` pure and session-based helpers

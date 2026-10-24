@@ -24,6 +24,10 @@ function oecrm_apply_security_headers()
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
     header('Cross-Origin-Opener-Policy: same-origin');
+    // Login and authenticated responses must not survive an account switch.
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: 0');
     if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
         header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
     }
@@ -140,6 +144,8 @@ function oecrm_block_unsafe_get_actions()
 
 function oecrm_initialize_authenticated_session()
 {
+    // A successful login replaces the previous identity, role and company context.
+    $_SESSION = [];
     $now = time();
     $_SESSION['_oecrm_started_at'] = $now;
     $_SESSION['_oecrm_last_activity'] = $now;
@@ -220,11 +226,38 @@ function oecrm_login_rate_limited($conn, $portal)
 
 oecrm_apply_security_headers();
 
+function oecrm_admin_session_is_valid()
+{
+    if (!empty($_SESSION['employeeId']) || empty($_SESSION['adminId'])) {
+        return false;
+    }
+    $kind = (string) ($_SESSION['is_admin'] ?? '');
+    return $kind === '1'
+        || ($kind === '0' && (int) ($_SESSION['admin_access_role'] ?? 0) > 0);
+}
+
+function oecrm_unauthorized_user()
+{
+    http_response_code(403);
+    if (!headers_sent()) {
+        header('Content-Type: text/html; charset=UTF-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    }
+    exit('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Unauthorized User</title></head><body><main><h1>Unauthorized User</h1><p>You do not have permission to access the Admin section.</p></main></body></html>');
+}
+
 function oecrm_require_admin_login()
 {
+    // Reject mixed/employee sessions before redirects, queries or action handlers.
+    if (!empty($_SESSION['employeeId'])) {
+        oecrm_unauthorized_user();
+    }
     if (empty($_SESSION['adminId'])) {
         header('Location: index.php');
         exit;
+    }
+    if (!oecrm_admin_session_is_valid()) {
+        oecrm_unauthorized_user();
     }
     if (!oecrm_session_guard()) {
         header('Location: index.php?expired=1');

@@ -1,4 +1,5 @@
 <?php require_once __DIR__ . '/../security.php';
+oecrm_require_admin_login();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     oecrm_require_csrf();
 }

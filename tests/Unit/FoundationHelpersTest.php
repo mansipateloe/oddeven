@@ -7,6 +7,7 @@ return [
 
     'test_oecrm_is_super_admin_detects_admin_flag' => function (): void {
         oecrm_test_reset_state();
+        $_SESSION['adminId'] = 1;
         $_SESSION['is_admin'] = 1;
         oecrm_test_assert_true(oecrm_is_super_admin());
         $_SESSION['is_admin'] = 0;
