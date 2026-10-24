@@ -1,4 +1,5 @@
 <?php
+//session
 ob_start();
 $active_menu = 'setting';
 $active_submenu = 'setting_currency';
