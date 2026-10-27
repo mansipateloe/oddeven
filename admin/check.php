@@ -1,9 +1,9 @@
 <?php
 require_once __DIR__ . '/../security.php';
 oecrm_require_admin_login();
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+// ini_set('display_errors', '1');
+// ini_set('display_startup_errors', '1');
+// error_reporting(E_ALL);
 
 echo "Step 1: PHP OK - " . PHP_VERSION . "<br>\n";
 
